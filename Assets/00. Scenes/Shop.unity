@@ -5440,6 +5440,9 @@ MonoBehaviour:
   spacing: 0.075
   boxHighlightCount: 5
   boxRowInterval: 0.25
+  stackSpacing: 0.003
+  flySeconds: 0.35
+  revealProfile: {fileID: 11400000, guid: bf614d7d4a8b5354eb6bab7d137a9d0a, type: 2}
 --- !u!4 &1954110008
 Transform:
   m_ObjectHideFlags: 0

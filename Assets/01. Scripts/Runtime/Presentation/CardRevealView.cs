@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using CardShop.Cards;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
@@ -19,6 +21,7 @@ namespace CardShop.Presentation
         XRGrabInteractable grab;
         Rigidbody body;
         Transform visual;
+        TextMeshPro newBadge;
         bool faceDown;
 
         public CardData Card => view.Data;
@@ -48,6 +51,7 @@ namespace CardShop.Presentation
             gameObject.SetActive(true);
             view.Bind(card);
             IsNew = isNew;
+            SetNewBadge(isNew);
             if (body != null)
             {
                 body.isKinematic = true; // 놓아도 그 자리에 떠 있음 (잡았다 놓으면 XRI가 이 상태로 되돌림)
@@ -61,6 +65,41 @@ namespace CardShop.Presentation
         }
 
         public void Announce() => Revealed?.Invoke(this);
+
+        // 처음 얻은 카드에 "NEW" 스티커 (개봉연출 설계 5장 #8). Visual 아래라 카드와 함께 뒤집힙니다.
+        void SetNewBadge(bool on)
+        {
+            if (!on && newBadge == null) return;
+            if (newBadge == null) newBadge = CreateNewBadge();
+            if (newBadge != null) newBadge.gameObject.SetActive(on);
+        }
+
+        TextMeshPro CreateNewBadge()
+        {
+            Transform parent = visual != null ? visual : transform;
+            var mesh = parent.GetComponentInChildren<MeshFilter>();
+            if (mesh == null || mesh.sharedMesh == null) return null;
+            Bounds b = mesh.sharedMesh.bounds; // 카드 크기 (Visual 기준 로컬)
+
+            var go = new GameObject("NewBadge", typeof(RectTransform));
+            go.transform.SetParent(mesh.transform, false);
+            var text = go.AddComponent<TextMeshPro>();
+            TMP_Text cardText = GetComponentInChildren<TMP_Text>(true);
+            if (cardText != null && cardText != text) text.font = cardText.font;
+            text.text = "<mark=#1F9D55E6><b> NEW </b></mark>";
+            text.fontSize = 0.35f;
+            text.color = Color.white;
+            text.alignment = TextAlignmentOptions.Center;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+
+            var rt = (RectTransform)go.transform;
+            rt.sizeDelta = new Vector2(0.03f, 0.01f);
+            // 오른쪽 위 모서리에 살짝 걸치게, 앞면(-Z) 바로 앞
+            rt.localPosition = new Vector3(b.max.x - 0.008f, b.max.y + 0.002f, b.min.z - 0.0008f);
+            rt.localRotation = Quaternion.Euler(0f, 0f, -12f);
+            return text;
+        }
 
         /// <summary>묶음에 있는 동안은 잡히지 않게(넘기기 순서가 꼬이지 않도록).</summary>
         public void SetGrabbable(bool on) => grab.enabled = on;

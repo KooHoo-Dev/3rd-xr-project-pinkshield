@@ -42,7 +42,9 @@ namespace CardShop.Tests
 
             var revealer = Object.FindAnyObjectByType<CardShop.Presentation.CardRevealer>();
             Assert.IsNotNull(revealer, "CardRevealer 없음");
-            Assert.IsNotNull(new SerializedObject(revealer).FindProperty("cardPrefab").objectReferenceValue, "카드 프리팹 미연결");
+            var revealerSo = new SerializedObject(revealer);
+            Assert.IsNotNull(revealerSo.FindProperty("cardPrefab").objectReferenceValue, "카드 프리팹 미연결");
+            Assert.IsNotNull(revealerSo.FindProperty("revealProfile").objectReferenceValue, "등급별 연출 프로필 미연결");
 
             CardShop.Interaction.PokeButton[] buttons = Object.FindObjectsByType<CardShop.Interaction.PokeButton>(FindObjectsSortMode.None);
             Assert.GreaterOrEqual(buttons.Length, 2, "상자·퇴근 버튼");

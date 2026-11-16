@@ -162,7 +162,8 @@ namespace CardShop.EditorTools
             anchor.SetPositionAndRotation(new Vector3(0f, CounterTop + 0.2f, 0.5f), Quaternion.Euler(25f, 0f, 0f));
 
             var revealer = go.AddComponent<CardRevealer>();
-            revealer.Configure(AssetDatabase.LoadAssetAtPath<CardView>(CardPrefabPath), anchor);
+            revealer.Configure(AssetDatabase.LoadAssetAtPath<CardView>(CardPrefabPath), anchor,
+                AssetDatabase.LoadAssetAtPath<RarityRevealProfile>(DataPaths.RevealProfile));
 
             var opener = go.AddComponent<PackOpener>();
             opener.Configure(flow, revealer);

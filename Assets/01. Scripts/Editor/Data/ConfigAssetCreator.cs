@@ -19,6 +19,7 @@ namespace CardShop.Cards.EditorTools
             Ensure<EconomyConfig>(DataPaths.Economy);
             Ensure<CampaignConfig>(DataPaths.Campaign);
             Ensure<ScoreConfig>(DataPaths.Score);
+            Ensure<RarityRevealProfile>(DataPaths.RevealProfile);
             AssetDatabase.SaveAssets();
         }
 

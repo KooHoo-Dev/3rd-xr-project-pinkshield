@@ -15,6 +15,7 @@ namespace CardShop.Cards.EditorTools
         public const string Economy = ConfigsDir + "/EconomyConfig.asset";
         public const string Campaign = ConfigsDir + "/CampaignConfig.asset";
         public const string Score = ConfigsDir + "/ScoreConfig.asset";
+        public const string RevealProfile = ConfigsDir + "/RarityRevealProfile.asset";
 
         public const string ArtRoot = "Assets/04. Art/Cards";
         public const string ArtChar = ArtRoot + "/Char";
