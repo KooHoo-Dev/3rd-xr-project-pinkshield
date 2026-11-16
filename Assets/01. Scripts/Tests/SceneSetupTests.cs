@@ -50,6 +50,17 @@ namespace CardShop.Tests
                 Assert.Greater(b.pressed.GetPersistentEventCount(), 0, $"{b.name}: 연결된 동작 없음");
         }
 
+        // BUG-001: 스크립트가 빠진 컴포넌트는 에러 없이 조용히 동작을 멈춥니다.
+        [Test]
+        public void PackPrefab_HasNoMissingScriptsAndOpenMethod()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/03. Prefabs/Packs/Pack.prefab");
+            Assume.That(prefab, Is.Not.Null, "팩 프리팹 없음");
+            foreach (Transform t in prefab.GetComponentsInChildren<Transform>(true))
+                Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject), $"{t.name}: 스크립트 없는 컴포넌트");
+            Assert.IsNotNull(prefab.GetComponent<CardShop.Interaction.IPackOpenMethod>(), "개봉 방식(IPackOpenMethod) 없음");
+        }
+
         [Test]
         public void ShopScene_IsFirstBuildScene()
         {

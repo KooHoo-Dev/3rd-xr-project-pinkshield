@@ -44,6 +44,7 @@ namespace CardShop.Cards
         MaterialPropertyBlock mpb;
 
         public CardData Data => data;
+        public CardRarityStyles Styles => styles;
 
         public void Bind(CardData cardData)
         {

@@ -317,7 +317,7 @@ GameObject:
   - component: {fileID: 6347548749868922540}
   - component: {fileID: 2777483599745122201}
   - component: {fileID: 2602907176951786608}
-  - component: {fileID: 1955571267308554878}
+  - component: {fileID: 2939601590616598787}
   m_Layer: 0
   m_Name: Pack
   m_TagString: Untagged
@@ -534,7 +534,7 @@ MonoBehaviour:
   foldHinge: {fileID: 1098342645287750285}
   foldAngle: 55
   returnDelay: 3
---- !u!114 &1955571267308554878
+--- !u!114 &2939601590616598787
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -543,7 +543,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3118418274816640625}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 60afa67465e34466a0cad61078add768, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Interaction.ActivatePackOpen
 --- !u!1 &3517315920660237600
