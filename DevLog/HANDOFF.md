@@ -1,7 +1,7 @@
 # 인계 노트 — 다른 PC에서 이어서 작업하기
 
-> 마지막 갱신: 2026-11-16 (Day 0 마감) · 브랜치 `main`
-> 오늘 한 일 전체는 [일일 노트](daily/2026-11-16.md), 설계는 [시스템 설계 한눈에 보기](../Assets/98.%20Doc/시스템설계_한눈에_보기.md)를 봅니다.
+> 마지막 갱신: 2026-11-17 (Day 1 마감) · 브랜치 `main`
+> 오늘 한 일 전체는 [일일 노트](daily/2026-11-17.md) (전날: [Day 0](daily/2026-11-16.md)), 설계는 [시스템 설계 한눈에 보기](../Assets/98.%20Doc/시스템설계_한눈에_보기.md)를 봅니다.
 
 ## 1. 지금 상태 (한 줄 요약)
 7일 루프 뼈대가 Quest에서 끝까지 돌고, **퇴근 후(AfterHours) 페이즈에서 팩 고르기 → 자르기 → 한 장씩 넘기기**까지 에디터 시뮬레이터로 확인했습니다. 손님·결제·청소·바인더·판매·튜토리얼은 아직 없습니다.
@@ -12,8 +12,9 @@
 | 흐름 (페이즈 7개, 일시정지 플래그) | ✅ 뼈대 (각 페이즈 내용은 비어 있음) |
 | 팩 확률 · 선반 · 개봉 규칙 · 상자 | ✅ 완료, 테스트로 고정 |
 | 자르기 개봉 · 한 장씩 넘기기 | ✅ 1차 구현, **실기기 확인 전** |
-| 등급별 연출 (빛 · 소리 · 파티클) | ⏳ 멈춤·진동만 |
+| 등급별 연출 (빛 · 소리 · 파티클) | ⏳ 멈춤·진동·NEW 배지. 값은 `RarityRevealProfile.asset`(소리 칸 있음, 클립은 아직 없음) |
 | 판매 · 인기 속성 · 최종 점수 규칙 (`SalesRules` · `PopularElementSchedule` · `ScoreRules`) | ✅ 규칙과 테스트만 (진열대·손님·정산 화면은 없음) |
+| 카드 캐릭터 그림 | ⏳ 30/50장 (불 · 물 · 땅 전부, 공기 A-N1~A-SR). 남음: A-U · A-L, 자연(N) 8장, 필드(FD)·간식(SN) 10장. 배경(`BG/`)은 0장 |
 | 업무 (손님 · 결제 · 청소) · 바인더 · 판매 진열대 · 튜토리얼 | ❌ 시작 전 |
 
 ## 2. 다른 PC 준비
@@ -21,8 +22,8 @@
 2. **Unity 6000.3.15f1** + Android Build Support(OpenJDK · SDK · NDK 포함) 설치. 다른 버전으로 열면 패키지·씬이 바뀔 수 있습니다.
 3. 처음 열 때 `Library/`를 새로 만드느라 오래 걸립니다. XRI Starter Assets 샘플은 저장소에 들어 있어 따로 임포트하지 않아도 됩니다.
 4. 열고 나서 확인
-   - `Tools > CardShop > Validate Data` → 경고 0개
-   - Test Runner(EditMode) → 47개 통과
+   - `Tools > CardShop > Validate Data` → 오류 0개 (경고 1건 "아트 누락"은 배경 그림이 아직 없어서 정상)
+   - Test Runner(EditMode) → 48개 통과
    - `Assets/00. Scenes/Shop.unity`를 열고 Play
 5. **Quest 연결**: 헤드셋 개발자 모드 · USB 디버깅 허용. adb가 `unauthorized`면 헤드셋 개발자 설정에서 USB 디버깅 권한을 취소하고, 다시 꽂아 **RSA 키 지문이 있는 창**에서 허용합니다.
    - 빠른 테스트: Quest Link / Air Link로 연결하고 에디터에서 Play
@@ -45,15 +46,22 @@
 - [ ] 여러 번 연속 개봉해도 카드 묶음이 눈앞에 나오는지 (BUG-003 재확인)
 - [ ] 자르기 판정 범위(위아래 4cm, 앞뒤 8cm)가 실제 손에 맞는지. 값은 `Pack.prefab`의 `TearGestureOpen`에서 조정
 - [ ] 눈높이 보정이 서서·앉아서 모두 자연스러운지
+- [ ] NEW 배지가 카드 오른쪽 위에 잘 보이는지(크기·위치는 `CardRevealView.CreateNewBadge`), 유니크 진동 2번이 구분되는지
 - [ ] 카드 아트: 새 수퍼레어(3차) 프롬프트로 생성해 몸 모양이 지켜지는지 (DEC-002 "다시 보면" 채우기)
+- [ ] **적용한 카드 그림 29장이 카드 위에서 어떻게 보이는지** 에디터에서 확인. 특히 레전더리(F-L · W-L · E-L)는 프레임 밖으로 튀어나오는 등급이라 위치 · 크기가 어긋나면 `CardRarityStyles.asset`의 `charScale` · `charOffsetY` 조정
+- [ ] 누끼 결과 중 남은 흠: E-SR 돌 뒤 작은 밝은 조각과 바닥 점 1개, F-L 몸 아래 주황빛(불빛 반사로 보고 남김)
 
 ## 5. 다음 작업 (설계 문서 기준 순서)
 개봉 연출 남은 것 (`Assets/98. Doc/카드팩_개봉연출_설계.md` 6장)
-1. NEW 배지 (`CardRevealView.IsNew`는 이미 있음)
-2. `RarityRevealProfile` SO + 등급별 사운드 · 햅틱
-3. 5번째 카드 빛샘, 특수 팩(갓팩·확정팩) 예고
-4. 찢는 소리, 팩 윗부분 떨어지는 연출
-5. 상자 50장 요약 화면
+1. 등급별 효과음 클립 구해서 `Assets/02. Data/Configs/RarityRevealProfile.asset`의 `sound` 칸에 넣기 (코드는 연결됨)
+2. 5번째 카드 빛샘, 특수 팩(갓팩·확정팩) 예고
+3. 찢는 소리, 팩 윗부분 떨어지는 연출
+4. 상자 50장 요약 화면
+
+카드 아트 (`Assets/98. Doc/카드아트_Gemini_프롬프트_가이드.md`)
+1. 남은 캐릭터 생성: A-U · A-L, 자연(N) 8장, 필드 · 간식 (공기·필드·간식 줄은 퇴고만 했고 생성 결과로는 아직 확인 전)
+2. 누끼 → `DevLog/tools/card-nukki.ps1`로 `Char/<ID>_char.png` 만들기 → `Tools > CardShop > Import Cards CSV`
+3. 배경 그림(`BG/`, CSV의 `bg` 열) 생성
 
 그다음 설계서 일정 (`Assets/98. Doc/카드깡_시스템설계서_v1.md` 11장)
 - 3일차: 등급 셰이더 → 바인더(표지 소켓 1개 자동 배치)
@@ -70,4 +78,8 @@
 - Rigidbody가 있는 물체를 스크립트로 순간이동시킬 때는 `Teleport()`처럼 Transform과 Rigidbody를 **함께** 옮깁니다(BUG-003).
 - `Shop.unity`는 `Tools > CardShop > Build Shop Scene`으로 다시 만들 수 있습니다. 씬에서 손으로 옮긴 위치는 빌더 코드(예: `PackTablePos`)에도 반영해야 다시 만들 때 사라지지 않습니다.
 - `NotoSansKR-Regular SDF.asset`은 다이내믹 폰트라 새 글자를 쓰면 저절로 바뀝니다. 커밋에 섞여도 정상입니다.
+- **카드 그림 누끼**: Gemini는 투명 PNG를 잘 못 만들고, 배경을 지워도 바닥 그림자가 불투명한 회색으로 남습니다. `DevLog/tools/card-nukki.ps1`
+  - `-Mode dark`: 어두운 단색 배경(공기 속성) · `-Mode light`: 흰색·밝은 회색 배경 · `-Mode shadow`: 이미 투명한 그림의 그림자만
+  - 결과는 먼저 `-OutDir`로 임시 폴더에 뽑아 어두운 배경 위에서 눈으로 확인한 뒤 `Char/`에 넣습니다. 그림마다 그림자 기준값 조정이 필요할 수 있습니다(스크립트 머리말에 지난번 값).
+  - 파일 이름은 CSV id의 `-`를 `_`로 바꾼 `<ID>_char.png`. CSV의 `char` 열은 이미 이 이름이라 CSV는 고치지 않아도 됩니다.
 - 버그 사진: Unity Play 중 Shift+F9 → `DevLog/screenshots/_inbox/`, Unity 밖은 Win+Shift+S 후 `DevLog/tools/devlog-paste.ps1`.

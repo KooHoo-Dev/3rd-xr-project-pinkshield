@@ -19,6 +19,6 @@ MonoBehaviour:
   displayName: "\uC0B0\uB9E5 \uAC70\uC2E0 \uC2AC\uB77C\uC784"
   description: 
   basePrice: 500
-  character: {fileID: 0}
+  character: {fileID: 2800000, guid: e0360662ace520a4fa6b54aefa5d3512, type: 3}
   background: {fileID: 0}
   foreground: {fileID: 0}

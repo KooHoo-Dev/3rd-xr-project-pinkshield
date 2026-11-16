@@ -17,6 +17,7 @@
 | `screenshots/_inbox/` | 아직 분류하지 않은 캡처 | |
 | `templates/` | 양식 4종 | |
 | `tools/devlog-paste.ps1` | 클립보드 이미지 → 파일 저장 | |
+| `tools/card-nukki.ps1` (+ `BgCut.cs` · `ShadowCut.cs`) | 카드 캐릭터 그림 누끼: 배경·바닥 그림자·Gemini 워터마크 제거 → `Char/<ID>_char.png`. 사용법은 스크립트 머리말 | |
 | `export/` | `/devlog export` 결과 (기술 문서 초안) | |
 
 ## 기록하는 법
