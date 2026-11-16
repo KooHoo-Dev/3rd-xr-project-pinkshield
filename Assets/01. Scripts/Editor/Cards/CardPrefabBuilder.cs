@@ -307,8 +307,12 @@ namespace CardShop.Cards.EditorTools
             var grab = root.AddComponent<XRGrabInteractable>();
             grab.useDynamicAttach = true;
 
+            // 메시와 글자는 "Visual" 아래에 둡니다. 공개 연출이 Visual만 뒤집어 앞/뒤를 바꿉니다 (CardRevealView).
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(root.transform, false);
+
             var meshGo = new GameObject("Mesh");
-            meshGo.transform.SetParent(root.transform, false);
+            meshGo.transform.SetParent(visual, false);
             meshGo.AddComponent<MeshFilter>().sharedMesh = mesh;
             var mr = meshGo.AddComponent<MeshRenderer>();
             mr.sharedMaterials = materials;
@@ -318,10 +322,10 @@ namespace CardShop.Cards.EditorTools
             if (font == null) Debug.LogWarning($"[CardPrefabBuilder] Font not found: {FontPath}");
 
             // 위치는 카드 UV(0~1) 기준 사각형
-            TMP_Text nameText = CreateText(root.transform, "Text_Name", font, new Rect(0.075f, 0.885f, 0.62f, 0.07f), TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
-            TMP_Text rarityText = CreateText(root.transform, "Text_Rarity", font, new Rect(0.70f, 0.89f, 0.225f, 0.055f), TextAlignmentOptions.MidlineRight, FontStyles.Bold);
-            TMP_Text descText = CreateText(root.transform, "Text_Description", font, new Rect(0.09f, 0.14f, 0.82f, 0.22f), TextAlignmentOptions.TopLeft, FontStyles.Normal);
-            TMP_Text priceText = CreateText(root.transform, "Text_Price", font, new Rect(0.09f, 0.055f, 0.82f, 0.06f), TextAlignmentOptions.MidlineRight, FontStyles.Normal);
+            TMP_Text nameText = CreateText(visual, "Text_Name", font, new Rect(0.075f, 0.885f, 0.62f, 0.07f), TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
+            TMP_Text rarityText = CreateText(visual, "Text_Rarity", font, new Rect(0.70f, 0.89f, 0.225f, 0.055f), TextAlignmentOptions.MidlineRight, FontStyles.Bold);
+            TMP_Text descText = CreateText(visual, "Text_Description", font, new Rect(0.09f, 0.14f, 0.82f, 0.22f), TextAlignmentOptions.TopLeft, FontStyles.Normal);
+            TMP_Text priceText = CreateText(visual, "Text_Price", font, new Rect(0.09f, 0.055f, 0.82f, 0.06f), TextAlignmentOptions.MidlineRight, FontStyles.Normal);
             descText.fontSizeMax = 0.32f;
             rarityText.fontSizeMax = 0.4f;
             priceText.fontSizeMax = 0.3f;

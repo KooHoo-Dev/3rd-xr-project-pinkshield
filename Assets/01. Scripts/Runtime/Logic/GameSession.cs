@@ -119,6 +119,6 @@ namespace CardShop.Logic
         public int packsOpened;
         public int godPacks;
         public int legendaryPacks;
-        public string bestCardId;
+        public CardShop.Cards.CardData bestCard; // 가장 비싼 카드 (최종 정산 화면)
     }
 }

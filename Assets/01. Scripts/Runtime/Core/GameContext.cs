@@ -37,6 +37,8 @@ namespace CardShop.Core
         public GameSession Session { get; private set; }
         public IRandomSource Random { get; set; }
         public EconomyRules EconomyRules { get; private set; }
+        public PackRoller PackRoller { get; private set; }
+        public PackOpeningService PackOpening { get; private set; }
 
         void Awake()
         {
@@ -50,6 +52,8 @@ namespace CardShop.Core
 
             Random = fixedSeed != 0 ? new SystemRandomSource(fixedSeed) : new SystemRandomSource();
             EconomyRules = new EconomyRules(economy, rarityTable);
+            PackRoller = new PackRoller(packOdds, cardDatabase, Random);
+            PackOpening = new PackOpeningService(() => Session, PackRoller, economy);
             StartNewSession();
         }
 
@@ -76,6 +80,13 @@ namespace CardShop.Core
         public event Action<GamePhaseId, GamePhaseId> PhaseChanged; // (이전, 다음)
         public event Action<int> DayStarted;
         public event Action<bool> PausedChanged;
+        /// <summary>팩 1개 이상을 연 직후 (단일 팩은 1개, 상자는 10개).</summary>
+        public event Action<PackResult[]> PacksOpened;
+        /// <summary>플레이어에게 보여줄 짧은 안내 (재화 부족 등). 지금은 디버그 패널, 나중에 사장님 말풍선.</summary>
+        public event Action<string> Notice;
+
+        public void RaisePacksOpened(PackResult[] packs) => PacksOpened?.Invoke(packs);
+        public void RaiseNotice(string message) => Notice?.Invoke(message);
 
         internal void RaiseSessionStarted(GameSession s) => SessionStarted?.Invoke(s);
         internal void RaisePhaseChanged(GamePhaseId from, GamePhaseId to) => PhaseChanged?.Invoke(from, to);

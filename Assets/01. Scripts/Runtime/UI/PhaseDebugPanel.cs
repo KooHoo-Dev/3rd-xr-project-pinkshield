@@ -16,15 +16,23 @@ namespace CardShop.UI
         [SerializeField] TMP_Text label;
         [SerializeField] Button advanceButton;
 
+        string lastNotice = "";
+        GameContext subscribed;
+
         void OnEnable()
         {
             if (advanceButton != null) advanceButton.onClick.AddListener(OnAdvance);
+            subscribed = GameContext.Instance;
+            if (subscribed != null) subscribed.Events.Notice += OnNotice;
         }
 
         void OnDisable()
         {
             if (advanceButton != null) advanceButton.onClick.RemoveListener(OnAdvance);
+            if (subscribed != null) subscribed.Events.Notice -= OnNotice;
         }
+
+        void OnNotice(string message) => lastNotice = message;
 
         void OnAdvance() => flow.RequestAdvance();
 
@@ -36,8 +44,12 @@ namespace CardShop.UI
             string text = $"{flow.CurrentPhase}\n{ctx.Session.Day}일차 / {ctx.Campaign.DayCount}일\n재화 {ctx.Session.Wallet.Money}";
             if (flow.Current is BusinessPhase business)
                 text += $"\n남은 시간 {Mathf.CeilToInt(business.TimeLeft)}초";
+            if (flow.CurrentPhase == GamePhaseId.AfterHours)
+                text += $"\n다음 팩 {ctx.PackOpening.NextSinglePackCost} · 도감 {ctx.Session.Collection.DiscoveredCount}/{ctx.Cards.Count}";
             if (flow.IsPaused)
                 text += "\n(일시정지)";
+            if (lastNotice.Length > 0)
+                text += $"\n<size=70%>{lastNotice}</size>";
             label.text = text;
         }
     }

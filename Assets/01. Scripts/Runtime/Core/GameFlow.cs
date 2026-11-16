@@ -90,6 +90,13 @@ namespace CardShop.Core
         /// <summary>시작·확인·퇴근 버튼 등에서 호출.</summary>
         public void RequestAdvance() => current?.OnAdvanceRequested();
 
+        /// <summary>퇴근 버튼(Poke). 퇴근 전 페이즈에서만 동작합니다.</summary>
+        public void ClockOut()
+        {
+            if (CurrentPhase == GamePhaseId.AfterHours) RequestAdvance();
+            else context.Events.RaiseNotice("퇴근은 영업과 정산이 끝난 뒤에 할 수 있어요.");
+        }
+
         [ContextMenu("Debug/Advance")]
         void DebugAdvance() => RequestAdvance();
     }
