@@ -543,9 +543,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 3118418274816640625}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60afa67465e34466a0cad61078add768, type: 3}
+  m_Script: {fileID: 11500000, guid: 8d15a02421604c549fd0b70e15c9a650, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Interaction.ActivatePackOpen
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Interaction.TearGestureOpen
+  presentDistance: 0.35
+  presentDrop: 0.08
+  cutThreshold: 0.7
+  cutBandHeight: 0.04
+  cutBandDepth: 0.08
+  cutLineFromTop: 0.012
 --- !u!1 &3517315920660237600
 GameObject:
   m_ObjectHideFlags: 0

@@ -86,7 +86,13 @@ namespace CardShop.Core
         public event Action<string> Notice;
 
         public void RaisePacksOpened(PackResult[] packs) => PacksOpened?.Invoke(packs);
-        public void RaiseNotice(string message) => Notice?.Invoke(message);
+        public void RaiseNotice(string message)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            UnityEngine.Debug.Log($"[Notice] {message}"); // 콘솔에서도 흐름을 따라갈 수 있게
+#endif
+            Notice?.Invoke(message);
+        }
 
         internal void RaiseSessionStarted(GameSession s) => SessionStarted?.Invoke(s);
         internal void RaisePhaseChanged(GamePhaseId from, GamePhaseId to) => PhaseChanged?.Invoke(from, to);

@@ -6,6 +6,7 @@ using CardShop.Interaction;
 using CardShop.Presentation;
 using CardShop.UI;
 using TMPro;
+using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
@@ -36,6 +37,8 @@ namespace CardShop.EditorTools
 
         const float CounterTop = 0.9f;
         const float TableTop = 0.8f;
+        // 팩 테이블(선반) 위치. 카운터(x -0.7~0.7, z 0.4~1.0)와 겹치지 않게 씬에서 조정한 값.
+        static readonly Vector3 PackTablePos = new Vector3(-1.356f, 0f, 0.65f);
 
         static TMP_FontAsset font;
 
@@ -98,7 +101,7 @@ namespace CardShop.EditorTools
             floor.transform.localScale = new Vector3(0.6f, 1f, 0.6f); // 6m x 6m
 
             Cube(root, "Counter", new Vector3(0f, CounterTop / 2f, 0.7f), new Vector3(1.4f, CounterTop, 0.6f));
-            Cube(root, "PackTable", new Vector3(-0.85f, TableTop / 2f, 0.25f), new Vector3(0.6f, TableTop, 0.5f));
+            Cube(root, "PackTable", PackTablePos + Vector3.up * (TableTop / 2f), new Vector3(0.6f, TableTop, 0.5f));
             return root;
         }
 
@@ -117,7 +120,14 @@ namespace CardShop.EditorTools
             new GameObject("XR Interaction Manager", typeof(XRInteractionManager));
 
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(XrOriginPrefab);
-            if (prefab != null) PrefabUtility.InstantiatePrefab(prefab);
+            if (prefab != null)
+            {
+                var rig = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                var origin = rig.GetComponent<XROrigin>();
+                // 바닥 기준 트래킹 + 시작 시 눈높이 보정 (지정 안 함이면 기기에 따라 시점이 낮아짐)
+                origin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.Floor;
+                rig.AddComponent<PlayerHeightCalibrator>().Configure(origin);
+            }
             else Debug.LogError($"[ShopSceneBuilder] XR Origin 프리팹 없음: {XrOriginPrefab} (XRI Starter Assets 샘플 임포트 필요)");
 
             new GameObject("EventSystem", typeof(EventSystem), typeof(XRUIInputModule));
@@ -169,7 +179,7 @@ namespace CardShop.EditorTools
             const float dx = 0.13f, dz = 0.15f;
 
             var shelfGo = new GameObject("PackShelf");
-            shelfGo.transform.position = new Vector3(-0.85f, TableTop, 0.25f);
+            shelfGo.transform.position = PackTablePos + Vector3.up * TableTop;
 
             Quaternion faceUp = Quaternion.Euler(90f, 0f, 0f);                     // 앞면(-Z)이 위
             Quaternion faceDown = faceUp * Quaternion.Euler(0f, 180f, 0f);         // 긴 축으로 뒤집음 (윗변 방향 유지)
@@ -267,8 +277,8 @@ namespace CardShop.EditorTools
             var canvasGo = new GameObject("PhaseDebugPanel", typeof(RectTransform), typeof(Canvas), typeof(TrackedDeviceGraphicRaycaster));
             canvasGo.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
             var rt = (RectTransform)canvasGo.transform;
-            rt.sizeDelta = new Vector2(500f, 700f);
-            rt.localScale = Vector3.one * 0.001f;               // 0.5m x 0.7m
+            rt.sizeDelta = new Vector2(500f, 760f);
+            rt.localScale = Vector3.one * 0.001f;               // 0.5m x 0.76m
             rt.position = new Vector3(0.95f, 1.35f, 1.0f);
             rt.rotation = Quaternion.Euler(0f, 35f, 0f);
 
@@ -293,13 +303,13 @@ namespace CardShop.EditorTools
             cheats.Configure(flow, new GameObject[0]);
 
             // 버튼: 위에서부터 한 줄씩
-            string[] names = { "다음 (Advance)", "퇴근 전으로 건너뛰기", "재화 +100", "다음 팩: 갓팩", "다음 팩: 레전더리 확정", "다음 팩: 유니크 히트" };
-            UnityAction[] actions = { null, cheats.SkipToAfterHours, cheats.AddMoney100, cheats.ForceGodPack, cheats.ForceLegendaryPack, cheats.ForceUniqueHit };
+            string[] names = { "다음 (Advance)", "퇴근 전으로 건너뛰기", "재화 +100", "다음 팩: 갓팩", "다음 팩: 레전더리 확정", "다음 팩: 유니크 히트", "눈높이 맞추기 (1.6m)" };
+            UnityAction[] actions = { null, cheats.SkipToAfterHours, cheats.AddMoney100, cheats.ForceGodPack, cheats.ForceLegendaryPack, cheats.ForceUniqueHit, cheats.CalibrateHeight };
             Button advance = null;
             for (int i = 0; i < names.Length; i++)
             {
-                float top = 0.5f - i * 0.08f;
-                Button b = CreateUiButton(canvasGo.transform, names[i], new Vector2(0.08f, top - 0.07f), new Vector2(0.92f, top));
+                float top = 0.52f - i * 0.072f;
+                Button b = CreateUiButton(canvasGo.transform, names[i], new Vector2(0.08f, top - 0.064f), new Vector2(0.92f, top));
                 if (actions[i] != null) UnityEventTools.AddPersistentListener(b.onClick, actions[i]);
                 else advance = b;
             }

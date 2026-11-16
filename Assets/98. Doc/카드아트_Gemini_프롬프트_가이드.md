@@ -60,7 +60,13 @@ CHARACTER images:
 - Always 3D rendered like a glossy collectible vinyl toy, clean and cute; never a 2D illustration, painting or anime drawing
 - Semi-translucent jelly body, mostly opaque, with soft subsurface scattering and a slightly brighter inner core
 - Soft specular highlights on the top-left of the body
-- Big round glossy eyes with two white highlights, small simple mouth, rosy cheeks optional
+- FACE BASE (keep it the same on every slime):
+  - Two round glossy eyes in dark reddish-brown, set wide apart, a little below the middle of the body
+  - Each eye has two white highlights: a large one at the upper-left and a small one at the lower-right
+  - A small dark brown mouth between and slightly below the eyes (default: a tiny "w" shaped smile)
+  - A soft pink oval blush under each eye, toward the outside
+  - Thin, clean dark brown lines for any eyelids, brows or mouth; no eyelashes, no colored irises, no extra face details
+- Expressions may change the eye and mouth shape (half-closed, closed happy curves, small angled brows, wider eyes, open mouth), but keep the eye color, highlight style, placement, spacing, line color and blush the same
 - Lighting: soft key light from the top-left, soft rim light from the back-right
 - A small soft contact shadow directly below the creature
 - Centered, full body visible, generous margin around it, square 1:1 image
@@ -83,7 +89,7 @@ Avoid: classic pointed-tip teardrop slime shape, existing game or anime characte
 
 **캐릭터**
 ```text
-3D rendered glossy vinyl toy style (not 2D), cute original slime creature with one soft rounded dome-shaped jelly body like a gumdrop, no ears, no hair, no limbs, no tail, effects never reshape the body, semi-translucent mostly opaque jelly body with subsurface scattering, soft specular highlights top-left, big round glossy eyes with two highlights, soft key light from top-left, soft rim light, small contact shadow below, centered full body with margin, square 1:1, plain solid flat background, effects with crisp clean edges and no glow haze on the background, no text, no border, no frame.
+3D rendered glossy vinyl toy style (not 2D), cute original slime creature with one soft rounded dome-shaped jelly body like a gumdrop, no ears, no hair, no limbs, no tail, effects never reshape the body, semi-translucent mostly opaque jelly body with subsurface scattering, soft specular highlights top-left, two round glossy dark reddish-brown eyes set wide apart a little below the middle with a large upper-left and a small lower-right white highlight, small dark brown mouth, soft pink blush under each eye, expressions change only the eye and mouth shape, soft key light from top-left, soft rim light, small contact shadow below, centered full body with margin, square 1:1, plain solid flat background, effects with crisp clean edges and no glow haze on the background, no text, no border, no frame.
 ```
 
 **배경**
@@ -115,6 +121,35 @@ Soft painterly 2D digital painting background, gentle gradients, low detail, sli
 | 바닥 가장자리가 웅덩이처럼 살짝 퍼짐 | 귀, 머리카락, 팔다리, 꼬리, 목 |
 | 살짝 눌리거나 기울어짐 (튀어 오르기, 내려앉기) | 고양이·사자 같은 동물 얼굴형 |
 | 몸에 붙은 장식 (뿔, 수정, 작은 날개 등) | 끝이 뾰족한 물방울형 (기존 IP와 닮음) |
+
+#### 얼굴 기본틀
+
+![얼굴 기본틀](images/ref_face_base.webp)
+
+생성할 때마다 눈 디자인이 바뀌는 문제가 있어서, 위 이미지의 얼굴을 기본틀로 고정합니다(세션 설정의 FACE BASE). **기본틀은 유지하고, 표정에 따라 눈과 입의 모양만 바꿉니다.**
+
+| 항상 같게 유지 | 표정에 따라 바꿔도 됨 |
+| --- | --- |
+| 눈 색 (짙은 적갈색) | 눈의 모양 (반쯤 감김, 감은 곡선, 조금 더 크게) |
+| 하이라이트 2개 (왼쪽 위 큰 것, 오른쪽 아래 작은 것) | 작은 눈썹 (각도만) |
+| 눈의 위치와 간격 (몸 가운데보다 약간 아래, 넓게) | 입 모양 (w 미소, 작게 벌린 입, o 입) |
+| 선 색과 굵기 (가는 짙은 갈색 선) | |
+| 분홍 볼터치 (눈 아래 바깥쪽) | |
+
+**표정별 표현** (주제 줄의 표정 부분에 이 영어 표현을 씁니다)
+
+| 표정 | 쓸 표현 |
+| --- | --- |
+| 기본·행복 | `happy face` (기본틀 그대로) |
+| 졸림 | `sleepy half-closed eyes` (눈꺼풀이 위를 덮고, 하이라이트는 아래쪽에 조금 보임) |
+| 크게 웃음 | `eyes closed in happy upward curves` (하이라이트 없음) |
+| 결의·집중 | `determined eyes with small angled brows`, `small open mouth` |
+| 놀람·호기심 | `slightly wider eyes`, `small round "o" mouth` |
+| 수줍음 | `eyes glancing to the side`, `stronger blush` |
+
+- 눈썹은 표정에 필요할 때만 짧은 선으로 넣습니다. 굵거나 털이 있는 눈썹은 쓰지 않습니다.
+- 예외는 레전더리뿐입니다. 레전더리는 신화적인 눈(세로 동공, 빛나는 눈, 입 없음)을 씁니다.
+- 이 이미지는 F-N1(불씨 슬라임)과 같은 구성이라 0장의 스타일 앵커로도 쓸 수 있습니다.
 
 등급마다 겹치지 않는 영역이 있습니다. 레어는 **장식 하나**, 수퍼레어는 **장비 없이 몸에서 터지는 힘**, 유니크는 **갑옷과 속성별 머리 장식이 주는 위엄**, 레전더리는 **거대함과 신화적인 규모**입니다. 수퍼레어 주제 줄에는 majestic, crown, armor, regal을 쓰지 않습니다.
 
@@ -372,7 +407,7 @@ Assets/<아트 폴더>/Cards/
 - [ ] 슬라임 원형(둥근 돔형)이 유지되는가? 1-3의 "몸 모양 허용 범위" 표로 판단합니다. (납작함·퍼진 바닥·장식은 괜찮고, 팔다리·귀·길쭉한 몸은 안 됨)
 - [ ] 3D 렌더 화풍인가? (2D 일러스트로 바뀌면 세션 설정과 앵커 이미지를 다시 보냄)
 - [ ] 조명이 왼쪽 위에서 오는가? (하이라이트 위치 확인)
-- [ ] 눈의 스타일(하이라이트 2개)이 앵커 이미지와 같은가?
+- [ ] 얼굴이 1-3의 "얼굴 기본틀"과 같은가? 눈 색, 하이라이트 2개의 위치, 눈 위치와 간격, 볼터치를 확인합니다. (표정에 따른 눈·입 모양 변화는 괜찮음)
 - [ ] 몸이 너무 투명해서 배경이 비쳐 보이지 않는가? (누끼가 깨짐)
 - [ ] 효과(불·물·바람)의 빛 번짐이나 연기가 배경까지 퍼지지 않았는가? (누끼가 깨짐. 레전더리는 허용하되 0장 "누끼 주의점"대로 처리)
 - [ ] 레전더리가 아닌데 세로 동공 같은 신화적인 눈이 나오지 않았는가?

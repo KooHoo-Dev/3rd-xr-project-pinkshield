@@ -4,14 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using CardShop.Cards;
 using CardShop.Core;
+using CardShop.Interaction;
 using CardShop.Logic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace CardShop.Presentation
 {
     /// <summary>
-    /// 개봉한 카드를 카운터 위에 펼쳐 보여줍니다. 단일 팩은 뒷면으로 놓이고, 플레이어가 집으면 뒤집힙니다.
+    /// 단일 팩: 팩이 있던 자리(눈앞)에 카드 5장이 앞면 묶음으로 나오고, 오른손 트리거를 누를 때마다
+    /// 맨 앞 카드가 카운터로 날아가며 다음 카드가 보입니다 (Pocket의 "한 장씩 넘기기", 개봉연출 설계 2장 ③).
+    /// 좋은 등급일수록 다음 카드로 넘어가기 전 멈춤이 길고 진동이 셉니다 (3장 등급별 연출 예산의 1차 적용).
     /// 상자는 결과판에 10팩을 한 줄씩 채워 "몇 팩이 열렸는지" 보여준 뒤, 가장 좋은 카드 몇 장을 앞면으로 펼칩니다.
     /// (50장 전체 요약 화면·팩별 연출은 3일차, 설계: 98. Doc/카드팩_개봉연출_설계.md)
     /// 카드 오브젝트는 풀에서 재사용합니다. 카드 데이터는 개봉 시점에 이미 보유 목록에 들어가 있습니다.
@@ -26,14 +30,25 @@ namespace CardShop.Presentation
         [Tooltip("상자 결과판에 팩 한 줄이 추가되는 간격(초)")]
         [SerializeField] float boxRowInterval = 0.25f;
 
+        [Header("한 장씩 넘기기")]
+        [Tooltip("묶음에서 카드 사이 간격 (m)")]
+        [SerializeField] float stackSpacing = 0.003f;
+        [Tooltip("넘긴 카드가 카운터까지 날아가는 시간 (초)")]
+        [SerializeField] float flySeconds = 0.35f;
+        [Tooltip("등급별로 다음 카드로 넘길 수 있기까지 멈춤 (노말→레전더리, 초)")]
+        [SerializeField] float[] rarityPause = { 0.15f, 0.25f, 0.4f, 0.6f, 1.0f };
+        [Tooltip("등급별 공개 진동 세기 (노말→레전더리)")]
+        [SerializeField] float[] rarityHaptic = { 0.1f, 0.2f, 0.4f, 0.6f, 1.0f };
+
         readonly List<CardRevealView> shown = new List<CardRevealView>();
         readonly Stack<CardRevealView> pool = new Stack<CardRevealView>();
         GameContext context;
         TextMeshPro boxBoard;
         Coroutine boxRoutine;
+        Coroutine packRoutine;
 
-        /// <summary>상자 결과판이 채워지는 중. 이때 새 개봉을 받으면 결과판이 끊깁니다.</summary>
-        public bool IsBusy => boxRoutine != null;
+        /// <summary>상자 결과판이 채워지거나 카드를 넘기는 중. 이때 새 개봉을 받으면 연출이 끊깁니다.</summary>
+        public bool IsBusy => boxRoutine != null || packRoutine != null;
 
         /// <summary>카운터 위 위치 (상자 안내 말풍선 자리).</summary>
         public Vector3 AnchorPosition => anchor.position;
@@ -74,11 +89,44 @@ namespace CardShop.Presentation
             if (to == GamePhaseId.Business || to == GamePhaseId.Title) Clear();
         }
 
-        public void RevealPack(PackResult pack)
+        /// <param name="stackPose">카드 묶음이 나올 자리. 보통 개봉한 팩의 위치·방향(앞면 -Z가 플레이어 쪽).</param>
+        public void RevealPack(PackResult pack, Pose stackPose)
         {
             Clear();
-            for (int i = 0; i < pack.Cards.Length; i++)
-                Show(pack.Cards[i], pack.IsNew[i], i, pack.Cards.Length, faceDown: true);
+            packRoutine = StartCoroutine(PackSequence(pack, stackPose));
+        }
+
+        IEnumerator PackSequence(PackResult pack, Pose stack)
+        {
+            int n = pack.Cards.Length;
+            var views = new CardRevealView[n];
+            Vector3 back = stack.rotation * Vector3.forward; // 플레이어 반대쪽
+            for (int i = 0; i < n; i++)
+            {
+                views[i] = Show(pack.Cards[i], pack.IsNew[i], stack.position + back * (stackSpacing * i), stack.rotation, false, announce: false);
+                views[i].SetGrabbable(false);
+            }
+
+            XRBaseInputInteractor hand = HandFinder.Find(InteractorHandedness.Right);
+            context?.Events.RaiseNotice("오른손 트리거로 한 장씩 넘기세요");
+
+            for (int i = 0; i < n; i++)
+            {
+                // i번째 카드가 맨 앞에 보이는 중
+                int r = Mathf.Clamp((int)pack.Cards[i].rarity, 0, rarityPause.Length - 1);
+                views[i].Announce();
+                if (hand != null) hand.SendHapticImpulse(rarityHaptic[Mathf.Min(r, rarityHaptic.Length - 1)], 0.05f + r * 0.05f);
+                yield return new WaitForSeconds(rarityPause[r]);
+
+                // 오른손 트리거를 새로 누를 때까지 (손을 못 찾으면 1초 뒤 자동)
+                float autoAt = Time.time + 1f;
+                yield return new WaitUntil(() => hand != null ? hand.activateInput.ReadWasPerformedThisFrame() : Time.time >= autoAt);
+
+                views[i].FlyTo(SlotPosition(i, n), anchor.rotation, flySeconds);
+            }
+
+            yield return new WaitForSeconds(flySeconds);
+            packRoutine = null;
         }
 
         public void RevealBox(PackResult[] packs)
@@ -120,7 +168,7 @@ namespace CardShop.Presentation
 
             var best = all.OrderByDescending(x => x.card.rarity).ThenByDescending(x => x.isNew).Take(boxHighlightCount).ToList();
             for (int i = 0; i < best.Count; i++)
-                Show(best[i].card, best[i].isNew, i, best.Count, faceDown: false);
+                Show(best[i].card, best[i].isNew, SlotPosition(i, best.Count), anchor.rotation, false);
             boxRoutine = null;
         }
 
@@ -163,6 +211,7 @@ namespace CardShop.Presentation
         public void Clear()
         {
             if (boxRoutine != null) { StopCoroutine(boxRoutine); boxRoutine = null; }
+            if (packRoutine != null) { StopCoroutine(packRoutine); packRoutine = null; }
             if (boxBoard != null) boxBoard.gameObject.SetActive(false);
             foreach (CardRevealView v in shown)
             {
@@ -172,13 +221,15 @@ namespace CardShop.Presentation
             shown.Clear();
         }
 
-        void Show(CardData card, bool isNew, int index, int count, bool faceDown)
+        // 카운터 위 가로 한 줄의 index번째 자리
+        Vector3 SlotPosition(int index, int count) => anchor.position + anchor.right * ((index - (count - 1) * 0.5f) * spacing);
+
+        CardRevealView Show(CardData card, bool isNew, Vector3 position, Quaternion rotation, bool faceDown, bool announce = true)
         {
             CardRevealView view = pool.Count > 0 ? pool.Pop() : Create();
-            float x = (index - (count - 1) * 0.5f) * spacing;
-            Vector3 pos = anchor.position + anchor.right * x;
-            view.Show(card, isNew, pos, anchor.rotation, faceDown);
+            view.Show(card, isNew, position, rotation, faceDown, announce);
             shown.Add(view);
+            return view;
         }
 
         CardRevealView Create()

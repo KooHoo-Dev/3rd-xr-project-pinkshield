@@ -46,6 +46,13 @@ namespace CardShop.DebugTools
             Ctx.Events.RaiseNotice($"[치트] {flow.CurrentPhase}");
         }
 
+        public void CalibrateHeight()
+        {
+            var calibrator = FindAnyObjectByType<CardShop.Interaction.PlayerHeightCalibrator>();
+            if (calibrator != null) calibrator.Calibrate();
+            Ctx.Events.RaiseNotice("[치트] 눈높이 1.6m로 맞춤");
+        }
+
         static void Force(System.Action<PackRoller> apply, string message)
         {
             apply(Ctx.PackRoller);
@@ -63,6 +70,7 @@ namespace CardShop.DebugTools
         public void ForceUniqueHit() { }
         public void AddMoney100() { }
         public void SkipToAfterHours() { }
+        public void CalibrateHeight() { }
 #endif
     }
 }

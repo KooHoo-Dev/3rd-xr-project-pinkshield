@@ -44,11 +44,12 @@ namespace CardShop.Interaction
                 return;
             }
 
-            if (hand != null) hand.SendHapticImpulse(0.6f, 0.1f); // 개봉 손맛 (3일차에 찢기 진동으로 교체)
+            if (hand != null) hand.SendHapticImpulse(0.6f, 0.1f); // 개봉 손맛
+            var stackPose = new Pose(pack.transform.position, pack.transform.rotation); // 팩이 있던 자리(눈앞)에 카드 묶음
             pack.Consume();
             ctx.Events.RaiseNotice(cost == 0 ? "무료 팩 개봉!" : $"팩 개봉 (-{cost})");
             ctx.Events.RaisePacksOpened(new[] { result });
-            revealer.RevealPack(result);
+            revealer.RevealPack(result, stackPose);
         }
 
         /// <summary>상자 개봉 버튼(Poke).</summary>

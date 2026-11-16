@@ -65,7 +65,7 @@ namespace CardShop.EditorTools
             var so = new SerializedObject(view);
             so.FindProperty("foldHinge").objectReferenceValue = hinge;
             so.ApplyModifiedPropertiesWithoutUndo();
-            root.AddComponent<ActivatePackOpen>();
+            root.AddComponent<TearGestureOpen>(); // 왼손 그립 → 눈앞 고정, 오른손 트리거로 자르기. 대체안: ActivatePackOpen
 
             PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             Object.DestroyImmediate(root);
