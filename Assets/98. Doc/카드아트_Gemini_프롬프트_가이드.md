@@ -2,30 +2,35 @@
 
 컨셉 기획서 v2의 6장(카드 아트 방향)을 실제 생성용 프롬프트로 옮긴 문서입니다.
 
-**방향**: 3D 렌더풍 슬라임(캐릭터 레이어) + 2D 페인팅 배경(배경 레이어) + 플랫 프레임(Unity에서 제작). 입체감은 엔진의 패럴랙스 셰이더와 카드 두께로 만듭니다.
+**방향**: 3D 렌더풍 슬라임(캐릭터 레이어) + 2D 페인팅 배경(배경 레이어) + 플랫 프레임(Unity에서 제작). 입체감은 엔진의 패럴랙스 셰이더와 카드 두께로 만듭니다. 캐릭터 화풍은 등급에 따라 다릅니다. 노말·레어·수퍼레어는 3D 토이풍이고, 유니크·레전더리는 화려한 일러스트풍입니다(1-3 "등급별 화풍").
 
 ---
 
 ## 0. 작업 순서
 
-1. **스타일 앵커 만들기**: `F-N1 불씨 슬라임`을 먼저 5~10번 뽑아 가장 마음에 드는 1장을 고릅니다. 이 이미지가 50장 전체의 기준(앵커)입니다.
-2. **세션 설정**: Gemini 새 대화를 열고 1장의 "세션 설정 프롬프트"를 보낸 뒤, 앵커 이미지를 첨부합니다.
-3. **일괄 생산**: 이후에는 카드별 "주제 줄"만 보냅니다. 10장마다 또는 스타일이 흔들리면 앵커 이미지를 다시 첨부합니다.
+1. **스타일 앵커**: `F-N1 불씨 슬라임` 이미지(`images/ref_face_base.webp`)가 50장 전체의 기준(앵커)입니다. 몸 모양, 얼굴, 젤리 질감, 조명을 이 이미지에 맞춥니다.
+2. **세션 설정**: Gemini 새 대화를 열고 1-1의 "세션 설정 프롬프트"를 **앵커 이미지와 함께** 보냅니다. 프롬프트만 보내고 이미지를 빼면 화풍과 눈이 흔들립니다.
+3. **일괄 생산**: 이후에는 카드별 "주제 줄"만 보냅니다. 한 번에 한 장씩 요청합니다. 스타일이 흔들리면 앵커 이미지를 다시 첨부하고, 줄 끝에 `Same body shape, face and style rules as the anchor.`를 붙입니다.
+   - **유니크**를 뽑을 때는 `images/ref_W-U_unique.webp`를, **레전더리**를 뽑을 때는 `images/ref_F-L_legendary.webp`를 함께 첨부합니다. 다른 속성에서는 색과 속성까지 따라 그리지 않도록 `use this only as a reference for style, detail level and scale, not for color or element`라고 덧붙입니다.
 4. **누끼 따기**: 캐릭터 레이어의 단색 배경을 제거합니다 (포토샵, remove.bg 등). Gemini에게 "배경을 투명하게"라고 해도 투명 PNG는 잘 나오지 않습니다. 접지 그림자와 빛 번짐 처리는 아래 "누끼 주의점"을 봅니다.
 5. **이름 규칙에 맞춰 저장**: 아래 7장의 파일 이름 규칙을 따릅니다.
 
 > 대화가 길어지면 스타일이 흐려집니다. 속성 하나(8장)마다 새 대화를 열고 2번부터 다시 하는 것을 권장합니다.
 
-> **레전더리를 뽑을 때**는 앵커 이미지와 함께 1-3-2의 레전더리 참고 이미지도 첨부합니다. 다만 불이 아닌 속성에서는 불꽃까지 따라 그리지 않도록 "use this only as a reference for composition, eyes and scale, not for color or element"라고 덧붙입니다.
-
 ### 누끼 주의점
 
-본 생산 전에 **앵커 이미지(노말)와 레전더리 참고 이미지로 누끼를 먼저 시험**해 보고, 아래 두 가지를 정한 뒤 50장 전체에 같은 방식을 적용합니다.
+아래 세 가지를 정한 뒤 50장 전체에 같은 방식을 적용합니다. 누끼를 딴 이미지는 **어두운 배경과 밝은 배경 위에 각각 올려 보고** 테두리가 남았는지 확인합니다.
 
 | 문제 | 왜 생기나 | 대응 |
 | --- | --- | --- |
 | 접지 그림자 | 흰 배경 위의 회색 그림자는 누끼를 따면 지워지거나 회색 얼룩으로 남습니다. 장마다 남는 정도가 달라서 카드끼리 통일되지 않습니다 | 누끼 때 그림자는 지우고, Unity에서 같은 그림자 스프라이트를 캐릭터 아래에 깔아 통일하는 방법을 추천합니다 |
 | 빛 번짐 (레전더리, 강한 효과) | 흰 배경 위의 밝은 노란빛·흰빛은 배경색과 구분이 안 되어 잘려 나가거나, 흰 테두리가 남습니다 | 빛 번짐은 지우고 또렷한 불꽃·효과만 남긴 뒤, Unity에서 가산(Additive) 글로우 스프라이트로 빛을 다시 얹습니다 |
+| Gemini 워터마크 | Gemini는 이미지 오른쪽 아래에 작은 별 모양(✦) 표시를 넣습니다. 프롬프트로는 막을 수 없습니다 | 누끼 때 함께 지웁니다. 그림자나 효과와 겹쳐 있으면 그 부분을 다듬습니다 |
+
+**누끼 시험에서 확인한 것** (F-L, W-U, E-R2)
+- 그림자가 누끼 뒤에도 남았고, 장마다 모양이 다릅니다. F-L은 넓고 진한 그림자, W-U는 몸에서 떨어진 그림자(떠 있음), E-R2는 몸에 붙은 그림자입니다. 그대로 쓰면 카드끼리 그림자가 통일되지 않습니다.
+- F-L의 불꽃은 잘 남았지만, 불꽃 가장자리에 옅은 흰 테두리가 보입니다. 어두운 카드 배경 위에서 눈에 띄는지 확인이 필요합니다.
+- F-L과 W-U의 오른쪽 아래에 워터마크(✦)가 남아 있습니다.
 
 > 공기 속성(어두운 회색 배경)은 반대로 빛 번짐이 회색 테두리로 남기 쉽습니다. 같은 방식으로 처리합니다.
 
@@ -33,7 +38,7 @@
 
 | 레이어 | 비율 | 용도 |
 | --- | --- | --- |
-| 캐릭터 | 1:1 | 누끼를 딴 뒤 카드 위에 배치 |
+| 캐릭터 · 간식 · 전경 소품 | 1:1 | 누끼를 딴 뒤 카드 위에 배치 |
 | 창 배경 (노말 · 레어 · 수퍼레어) | 4:3 | 카드 상단의 일러스트 창 |
 | 풀아트 배경 (유니크 · 레전더리 · 필드) | 2:3 | 카드 전체를 채움 (5:7로 크롭) |
 | 카드 뒷면 | 2:3 | 5:7로 크롭 |
@@ -45,56 +50,86 @@
 ### 1-1. 세션 설정 프롬프트 (대화 시작 때 1번)
 
 ```text
-I'm making 50 original trading card illustrations for a VR game about cute slime creatures.
-For every image I request in this chat, follow these fixed rules unless I say otherwise.
+I'm making original trading card art for a VR game about cute slime creatures.
+Follow these rules for every image in this chat unless I say otherwise.
+The attached image is the style anchor: copy its body shape, face, jelly material and lighting.
+Each request ends with its tier (Normal, Rare, Super rare, Unique or Legendary). Use the tier to pick the style in section 3.
 
-SLIME BODY SHAPE (the same at every rarity, never change it):
+1. BODY (every tier, never change it)
 - One soft rounded dome-shaped jelly body, like a gumdrop or mochi: slightly wider than tall, round top, gently flat bottom
 - No body parts grow out of the body: no ears, no hair, no arms, no legs, no tail, no neck, no animal or humanoid features
 - Small decorations sitting on or attached to the body (horns, crystals, coral, a small fin, little wings, caps, armor) are fine as long as the dome silhouette still reads clearly
 - Slight variations are welcome: flatter or puffier proportions, a bottom edge that spreads out softly like a little puddle, a gentle squish or tilt. It must still read as the same dome-shaped slime
 - Rarity and element are shown only by color, inner glow, expression, decorations and effects around it, never by changing the silhouette
 - Effects (fire, water, wind, rocks) wrap around or float above the body; they never replace or reshape it
+- The slime sits on the ground unless I say it floats or jumps
 
-CHARACTER images:
-- Always 3D rendered like a glossy collectible vinyl toy, clean and cute; never a 2D illustration, painting or anime drawing
-- Semi-translucent jelly body, mostly opaque, with soft subsurface scattering and a slightly brighter inner core
-- Soft specular highlights on the top-left of the body
-- FACE BASE (keep it the same on every slime):
-  - Two round glossy eyes in dark reddish-brown, set wide apart, a little below the middle of the body
-  - Each eye has two white highlights: a large one at the upper-left and a small one at the lower-right
-  - A small dark brown mouth between and slightly below the eyes (default: a tiny "w" shaped smile)
-  - A soft pink oval blush under each eye, toward the outside
-  - Thin, clean dark brown lines for any eyelids, brows or mouth; no eyelashes, no colored irises, no extra face details
-- Expressions may change the eye and mouth shape (half-closed, closed happy curves, small angled brows, wider eyes, open mouth), but keep the eye color, highlight style, placement, spacing, line color and blush the same
-- Lighting: soft key light from the top-left, soft rim light from the back-right
-- A small soft contact shadow directly below the creature
-- Centered, full body visible, generous margin around it, square 1:1 image
+2. FACE (every tier except Legendary; same as the anchor)
+- Two round glossy eyes, set wide apart, a little below the middle of the body, the same size as in the anchor
+- Eye color: one flat very dark color, dark reddish-brown on warm-colored slimes and dark navy on cool-colored slimes. No visible iris, no gradient, no sparkles inside the eye
+- Each eye has exactly two white highlights: a large one at the upper-left and a small one at the lower-right
+- A small thin-lined mouth in the same dark color, between and slightly below the eyes (default: a tiny "w" shaped smile)
+- A soft pink oval blush under each eye, toward the outside
+- Brows only when the expression needs them, short and thin. No eyelashes, no extra face details
+- Expressions change only the shape of the eyes and mouth (half-closed, closed happy curves, small angled brows, slightly wider eyes, open mouth). Eye color, highlights, placement, spacing, line thickness and blush stay the same
+
+3. STYLE BY TIER
+- Normal, Rare, Super rare: 3D rendered like a glossy collectible vinyl toy, smooth clean surfaces, simple and cute. Never a 2D illustration: no outlines, no brush strokes, no anime drawing
+- Unique: a rich polished fantasy illustration. Glossy jelly with painterly detail, ornate decorations, a glowing core and tiny light specks inside the body are welcome. The body and face rules still apply
+- Legendary: the same rich illustration style at an epic scale. The eyes may be mythic (glowing, slit pupils, no mouth, no blush), a soft glow from the effect behind the body is allowed, and the contact shadow may be wide and heavy. The body rules still apply
+- Every tier: semi-translucent jelly body, mostly opaque, with a slightly brighter inner core; soft specular highlights on the top-left; soft key light from the top-left, soft rim light from the back-right
+
+4. IMAGE
+- One character, centered, full body visible, generous margin around it, square 1:1 image
 - Plain solid flat background in the color I specify, no gradient, no floor, no scenery
-- Element effects (fire, water, wind, rocks, sparkles) have crisp clean edges; no smoke, mist or glow haze spreading onto the background
-- No text, no letters, no numbers, no border, no card frame, no watermark
+- A small soft contact shadow directly below the creature
+- Element effects (fire, water, wind, rocks, sparkles) have crisp clean edges; no smoke, mist or glow haze spreading onto the background (Legendary glow is the only exception)
+- No text, no letters, no numbers, no border, no card frame
 
-BACKGROUND images:
+ITEM and PROP images (when a request starts with "Item:" or "Prop:"):
+- An object, not a creature: no face, no eyes, no mouth
+- Follow section 3 (style by tier) and section 4 (image rules) the same way as a character image
+
+BACKGROUND images (when a request starts with "Background:"):
 - Soft painterly 2D digital painting, gentle gradients, low detail
 - Slightly blurred, shallow depth of field so a character can stand in front of it
 - Lighting from the top-left, matching the character images
 - No characters, no creatures, no animals, no text, no border
 
-Keep the rendering style, eye style, and lighting identical to the attached reference image.
-Exception for Legendary tier only: the eyes may be mythic (glowing, slit pupils, no mouth), a soft glow from the effect behind the body is allowed, and the contact shadow may be wide and heavy. The dome-shaped body still stays the same.
-Avoid: classic pointed-tip teardrop slime shape, existing game or anime characters, realistic gore, horror.
+FIELD images (when a request starts with "Field:"):
+- A painterly 2D landscape that is the main subject of the card: clear, detailed and in focus, not blurred
+- Lighting from the top-left, matching the character images
+- Keep the lower third simpler and calmer, because card text goes there
+- No characters, no creatures, no animals, no text, no border
+
+Avoid: classic pointed-tip teardrop slime shape, slimes wearing crowns, existing game or anime characters, realistic gore, horror.
 ```
 
 ### 1-2. 단독 사용용 블록 (세션 설정 없이 쓸 때 주제 줄 앞에 붙이기)
 
-**캐릭터**
+**캐릭터: 노말 · 레어 · 수퍼레어 (3D 토이풍)**
 ```text
-3D rendered glossy vinyl toy style (not 2D), cute original slime creature with one soft rounded dome-shaped jelly body like a gumdrop, no ears, no hair, no limbs, no tail, effects never reshape the body, semi-translucent mostly opaque jelly body with subsurface scattering, soft specular highlights top-left, two round glossy dark reddish-brown eyes set wide apart a little below the middle with a large upper-left and a small lower-right white highlight, small dark brown mouth, soft pink blush under each eye, expressions change only the eye and mouth shape, soft key light from top-left, soft rim light, small contact shadow below, centered full body with margin, square 1:1, plain solid flat background, effects with crisp clean edges and no glow haze on the background, no text, no border, no frame.
+3D rendered glossy vinyl toy style (not 2D, no outlines), cute original slime creature with one soft rounded dome-shaped jelly body like a gumdrop, no ears, no hair, no limbs, no tail, effects never reshape the body, semi-translucent mostly opaque jelly body, soft specular highlights top-left, two round glossy flat very dark eyes (dark reddish-brown on warm slimes, dark navy on cool slimes, no visible iris) set wide apart a little below the middle with a large upper-left and a small lower-right white highlight, small thin-lined mouth, soft pink blush under each eye, expressions change only the eye and mouth shape, soft key light from top-left, soft rim light, small contact shadow below, centered full body with margin, square 1:1, plain solid flat background, effects with crisp clean edges and no glow haze on the background, no text, no border, no frame.
 ```
 
-**배경**
+**캐릭터: 유니크 · 레전더리 (화려한 일러스트풍)**
+```text
+Rich polished fantasy illustration style, glossy jelly with painterly detail, cute original slime creature with one soft rounded dome-shaped jelly body like a gumdrop, no ears, no hair, no limbs, no tail, decorations and effects never reshape the body, semi-translucent mostly opaque jelly body with a glowing core, soft specular highlights top-left, two round glossy flat very dark eyes (dark reddish-brown on warm slimes, dark navy on cool slimes, no visible iris) set wide apart a little below the middle with a large upper-left and a small lower-right white highlight, small thin-lined mouth, soft pink blush under each eye (Legendary tier instead: mythic glowing eyes with slit pupils, no mouth, no blush, soft glow behind the body allowed), soft key light from top-left, soft rim light, contact shadow below, centered full body with margin, square 1:1, plain solid flat background, no text, no border, no frame.
+```
+
+**간식 · 전경 소품** (`Item:`, `Prop:` 줄 앞에. 유니크·레전더리는 첫 부분을 `Rich polished fantasy illustration style`로 바꿈)
+```text
+3D rendered glossy vinyl toy style (not 2D, no outlines), a single object with no face, no eyes and no mouth, soft specular highlights top-left, soft key light from top-left, soft rim light, small contact shadow below, centered with margin, square 1:1, plain solid flat background, effects with crisp clean edges and no glow haze on the background, no text, no border, no frame.
+```
+
+**배경** (`Background:` 줄 앞에)
 ```text
 Soft painterly 2D digital painting background, gentle gradients, low detail, slightly blurred depth of field, light from top-left, no characters, no creatures, no text, no border.
+```
+
+**필드 풍경** (`Field:` 줄 앞에)
+```text
+Painterly 2D digital landscape painting as the main subject, clear, detailed and in focus, light from top-left, simpler and calmer lower third, no characters, no creatures, no text, no border.
 ```
 
 ### 1-3. 등급 사다리 (주제 줄에 이미 들어 있음)
@@ -107,7 +142,17 @@ Soft painterly 2D digital painting background, gentle gradients, low detail, sli
 | 유니크 | majestic, ornate armor or ornaments, glowing core, regal pose | 약 75% |
 | 레전더리 | 돔형 몸은 그대로 + 몸 안이 속성 물질로 소용돌이침 + 몸 뒤의 거대한 후광 효과 + 신화적인 눈(입 없음) + 넓고 묵직한 그림자, low camera angle looking up, epic glow | 약 85% (프레임 밖으로 튀어나오게 배치) |
 
-**모든 등급에서 슬라임의 원형(둥근 돔형 젤리)은 같습니다.** 등급 차이는 색, 안쪽의 빛, 표정, 장식, 몸 주위의 효과로 냅니다(세션 설정의 SLIME BODY SHAPE).
+#### 등급별 화풍
+
+| 등급 | 화풍 | 기준 이미지 |
+| --- | --- | --- |
+| 노말 · 레어 · 수퍼레어 | 3D 토이풍. 매끈하고 단순한 표면, 외곽선과 붓 자국 없음 | `images/ref_face_base.webp` (F-N1, 앵커) |
+| 유니크 | 화려한 일러스트풍. 광택 있는 젤리에 세밀한 장식, 몸 안의 빛과 작은 빛 알갱이 | `images/ref_W-U_unique.webp` (W-U) |
+| 레전더리 | 유니크와 같은 일러스트풍에 신화적인 규모. 신화적인 눈과 빛 번짐 허용 | `images/ref_F-L_legendary.webp` (F-L) |
+
+주제 줄 끝의 등급 이름(`Normal tier.`, `Unique tier.` 등)이 세션 설정의 화풍을 고르는 표시입니다. **모든 주제 줄에 등급 이름이 들어 있어야 합니다.**
+
+**모든 등급에서 슬라임의 원형(둥근 돔형 젤리)은 같습니다.** 등급 차이는 화풍, 색, 안쪽의 빛, 표정, 장식, 몸 주위의 효과로 냅니다(세션 설정의 1. BODY).
 
 #### 몸 모양 허용 범위
 
@@ -126,15 +171,23 @@ Soft painterly 2D digital painting background, gentle gradients, low detail, sli
 
 ![얼굴 기본틀](images/ref_face_base.webp)
 
-생성할 때마다 눈 디자인이 바뀌는 문제가 있어서, 위 이미지의 얼굴을 기본틀로 고정합니다(세션 설정의 FACE BASE). **기본틀은 유지하고, 표정에 따라 눈과 입의 모양만 바꿉니다.**
+생성할 때마다 눈 디자인이 바뀌는 문제가 있어서, 위 이미지의 얼굴을 기본틀로 고정합니다(세션 설정의 2. FACE). **기본틀은 유지하고, 표정에 따라 눈과 입의 모양만 바꿉니다.**
 
 | 항상 같게 유지 | 표정에 따라 바꿔도 됨 |
 | --- | --- |
-| 눈 색 (짙은 적갈색) | 눈의 모양 (반쯤 감김, 감은 곡선, 조금 더 크게) |
-| 하이라이트 2개 (왼쪽 위 큰 것, 오른쪽 아래 작은 것) | 작은 눈썹 (각도만) |
-| 눈의 위치와 간격 (몸 가운데보다 약간 아래, 넓게) | 입 모양 (w 미소, 작게 벌린 입, o 입) |
-| 선 색과 굵기 (가는 짙은 갈색 선) | |
+| 눈 색: 단색의 아주 짙은 색. 따뜻한 색 슬라임은 짙은 적갈색, 차가운 색 슬라임은 짙은 남색 | 눈의 모양 (반쯤 감김, 감은 곡선, 조금 더 크게) |
+| 눈 안에 홍채, 그러데이션, 반짝이를 넣지 않음 | 짧고 가는 눈썹 (각도만) |
+| 하이라이트 2개 (왼쪽 위 큰 것, 오른쪽 아래 작은 것) | 입 모양 (w 미소, 작게 벌린 입, o 입) |
+| 눈의 크기, 위치, 간격 (몸 가운데보다 약간 아래, 넓게) | |
+| 가는 선 (입과 눈썹이 굵어지지 않게) | |
 | 분홍 볼터치 (눈 아래 바깥쪽) | |
+
+지금까지 뽑은 이미지에서 얼굴이 기본틀과 달랐던 점은 다음과 같습니다. 새 세션 설정은 이 점들을 막도록 썼습니다.
+
+| 이미지 | 기본틀과 다른 점 | 처리 |
+| --- | --- | --- |
+| E-R2 수정 슬라임 | 눈이 더 크고 홍채 그러데이션과 반짝이가 있음. 눈썹과 입 선이 굵음. 화풍도 2D | 3D 토이풍으로 다시 뽑음 |
+| W-U 심해 여왕 | 눈이 짙은 남색, 볼터치 없음 | 그대로 사용. 눈 색은 "차가운 색 슬라임은 짙은 남색"으로 규칙에 반영 |
 
 **표정별 표현** (주제 줄의 표정 부분에 이 영어 표현을 씁니다)
 
@@ -149,7 +202,7 @@ Soft painterly 2D digital painting background, gentle gradients, low detail, sli
 
 - 눈썹은 표정에 필요할 때만 짧은 선으로 넣습니다. 굵거나 털이 있는 눈썹은 쓰지 않습니다.
 - 예외는 레전더리뿐입니다. 레전더리는 신화적인 눈(세로 동공, 빛나는 눈, 입 없음)을 씁니다.
-- 이 이미지는 F-N1(불씨 슬라임)과 같은 구성이라 0장의 스타일 앵커로도 쓸 수 있습니다.
+- 이 이미지가 0장의 스타일 앵커입니다. 세션을 시작할 때 프롬프트와 함께 첨부합니다.
 
 등급마다 겹치지 않는 영역이 있습니다. 레어는 **장식 하나**, 수퍼레어는 **장비 없이 몸에서 터지는 힘**, 유니크는 **갑옷과 속성별 머리 장식이 주는 위엄**, 레전더리는 **거대함과 신화적인 규모**입니다. 수퍼레어 주제 줄에는 majestic, crown, armor, regal을 쓰지 않습니다.
 
@@ -183,13 +236,13 @@ big round glossy eyes with a determined glint and small angled brows, small open
 the character and its <속성 효과> fill about 70% of the frame.
 The <속성 효과> stays around the body and never changes the body shape.
 It has crisp clean edges, no <연기·안개·먼지>, no glow haze on the background.
-Background: <누끼용 배경색>.
+Super rare tier. Background: <누끼용 배경색>.
 ```
 
-- **"Super rare tier" 같은 등급 이름은 넣지 않습니다.** Gemini는 이 말을 그림으로 바꾸지 못합니다. 그 대신 무엇을 그릴지 구체적으로 적습니다. (예외: 레전더리 줄의 `Legendary tier.`는 지우지 않습니다. 세션 설정의 레전더리 예외를 켜는 표시이기 때문입니다.)
+- **등급 이름만으로는 그림이 강해지지 않습니다.** "Super rare tier"라는 말은 Gemini가 그림으로 바꾸지 못하므로, 무엇을 그릴지 구체적으로 적습니다. 다만 등급 이름은 **지우지 않습니다.** 세션 설정에서 화풍(3D 토이풍 또는 일러스트풍)을 고르는 표시로 쓰기 때문입니다.
 - **`the same round soft dome-shaped jelly body as always`와 `never changes the body shape`는 꼭 넣습니다.** 효과가 강해질수록 Gemini가 몸 모양을 바꾸려 합니다.
 - **마지막 문장(crisp edges, no haze)도 꼭 넣습니다.** 빛 번짐이 배경까지 퍼지면 누끼를 따기 어려워집니다.
-- **2D 화풍이 나오면** 세션 설정 프롬프트와 앵커 이미지를 다시 보냅니다. 새 대화라면 1-2의 캐릭터 블록을 줄 앞에 붙입니다.
+- **2D 화풍이 나오면** 세션 설정 프롬프트와 앵커 이미지를 다시 보냅니다. 새 대화라면 1-2의 3D 토이풍 캐릭터 블록을 줄 앞에 붙입니다. 수퍼레어는 효과가 화려해서 일러스트풍으로 끌려가기 쉽습니다.
 - **포즈 대안**: 동작 부분만 기를 모으는 자세로 바꿔 봅니다. `sitting low and squished slightly flatter as if gathering power` + `a tall roaring pillar of spiraling <속성 효과> erupting upward around it`
 
 ### 1-3-2. 레전더리 참고 이미지 (F-L 태양 거신 슬라임)
@@ -206,10 +259,27 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 | 눈 | 세로 동공의 빛나는 눈, 입 없음 | 귀여운 눈 대신 신화적인 눈. 레전더리에만 허용 |
 | 그림자 | 넓고 진한 접지 그림자 | 무게감을 위해 유지 |
 
-**공통 규칙의 레전더리 예외 세 가지** (세션 설정 마지막 부분에 들어 있음)
+**공통 규칙의 레전더리 예외 세 가지** (세션 설정의 3. STYLE BY TIER에 들어 있음)
 - **눈 스타일**: 하이라이트 2개인 귀여운 눈 대신 신화적인 눈(세로 동공, 빛나는 눈, 입 없음)을 써도 됩니다.
 - **빛 번짐**: 후광 효과의 빛 번짐을 허용합니다. 누끼 처리는 0장의 "누끼 주의점"을 따릅니다.
 - **그림자**: 작은 그림자 대신 넓고 진한 그림자를 허용합니다.
+
+### 1-3-3. 유니크 참고 이미지 (W-U 심해 여왕 슬라임)
+
+![W-U 유니크 참고](images/ref_W-U_unique.webp)
+
+유니크 화풍의 기준 이미지입니다. 다른 속성의 유니크도 이 정도의 세밀함과 화려함을 따릅니다.
+
+| 요소 | 이 이미지에서 | 다른 유니크에 적용 |
+| --- | --- | --- |
+| 화풍 | 광택 있는 젤리를 세밀하게 그린 일러스트풍 | 3D 토이풍보다 장식과 빛이 풍부함 |
+| 머리 장식 | 진주와 조개를 엮은 장식에 얇은 베일. 왕관 모양이 아님 | 속성 재료로 만든 머리 장식 (`not a crown shape`) |
+| 몸 안 | 가운데의 밝은 청록빛과 작은 빛 알갱이 | 빛나는 코어와 속성에 맞는 빛 알갱이 |
+| 몸 장식 | 조개와 산호를 엮은 띠가 몸을 두름 | 갑옷이나 띠처럼 몸에 두르는 장식. 돔형 실루엣은 유지 |
+| 얼굴 | 기본틀의 둥근 눈과 w 미소. 눈은 짙은 남색 | 얼굴 기본틀을 그대로 씀 (레전더리와 다른 점) |
+
+- 이 이미지는 볼터치가 없지만 그대로 씁니다. 새로 뽑는 유니크에는 볼터치를 넣습니다.
+- 이 이미지의 슬라임은 물결 위에 떠 있습니다. 세션 설정은 "말하지 않으면 땅에 앉아 있음"이 기본이므로, 떠 있게 하려면 주제 줄에 `floating`을 적습니다.
 
 ### 1-4. 속성별 팔레트와 누끼용 배경색
 
@@ -218,10 +288,12 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 | 불 | orange, red, warm yellow | glowing ember jelly | plain solid white |
 | 물 | aqua, teal, deep blue | clear jelly with tiny bubbles | plain solid white |
 | 땅 | amber, olive green, warm brown | earthy jelly with moss and pebbles | plain solid white |
-| 공기 | pale sky blue, white, soft lavender | fluffy cloud-like jelly | plain solid dark gray (#333333) |
+| 공기 | pale sky blue, white, soft lavender | glossy jelly with soft white cloud swirls inside | plain solid dark gray (#333333) |
 | 무속성 | pastel pink, cream, soft peach | classic smooth jelly | plain solid white |
 
 > 공기 속성은 몸이 흰색에 가까워서 흰 배경에서는 누끼가 어렵습니다. 그래서 어두운 회색 배경을 씁니다.
+
+> **공기 속성에서 피할 표현**: `fluffy`, `looks like a cloud`, `made of cloud`. 몸 전체가 울퉁불퉁한 솜 덩어리로 나와서 돔형 실루엣과 젤리 광택이 사라집니다. 구름과 바람은 **몸 안의 무늬**, **머리 위에 얹은 장식**, **몸 주위의 효과**로 표현합니다. 몸 색도 흰색 대신 옅은 하늘색이나 라벤더로 적어야 볼터치와 하이라이트가 보입니다.
 
 ---
 
@@ -240,7 +312,7 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 | F-N3 | 노말 | 꼬마 불꽃 슬라임 | `Character: small round warm yellow slime bouncing in mid-air, a little flame wisp floating behind it like a comet trail, excited face. Normal tier. Background: plain solid white.` |
 | F-R1 | 레어 | 화산뿔 슬라임 | `Character: round red-orange slime with two short shiny black obsidian horns and thin glowing lava cracks on its body, confident face, a few ember sparkles around. Rare tier. Background: plain solid white.` |
 | F-R2 | 레어 | 갈기불 슬라임 | `Character: round orange slime with a ring of soft little flames floating around its face like a lion's mane (floating flames, not hair), proud smile, a few ember sparkles around. Rare tier. Background: plain solid white.` |
-| F-SR | 수퍼레어 | 화염 소용돌이 슬라임 | `Character: orange-red fire slime with the same round soft dome-shaped jelly body as always, hopping up in a powerful bounce with its whole body tilted forward, a bright yellow-white glowing core shining through its body, a double spiral of roaring fire wrapping around its body and rising high above its head, big round glossy eyes with a determined fiery glint and small angled brows, small open mouth shouting, many embers and sparks flying outward, slightly low camera angle, the character and its fire fill about 70% of the frame. The fire stays around the body and never changes the body shape. The fire has crisp clean edges, no smoke, no glow haze on the background. Background: plain solid white.` |
+| F-SR | 수퍼레어 | 화염 소용돌이 슬라임 | `Character: orange-red fire slime with the same round soft dome-shaped jelly body as always, hopping up in a powerful bounce with its whole body tilted forward, a bright yellow-white glowing core shining through its body, a double spiral of roaring fire wrapping around its body and rising high above its head, big round glossy eyes with a determined fiery glint and small angled brows, small open mouth shouting, many embers and sparks flying outward, slightly low camera angle, the character and its fire fill about 70% of the frame. The fire stays around the body and never changes the body shape. The fire has crisp clean edges, no smoke, no glow haze on the background. Super rare tier. Background: plain solid white.` |
 | F-U | 유니크 | 용암 군주 슬라임 | `Character: majestic large red slime wearing an ornate fire headpiece of molten gold flames and small black obsidian shards resting on top of its head (not a crown shape), ornate black obsidian armor plates on its sides, glowing bright lava core visible inside, regal calm expression. Unique tier. Background: plain solid white.` |
 | F-L | 레전더리 | 태양 거신 슬라임 | `Character: colossal mythic fire slime shaped like a living sun, a blazing corona of flames radiating around it, molten golden body with a white-hot core, wise powerful eyes, low camera angle looking up, epic scale. Legendary tier. Background: plain solid white.` |
 
@@ -253,7 +325,7 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 | W-N3 | 노말 | 이슬 슬라임 | `Character: tiny round teal slime sitting on a big green leaf, a single dewdrop balanced on its head, shy face. Normal tier. Background: plain solid white.` |
 | W-R1 | 레어 | 산호뿔 슬라임 | `Character: round deep aqua slime with two short, soft coral nubs sprouting out of the top of its head as part of its own jelly body, made of the same glossy semi-translucent jelly, the color gradually shifting from aqua at the base to soft coral pink at the rounded tips, the base melting smoothly into the body with no seam, each nub with only two or three tiny rounded bumps (not deer antlers, not sharp branches), a few tiny pink coral specks floating inside the body, cheerful face, a few water sparkles around. Rare tier. Background: plain solid white.` |
 | W-R2 | 레어 | 물보라 슬라임 | `Character: round blue slime with a fin-shaped crest on its head and little splashing water droplets around it, lively face. Rare tier. Background: plain solid white.` |
-| W-SR | 수퍼레어 | 파도타기 슬라임 | `Character: teal water slime with the same round soft dome-shaped jelly body as always, riding the crest of a big curling wave with its whole body tilted forward, a bright cyan glowing core shining through its clear body, a double spiral of rushing water wrapping around its body and arcing high above its head, big round glossy eyes with a determined glint and small angled brows, small open mouth shouting with joy, many water droplets and spray bursting outward, slightly low camera angle, the character and its water fill about 70% of the frame. The water stays around the body and never changes the body shape. The water has crisp clean edges, no mist, no glow haze on the background. Background: plain solid white.` |
+| W-SR | 수퍼레어 | 파도타기 슬라임 | `Character: teal water slime with the same round soft dome-shaped jelly body as always, riding the crest of a big curling wave with its whole body tilted forward, a bright cyan glowing core shining through its clear body, a double spiral of rushing water wrapping around its body and arcing high above its head, big round glossy eyes with a determined glint and small angled brows, small open mouth shouting with joy, many water droplets and spray bursting outward, slightly low camera angle, the character and its water fill about 70% of the frame. The water stays around the body and never changes the body shape. The water has crisp clean edges, no mist, no glow haze on the background. Super rare tier. Background: plain solid white.` |
 | W-U | 유니크 | 심해 여왕 슬라임 | `Character: majestic large deep blue slime wearing a delicate sea headpiece of pearls, small seashells and a flowing sea-foam veil resting on top of its head (not a crown shape), ornate seashell armor, soft bioluminescent dots glowing across its body, glowing cyan core, graceful regal expression. Unique tier. Background: plain solid white.` |
 | W-L | 레전더리 | 대해신 슬라임 | `Character: colossal mythic water slime with a wide round dome-shaped jelly body, deep ocean currents swirling inside its glowing deep blue body around a bright cyan core, a giant whirlpool spiraling behind it like a halo with great arcs of water rising like the fins of a sea leviathan, ancient calm glowing eyes, no mouth, wide heavy contact shadow, low camera angle looking up, epic scale. Legendary tier. Background: plain solid white.` |
 
@@ -266,7 +338,7 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 | E-N3 | 노말 | 조약돌 슬라임 | `Character: small round amber slime with several smooth colorful pebbles visible inside its body, curious face. Normal tier. Background: plain solid white.` |
 | E-R1 | 레어 | 버섯갓 슬라임 | `Character: round amber slime wearing a big red-and-cream spotted mushroom cap like a hat, happy face, a few spore sparkles around. Rare tier. Background: plain solid white.` |
 | E-R2 | 레어 | 수정 슬라임 | `Character: round olive-brown slime with small shiny amber crystals poking out of its back, proud face, a few glints around. Rare tier. Background: plain solid white.` |
-| E-SR | 수퍼레어 | 대지 울림 슬라임 | `Character: warm brown earth slime with the same round soft dome-shaped jelly body as always, landing hard on the ground with a heavy stomp, its body squished slightly wider from the impact, a warm amber glowing core shining through its body, a double spiral of broken rock chunks blasting upward and circling around its body, big round glossy eyes with a determined glint and small angled brows, small open mouth shouting, pebbles and small rock shards flying outward, slightly low camera angle, the character and its rocks fill about 70% of the frame. The rocks stay around the body and never change the body shape. The rocks have crisp clean edges, no dust cloud, no glow haze on the background. Background: plain solid white.` |
+| E-SR | 수퍼레어 | 대지 울림 슬라임 | `Character: warm brown earth slime with the same round soft dome-shaped jelly body as always, landing hard on the ground with a heavy stomp, its body squished slightly wider from the impact, a warm amber glowing core shining through its body, a double spiral of broken rock chunks blasting upward and circling around its body, big round glossy eyes with a determined glint and small angled brows, small open mouth shouting, pebbles and small rock shards flying outward, slightly low camera angle, the character and its rocks fill about 70% of the frame. The rocks stay around the body and never change the body shape. The rocks have crisp clean edges, no dust cloud, no glow haze on the background. Super rare tier. Background: plain solid white.` |
 | E-U | 유니크 | 고목 수호자 슬라임 | `Character: majestic large green-brown slime wearing ornate armor of ancient tree bark and a forest headpiece of a small twisted branch with fresh leaves and tiny blossoms resting on top of its head (not a crown shape), glowing amber core, wise regal expression. Unique tier. Background: plain solid white.` |
 | E-L | 레전더리 | 산맥 거신 슬라임 | `Character: colossal mythic earth slime carrying a whole small mountain range with forests and a waterfall on its back, glowing amber core deep inside, ancient gentle eyes, low camera angle looking up, epic scale. Legendary tier. Background: plain solid white.` |
 
@@ -274,13 +346,13 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 
 | ID | 등급 | 이름 | 주제 줄 |
 | --- | --- | --- | --- |
-| A-N1 | 노말 | 솜구름 슬라임 | `Character: small round fluffy white slime that looks like a soft cloud, pale blue tint, dreamy smile. Normal tier. Background: plain solid dark gray #333333.` |
-| A-N2 | 노말 | 산들바람 슬라임 | `Character: small round pale sky blue slime with two little wind swirl wisps curling around it, relaxed face. Normal tier. Background: plain solid dark gray #333333.` |
-| A-N3 | 노말 | 풍선 슬라임 | `Character: small puffed-up round lavender slime floating in the air like a balloon, cheeks puffed, surprised face. Normal tier. Background: plain solid dark gray #333333.` |
-| A-R1 | 레어 | 깃털 슬라임 | `Character: round pale blue slime with two small white feather wings on its sides, hovering, cheerful face, a few sparkles around. Rare tier. Background: plain solid dark gray #333333.` |
-| A-R2 | 레어 | 회오리꼬리 슬라임 | `Character: round lavender slime riding a small spinning tornado swirling beneath it, spinning playfully, a few sparkles around. Rare tier. Background: plain solid dark gray #333333.` |
-| A-SR | 수퍼레어 | 폭풍 질주 슬라임 | `Character: sky blue air slime with the same round soft dome-shaped jelly body as always, zooming forward through the air with its whole body tilted forward, a bright white glowing core shining through its body, a double spiral of sharp wind ribbons wrapping around its body and trailing far behind it, big round glossy eyes with a focused glint and small angled brows, small open mouth shouting, sharp gale streaks and small sparkles flying outward, slightly low camera angle, the character and its wind fill about 70% of the frame. The wind stays around the body and never changes the body shape. The wind ribbons have crisp clean edges, no fog, no glow haze on the background. Background: plain solid dark gray #333333.` |
-| A-U | 유니크 | 천공 기사 슬라임 | `Character: majestic large pale blue slime wearing ornate silver wind armor and a sky headpiece of a few swept-back white feathers with small silver wind swirls resting on top of its head (not a crown shape), large feathered wings, glowing soft white core, noble regal expression. Unique tier. Background: plain solid dark gray #333333.` |
+| A-N1 | 노말 | 솜구름 슬라임 | `Character: small round pale sky blue slime with a glossy jelly body, a soft white cloud-like puff resting on top of its head like a little hat, faint white cloud swirls visible inside its body, dreamy smile with half-closed eyes. Normal tier. Background: plain solid dark gray #333333.` |
+| A-N2 | 노말 | 산들바람 슬라임 | `Character: small round pale sky blue slime with two little white wind swirl wisps curling around it, relaxed happy face. Normal tier. Background: plain solid dark gray #333333.` |
+| A-N3 | 노말 | 풍선 슬라임 | `Character: small extra-round puffed-up lavender slime floating a little above the ground like a balloon (no string, no knot), slightly wider eyes and a small round "o" mouth. Normal tier. Background: plain solid dark gray #333333.` |
+| A-R1 | 레어 | 깃털 슬라임 | `Character: round pale blue slime with two small white feather wings attached to its sides, floating just above the ground, cheerful face, a few sparkles around. Rare tier. Background: plain solid dark gray #333333.` |
+| A-R2 | 레어 | 회오리꼬리 슬라임 | `Character: round lavender slime riding on top of a small spinning white tornado, tilted playfully, happy face, a few sparkles around. Rare tier. Background: plain solid dark gray #333333.` |
+| A-SR | 수퍼레어 | 폭풍 질주 슬라임 | `Character: sky blue air slime with the same round soft dome-shaped jelly body as always, zooming forward through the air with its whole body tilted forward, a bright white glowing core shining through its body, a double spiral of sharp wind ribbons wrapping around its body and trailing far behind it, big round glossy eyes with a focused glint and small angled brows, small open mouth shouting, sharp gale streaks and small sparkles flying outward, slightly low camera angle, the character and its wind fill about 70% of the frame. The wind stays around the body and never changes the body shape. The wind ribbons have crisp clean edges, no fog, no glow haze on the background. Super rare tier. Background: plain solid dark gray #333333.` |
+| A-U | 유니크 | 천공 기사 슬라임 | `Character: majestic large pale blue slime wearing an ornate silver band of wind-pattern armor around its body and a sky headpiece of a few swept-back white feathers with small silver wind swirls resting on top of its head (not a crown shape), a pair of ornate white feather wing ornaments attached to its sides, floating above the ground with soft wind ribbons circling below it, glowing soft white core, calm noble expression. Unique tier. Background: plain solid dark gray #333333.` |
 | A-L | 레전더리 | 하늘고래 슬라임 | `Character: colossal mythic air slime with a wide round dome-shaped cloud jelly body, soft clouds and aurora light swirling inside it around a glowing lavender core, behind it a huge faint sky whale silhouette formed from clouds and aurora ribbons like a halo, serene ancient glowing eyes, no mouth, wide heavy contact shadow, low camera angle looking up, epic scale. Legendary tier. Background: plain solid dark gray #333333.` |
 
 ### 무속성 (Neutral)
@@ -292,7 +364,7 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 | N-N3 | 노말 | 아기 슬라임 삼형제 | `Character: three tiny round pastel slimes (pink, peach, cream) huddled together in a row, cute surprised faces. Normal tier. Background: plain solid white.` |
 | N-R1 | 레어 | 리본 슬라임 | `Character: round pastel pink slime with a big glossy ribbon bow on top of its head, sweet smile, a few sparkles around. Rare tier. Background: plain solid white.` |
 | N-R2 | 레어 | 무지갯빛 슬라임 | `Character: round cream slime with a soft iridescent rainbow sheen across its glossy body, delighted face, a few sparkles around. Rare tier. Background: plain solid white.` |
-| N-SR | 수퍼레어 | 분열 슬라임 | `Character: peach slime with the same round soft dome-shaped jelly body as always, bouncing up as two smaller copies of itself pop out beside it, all three with the same dome shape, a bright warm glowing core shining through each body, thin glowing jelly strands of light connecting them, a double spiral of glossy jelly droplets wrapping around the group, big round glossy eyes with a mischievous confident glint, small open mouths shouting, sparkles bursting outward, slightly low camera angle, the group fills about 70% of the frame. The droplets stay around the bodies and never change their shape. The droplets have crisp clean edges, no glow haze on the background. Background: plain solid white.` |
+| N-SR | 수퍼레어 | 분열 슬라임 | `Character: peach slime with the same round soft dome-shaped jelly body as always, bouncing up as two smaller copies of itself pop out beside it, all three with the same dome shape, a bright warm glowing core shining through each body, thin glowing jelly strands of light connecting them, a double spiral of glossy jelly droplets wrapping around the group, big round glossy eyes with a mischievous confident glint, small open mouths shouting, sparkles bursting outward, slightly low camera angle, the group fills about 70% of the frame. The droplets stay around the bodies and never change their shape. The droplets have crisp clean edges, no glow haze on the background. Super rare tier. Background: plain solid white.` |
 | N-U | 유니크 | 프리즘 현자 슬라임 | `Character: majestic large pastel slime with a glowing prism crystal core inside, two floating ornate rune rings orbiting around it, small wise glasses, calm regal expression. Unique tier. Background: plain solid white.` |
 | N-L | 레전더리 | 원초의 슬라임 | `Character: colossal mythic primordial slime whose body contains a swirling galaxy with tiny stars, a soft halo of light behind it, pastel cosmic colors, gentle all-knowing eyes, low camera angle looking up, epic scale. Legendary tier. Background: plain solid white.` |
 
@@ -345,30 +417,41 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 
 필드 카드는 슬라임이 없는 풍경 카드입니다. 수퍼레어 이상은 **먼 배경 + 가까운 전경 소품**을 따로 뽑아 패럴랙스에 씁니다.
 
+- **풍경은 `Field:`로 시작합니다.** 슬라임 카드의 배경(`Background:`)은 캐릭터 뒤에 깔리므로 흐릿하고 단순하게 그리지만, 필드 카드는 풍경이 주인공이라 또렷하고 세밀해야 합니다. 그래서 세션 설정에 FIELD 규칙을 따로 두었습니다.
+- **전경 소품은 `Prop:`으로 시작합니다.** 얼굴이 없는 물체이고, 화풍은 슬라임과 같이 등급을 따릅니다(수퍼레어는 3D 토이풍, 유니크·레전더리는 일러스트풍). 누끼를 따서 풍경 위에 올립니다.
+- 필드 카드는 카드 전체를 채우는 풀아트라서, 풍경의 **아래 1/3은 단순하게** 둡니다. 그 위에 이름과 정보 텍스트가 올라갑니다.
+- 전경 소품이 있는 풍경에는 소품이 들어갈 **빈자리**를 남깁니다(`open empty ... in the lower middle`).
+- 소품의 빛은 소품 안에만 두고 배경으로 번지지 않게 합니다. 흰 배경에서 빛 번짐은 누끼 때 사라집니다.
+
 | ID | 등급 | 이름 | 레이어 | 주제 줄 |
 | --- | --- | --- | --- | --- |
-| FD-N | 노말 | 슬라임 들판 | 1장 | `Background: a peaceful green meadow with soft rolling hills, tiny colorful jelly droplets glistening on the grass, morning light. Portrait 2:3.` |
-| FD-R | 레어 | 이슬 숲 | 1장 | `Background: a misty forest path with sparkling dewdrops on every leaf, soft green and teal tones, gentle light rays. Portrait 2:3.` |
-| FD-SR | 수퍼레어 | 반딧불 버섯 동굴 | 먼 배경 | `Background: a dark cozy cave with glowing blue and purple mushrooms deep inside, soft magical glow. Portrait 2:3.` |
-| | | | 전경 | `3D rendered glossy style: a cluster of large glowing blue and purple mushrooms in the foreground, plain solid white background, no text. Square 1:1.` |
-| FD-U | 유니크 | 떠다니는 구름섬 | 먼 배경 | `Background: a wide pastel sky with distant floating islands and waterfalls pouring into the clouds. Portrait 2:3.` |
-| | | | 전경 | `3D rendered glossy style: a small grassy floating island with a tiny waterfall and a little tree, plain solid white background, no text. Square 1:1.` |
-| FD-L | 레전더리 | 슬라임 성지 | 먼 배경 | `Background: an ancient sacred sanctuary with tall stone arches, a huge glowing rainbow jelly crystal in the center, divine light rays, epic scale. Portrait 2:3.` |
-| | | | 전경 | `3D rendered glossy style: broken ancient stone pillars with soft moss and small glowing jelly crystals, plain solid white background, no text. Square 1:1.` |
+| FD-N | 노말 | 슬라임 들판 | 1장 | `Field: a peaceful green meadow with soft rolling hills under a clear morning sky, tiny colorful jelly droplets glistening on the grass, a calm and simple scene, simpler lower third. Portrait 2:3.` |
+| FD-R | 레어 | 이슬 숲 | 1장 | `Field: a misty forest path with sparkling dewdrops on every leaf, gentle light rays through the trees, soft green and teal tones, simpler lower third. Portrait 2:3.` |
+| FD-SR | 수퍼레어 | 반딧불 버섯 동굴 | 먼 배경 | `Field: a dark cozy cave with many glowing blue and purple mushrooms deep inside and drifting firefly lights, magical glow lighting the cave walls, open empty ground in the lower middle for a foreground object, simpler lower third. Portrait 2:3.` |
+| | | | 전경 | `Prop: a cluster of three large mushrooms with softly glowing blue and purple caps, the glow stays inside the caps with no haze on the background. Super rare tier. Background: plain solid white.` |
+| FD-U | 유니크 | 떠다니는 구름섬 | 먼 배경 | `Field: a wide pastel sky with distant floating islands and long waterfalls pouring into a sea of clouds, soft golden light, open empty sky in the lower middle for a foreground object, simpler lower third. Portrait 2:3.` |
+| | | | 전경 | `Prop: a small grassy floating island with a little tree, hanging roots underneath and a short waterfall trailing off its edge, ornate and detailed, floating with no shadow below. Unique tier. Background: plain solid white.` |
+| FD-L | 레전더리 | 슬라임 성지 | 먼 배경 | `Field: an ancient sacred sanctuary with tall stone arches, a huge glowing rainbow jelly crystal in the center, divine light rays from above, epic scale, open empty ground in the lower middle for a foreground object, simpler lower third. Portrait 2:3.` |
+| | | | 전경 | `Prop: two broken ancient stone pillars with soft moss and small glowing rainbow jelly crystals growing on them, epic and detailed, the glow stays inside the crystals with no haze on the background. Legendary tier. Background: plain solid white.` |
 
 ---
 
 ## 5. 간식(아이템) 카드 5장
 
-간식은 캐릭터처럼 3D 렌더풍으로 뽑고, 배경은 무속성 공용 배경(`BG-N-W`)을 같이 씁니다.
+간식은 `Item:`으로 시작합니다. 배경은 무속성 공용 배경(`BG-N-W`)을 같이 씁니다.
+
+- **간식에는 얼굴이 없습니다.** 세션 설정에 "Item과 Prop은 얼굴 없음"을 넣었습니다. 슬라임 얼굴 규칙을 따라 쿠키에 눈이 생기는 것을 막습니다.
+- **화풍은 슬라임과 같이 등급을 따릅니다.** 노말·레어·수퍼레어는 3D 토이풍, 유니크·레전더리는 화려한 일러스트풍입니다. 그래서 줄마다 적혀 있던 `3D rendered glossy toy style`과 조명·그림자 문구는 뺐습니다. 세션 설정이 등급 이름을 보고 정합니다.
+- **등급 차이**는 슬라임과 같은 방식으로 냅니다. 노말은 단순하게, 레어는 반짝임 조금, 수퍼레어는 몸을 감는 이중 효과, 유니크는 화려한 장식, 레전더리는 신화적인 규모입니다.
+- 레전더리의 `soft halo of light`는 뺐습니다. 흰 배경 위의 후광은 누끼 때 사라지므로, 빛이 필요하면 Unity에서 얹습니다.
 
 | ID | 등급 | 이름 | 주제 줄 |
 | --- | --- | --- | --- |
-| SN-N | 노말 | 젤리빈 한 줌 | `Item: a small pile of glossy colorful jelly beans, 3D rendered glossy toy style, soft light from top-left, small contact shadow, centered. Normal tier. Background: plain solid white.` |
-| SN-R | 레어 | 꿀방울 쿠키 | `Item: a round golden cookie with shiny honey drops on top, 3D rendered glossy toy style, soft light from top-left, small contact shadow, centered, a few sparkles. Rare tier. Background: plain solid white.` |
-| SN-SR | 수퍼레어 | 무지개 푸딩 | `Item: a wobbly layered rainbow jelly pudding on a small plate with a cherry on top, 3D rendered glossy toy style, translucent layers, soft light from top-left, sparkles around. Super rare tier. Background: plain solid white.` |
-| SN-U | 유니크 | 별가루 마카롱 탑 | `Item: an elegant tower of pastel macarons dusted with glittering star powder on an ornate golden stand, 3D rendered glossy toy style, soft glow, regal presentation. Unique tier. Background: plain solid white.` |
-| SN-L | 레전더리 | 별의 꿀단지 | `Item: a legendary ornate golden honey pot overflowing with glowing cosmic honey that contains tiny stars, soft halo of light, 3D rendered glossy toy style, low camera angle, epic presentation. Legendary tier. Background: plain solid white.` |
+| SN-N | 노말 | 젤리빈 한 줌 | `Item: a small pile of glossy colorful jelly beans, simple and cute. Normal tier. Background: plain solid white.` |
+| SN-R | 레어 | 꿀방울 쿠키 | `Item: a round golden cookie with shiny honey drops on top, a few sparkles around. Rare tier. Background: plain solid white.` |
+| SN-SR | 수퍼레어 | 무지개 푸딩 | `Item: a wobbly layered rainbow jelly pudding on a small plate with a cherry on top, translucent layers with a bright glowing center, jiggling with energy, a double spiral of rainbow sparkles swirling around it, the sparkles have crisp clean edges with no glow haze on the background. Super rare tier. Background: plain solid white.` |
+| SN-U | 유니크 | 별가루 마카롱 탑 | `Item: an elegant tower of pastel macarons dusted with glittering star powder on an ornate golden stand, tiny stars floating around it, rich and regal presentation. Unique tier. Background: plain solid white.` |
+| SN-L | 레전더리 | 별의 꿀단지 | `Item: a grand ornate golden honey pot overflowing with glowing cosmic honey that holds a swirling galaxy of tiny stars, ribbons of starlight rising from it, low camera angle looking up, epic presentation. Legendary tier. Background: plain solid white.` |
 
 ---
 
@@ -405,7 +488,12 @@ Assets/<아트 폴더>/Cards/
 ## 8. 품질 체크리스트 (매 장마다)
 
 - [ ] 슬라임 원형(둥근 돔형)이 유지되는가? 1-3의 "몸 모양 허용 범위" 표로 판단합니다. (납작함·퍼진 바닥·장식은 괜찮고, 팔다리·귀·길쭉한 몸은 안 됨)
-- [ ] 3D 렌더 화풍인가? (2D 일러스트로 바뀌면 세션 설정과 앵커 이미지를 다시 보냄)
+- [ ] 화풍이 등급에 맞는가? 노말·레어·수퍼레어는 3D 토이풍(외곽선과 붓 자국 없음), 유니크·레전더리는 일러스트풍입니다. 어긋나면 세션 설정과 앵커 이미지를 다시 보냅니다.
+- [ ] 눈 안에 홍채, 그러데이션, 반짝이가 들어가지 않았는가? 눈썹과 입 선이 굵어지지 않았는가?
+- [ ] 오른쪽 아래의 Gemini 워터마크(✦)를 지웠는가?
+- [ ] 간식과 전경 소품에 얼굴(눈, 입)이 생기지 않았는가?
+- [ ] 필드 풍경이 흐릿하지 않고 또렷한가? 아래 1/3이 텍스트를 올릴 만큼 단순한가? 전경 소품이 들어갈 빈자리가 있는가?
+- [ ] 공기 속성 슬라임이 솜 덩어리가 아니라 광택 있는 젤리 몸인가?
 - [ ] 조명이 왼쪽 위에서 오는가? (하이라이트 위치 확인)
 - [ ] 얼굴이 1-3의 "얼굴 기본틀"과 같은가? 눈 색, 하이라이트 2개의 위치, 눈 위치와 간격, 볼터치를 확인합니다. (표정에 따른 눈·입 모양 변화는 괜찮음)
 - [ ] 몸이 너무 투명해서 배경이 비쳐 보이지 않는가? (누끼가 깨짐)
