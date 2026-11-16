@@ -13,7 +13,8 @@
 | 팩 확률 · 선반 · 개봉 규칙 · 상자 | ✅ 완료, 테스트로 고정 |
 | 자르기 개봉 · 한 장씩 넘기기 | ✅ 1차 구현, **실기기 확인 전** |
 | 등급별 연출 (빛 · 소리 · 파티클) | ⏳ 멈춤·진동만 |
-| 업무 (손님 · 결제 · 청소) · 바인더 · 판매 · 튜토리얼 | ❌ 시작 전 |
+| 판매 · 인기 속성 · 최종 점수 규칙 (`SalesRules` · `PopularElementSchedule` · `ScoreRules`) | ✅ 규칙과 테스트만 (진열대·손님·정산 화면은 없음) |
+| 업무 (손님 · 결제 · 청소) · 바인더 · 판매 진열대 · 튜토리얼 | ❌ 시작 전 |
 
 ## 2. 다른 PC 준비
 1. **저장소 받기**: 이 PC에서 push한 뒤 `git pull` (오늘 커밋은 아직 push 전일 수 있음 — `git log origin/main..main`으로 확인)
@@ -21,7 +22,7 @@
 3. 처음 열 때 `Library/`를 새로 만드느라 오래 걸립니다. XRI Starter Assets 샘플은 저장소에 들어 있어 따로 임포트하지 않아도 됩니다.
 4. 열고 나서 확인
    - `Tools > CardShop > Validate Data` → 경고 0개
-   - Test Runner(EditMode) → 33개 통과
+   - Test Runner(EditMode) → 47개 통과
    - `Assets/00. Scenes/Shop.unity`를 열고 Play
 5. **Quest 연결**: 헤드셋 개발자 모드 · USB 디버깅 허용. adb가 `unauthorized`면 헤드셋 개발자 설정에서 USB 디버깅 권한을 취소하고, 다시 꽂아 **RSA 키 지문이 있는 창**에서 허용합니다.
    - 빠른 테스트: Quest Link / Air Link로 연결하고 에디터에서 Play
@@ -56,7 +57,7 @@
 
 그다음 설계서 일정 (`Assets/98. Doc/카드깡_시스템설계서_v1.md` 11장)
 - 3일차: 등급 셰이더 → 바인더(표지 소켓 1개 자동 배치)
-- 4일차: 손님 · 결제 · 청소 3종 · 정산 → 판매 진열대
+- 4일차: 손님 · 결제 · 청소 3종 · 정산 → 판매 진열대 (판매 규칙은 `Context.Sales`에 있음: `TryDisplay` · `ServeCustomer` · 하루 끝 `ReturnUnsold`는 DayEnd에서 자동)
 - 5일차: 7일 캠페인 연결 → 점수 · 최종 화면 → 튜토리얼 → 시뮬레이터로 수치 재검증
 
 ## 6. 결정 대기

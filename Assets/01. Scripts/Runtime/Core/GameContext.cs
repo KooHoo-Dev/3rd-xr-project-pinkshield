@@ -39,6 +39,13 @@ namespace CardShop.Core
         public EconomyRules EconomyRules { get; private set; }
         public PackRoller PackRoller { get; private set; }
         public PackOpeningService PackOpening { get; private set; }
+        public SalesRules Sales { get; private set; }
+        public ScoreRules ScoreRules { get; private set; }
+        /// <summary>새 게임마다 다시 뽑는 일차별 인기 속성 일정.</summary>
+        public PopularElementSchedule PopularElements { get; private set; }
+
+        /// <summary>오늘의 인기 속성.</summary>
+        public CardElement PopularToday => PopularElements.For(Session.Day);
 
         void Awake()
         {
@@ -54,6 +61,8 @@ namespace CardShop.Core
             EconomyRules = new EconomyRules(economy, rarityTable);
             PackRoller = new PackRoller(packOdds, cardDatabase, Random);
             PackOpening = new PackOpeningService(() => Session, PackRoller, economy);
+            Sales = new SalesRules(economy, rarityTable, EconomyRules, cardDatabase, Random);
+            ScoreRules = new ScoreRules(score, rarityTable, cardDatabase);
             StartNewSession();
         }
 
@@ -66,6 +75,7 @@ namespace CardShop.Core
         public void StartNewSession()
         {
             Session = new GameSession(economy.startingMoney);
+            PopularElements = new PopularElementSchedule(campaign.DayCount, economy.popularCycleDays, Random);
             Events.RaiseSessionStarted(Session);
         }
     }

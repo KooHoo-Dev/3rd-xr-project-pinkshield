@@ -1,4 +1,5 @@
 using CardShop.Cards;
+using CardShop.Logic;
 using UnityEngine;
 
 namespace CardShop.Core.Phases
@@ -115,7 +116,7 @@ namespace CardShop.Core.Phases
         public override void OnAdvanceRequested() => Flow.GoTo(GamePhaseId.DayEnd);
     }
 
-    /// <summary>하루 마무리. TODO: 미판매 진열 카드 반환, 선반 재배치. 마지막 날이면 최종 정산.</summary>
+    /// <summary>하루 마무리: 미판매 진열 카드 반환(기획서 5-4). 선반 재배치는 DayStarted를 받은 선반이 합니다. 마지막 날이면 최종 정산.</summary>
     public sealed class DayEndPhase : GamePhase
     {
         public DayEndPhase(GameFlow f, GameContext c) : base(f, c) { }
@@ -123,6 +124,9 @@ namespace CardShop.Core.Phases
 
         public override void Enter()
         {
+            int returned = Context.Sales.ReturnUnsold(Context.Session);
+            if (returned > 0) Log($"안 팔린 진열 카드 {returned}장 반환");
+
             if (Context.Session.Day >= Context.Campaign.DayCount)
             {
                 Flow.GoTo(GamePhaseId.Final);
@@ -134,17 +138,20 @@ namespace CardShop.Core.Phases
         }
     }
 
-    /// <summary>최종 정산 · 랭크 · 엔딩. TODO(5일차): ScoreRules로 점수 계산.</summary>
+    /// <summary>최종 정산 · 랭크 · 엔딩 (기획서 5-8). 화면 UI는 5일차.</summary>
     public sealed class FinalPhase : GamePhase
     {
         public FinalPhase(GameFlow f, GameContext c) : base(f, c) { }
         public override GamePhaseId Id => GamePhaseId.Final;
 
+        public FinalResult Result { get; private set; }
+
         public override void Enter()
         {
-            int score = Context.Session.Wallet.Money; // 임시: 재화만
-            ScoreConfig.Rank rank = Context.Score.GetRank(score);
-            Log($"최종 {score}점, 랭크 {rank.name}, {(rank.isSuccess ? Context.Score.successEnding : Context.Score.failEnding)}");
+            Result = Context.ScoreRules.Calculate(Context.Session);
+            ScoreConfig.Rank rank = Result.Rank;
+            Log($"최종 {Result.Score}점 (재화 {Result.Money} + 카드 {Result.CardValue} + 도감 {Result.CollectionPoints}), " +
+                $"랭크 {rank.name}, {(rank.isSuccess ? Context.Score.successEnding : Context.Score.failEnding)}");
         }
 
         public override void OnAdvanceRequested() => Flow.GoTo(GamePhaseId.Title);
