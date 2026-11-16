@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 702b9561a83d3b0498b4a1f7bc8a373d, type: 3}
+  m_Name: CardDatabase
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CardDatabase
+  cards:
+  - {fileID: 11400000, guid: 73ecd4ad15eba8e44a134bbff620ffbf, type: 2}
+  - {fileID: 11400000, guid: c60d9a1a71f64b44499333bd38172ad7, type: 2}
+  - {fileID: 11400000, guid: 1092fa125e4400447aa14bfaf39dc82e, type: 2}
+  - {fileID: 11400000, guid: a4c249ffcccc70345b9811045b333908, type: 2}
+  - {fileID: 11400000, guid: db026ae011853e34e980729526f6da4c, type: 2}
+  - {fileID: 11400000, guid: 859026d6d761f3a41afa7c9974139843, type: 2}
+  - {fileID: 11400000, guid: 0ce12fdb4865814448344e88c23f2692, type: 2}
+  - {fileID: 11400000, guid: 9b037428c3c73ac42b8cd32321ae37ac, type: 2}
+  - {fileID: 11400000, guid: 1793e75665fae0447b15d8087b502918, type: 2}
+  - {fileID: 11400000, guid: 1514b97dd98a8c240914a081927b2f93, type: 2}
+  - {fileID: 11400000, guid: 41856c5070471494aa9bff1b29babb6e, type: 2}
+  - {fileID: 11400000, guid: da4d834942910b540811551c07dc050a, type: 2}
+  - {fileID: 11400000, guid: 65abd5c52b87ceb4aa5b96306650ae9b, type: 2}
+  - {fileID: 11400000, guid: 57fe0f5bdaacb1845971324dcdc9d2e3, type: 2}
+  - {fileID: 11400000, guid: c1e67ae8e7a449348a6d6fd2332aee71, type: 2}
+  - {fileID: 11400000, guid: 2b8b316a7827f774da557a76b3e417ed, type: 2}
+  - {fileID: 11400000, guid: d95cadbffb9472746ada47854bbf9d56, type: 2}
+  - {fileID: 11400000, guid: 7bbf4d07aee9ed4479be38ebc4862c30, type: 2}
+  - {fileID: 11400000, guid: f5f8747eee63e0e4cb4dab03d98ab9de, type: 2}
+  - {fileID: 11400000, guid: 51be9841f38b69748b1703061507348e, type: 2}
+  - {fileID: 11400000, guid: 19b410235e68c13449466c281ba120c5, type: 2}
+  - {fileID: 11400000, guid: 7ef3a8f96fe6eeb409ec103ae9ea92c3, type: 2}
+  - {fileID: 11400000, guid: 1fbc1e2cc47f4e644a9c9365dbd9f789, type: 2}
+  - {fileID: 11400000, guid: 717fc69cfad7b8c489ac6275fac590cb, type: 2}
+  - {fileID: 11400000, guid: a03198e3ee76ded48b4b9ebd55faafdf, type: 2}
+  - {fileID: 11400000, guid: 336c5ba3e7299c8459ac311e871a8958, type: 2}
+  - {fileID: 11400000, guid: c71edf71b9851434b9b35dced51d465a, type: 2}
+  - {fileID: 11400000, guid: db7e2d22b97e3404087edbc644df6b07, type: 2}
+  - {fileID: 11400000, guid: bdae76bf157655244bb95cf7f0fed27e, type: 2}
+  - {fileID: 11400000, guid: debf55524c409314ba55f0ede50fc494, type: 2}
+  - {fileID: 11400000, guid: 3d2c6fd7c24e10246a9a124f25cb7135, type: 2}
+  - {fileID: 11400000, guid: dc4095704cfb161409e8b149b67fef95, type: 2}
+  - {fileID: 11400000, guid: d07d5c1e1b4ffa54eb5132a18c9e5394, type: 2}
+  - {fileID: 11400000, guid: a57a2482ea92a884e80610e911be2ed1, type: 2}
+  - {fileID: 11400000, guid: 2b4b9fd881862ca4496201de7c41af76, type: 2}
+  - {fileID: 11400000, guid: e15e0a90a2f0e6f4d9376d596ec4563a, type: 2}
+  - {fileID: 11400000, guid: 0f884e920e3b4b54e9efea4457df141a, type: 2}
+  - {fileID: 11400000, guid: d43536655ab52be42a77a2af60bcbf4e, type: 2}
+  - {fileID: 11400000, guid: d14d32b40d3e2b74b89f3521c0bd1e37, type: 2}
+  - {fileID: 11400000, guid: 552f54da5177cf64bb67e954279dc9b1, type: 2}
+  - {fileID: 11400000, guid: bcf5980f4e3f2fb4fa78d007eea32b99, type: 2}
+  - {fileID: 11400000, guid: 56db517310b4efe4b8c94d5ca5c30fbd, type: 2}
+  - {fileID: 11400000, guid: 80d45f1c21542d74c9d95f44e4f7df6f, type: 2}
+  - {fileID: 11400000, guid: 976e4d9c0088cf4428b8cba538b54105, type: 2}
+  - {fileID: 11400000, guid: bd4d8192ed7c90a419b8e2e4f675b4b8, type: 2}
+  - {fileID: 11400000, guid: 9f148741ebde2e4409f93a9f3e914bfa, type: 2}
+  - {fileID: 11400000, guid: 71eb44ddcd0439b4eaad34dd54ab7db5, type: 2}
+  - {fileID: 11400000, guid: cc3fbd2e496877f41b58855ca99e7747, type: 2}
+  - {fileID: 11400000, guid: 567a9e4291ea3ad4996b5f116aa65394, type: 2}
+  - {fileID: 11400000, guid: 6d2fd8badc6eb33429c641e7d0caa0d2, type: 2}

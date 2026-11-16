@@ -1,0 +1,85 @@
+using System;
+using CardShop.Cards;
+using CardShop.Logic;
+using UnityEngine;
+
+namespace CardShop.Core
+{
+    /// <summary>
+    /// 씬의 유일한 진입점(설계서 3장). 설정 SO를 받고, 한 판의 상태와 규칙 서비스를 만들어 보관합니다.
+    /// 다른 컴포넌트는 GameContext.Instance 또는 인스펙터 참조로 접근합니다.
+    /// </summary>
+    [DefaultExecutionOrder(-100)]
+    public sealed class GameContext : MonoBehaviour
+    {
+        public static GameContext Instance { get; private set; }
+
+        [Header("Configs (Assets/02. Data)")]
+        [SerializeField] CardDatabase cardDatabase;
+        [SerializeField] RarityTable rarityTable;
+        [SerializeField] PackOddsConfig packOdds;
+        [SerializeField] EconomyConfig economy;
+        [SerializeField] CampaignConfig campaign;
+        [SerializeField] ScoreConfig score;
+
+        [Header("Random")]
+        [Tooltip("0이면 매번 다른 시드")]
+        [SerializeField] int fixedSeed;
+
+        public CardDatabase Cards => cardDatabase;
+        public RarityTable Rarity => rarityTable;
+        public PackOddsConfig PackOdds => packOdds;
+        public EconomyConfig Economy => economy;
+        public CampaignConfig Campaign => campaign;
+        public ScoreConfig Score => score;
+
+        public GameEvents Events { get; } = new GameEvents();
+        public GameSession Session { get; private set; }
+        public IRandomSource Random { get; set; }
+        public EconomyRules EconomyRules { get; private set; }
+
+        void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Debug.LogError("[GameContext] 씬에 GameContext가 2개 있습니다.", this);
+                enabled = false;
+                return;
+            }
+            Instance = this;
+
+            Random = fixedSeed != 0 ? new SystemRandomSource(fixedSeed) : new SystemRandomSource();
+            EconomyRules = new EconomyRules(economy, rarityTable);
+            StartNewSession();
+        }
+
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
+        }
+
+        /// <summary>새 게임. 이전 세션의 구독은 Events.SessionStarted에서 다시 연결하세요.</summary>
+        public void StartNewSession()
+        {
+            Session = new GameSession(economy.startingMoney);
+            Events.RaiseSessionStarted(Session);
+        }
+    }
+
+    /// <summary>
+    /// 시스템 간 이벤트 모음. static이 아니므로 Enter Play Mode(도메인 리로드 끔)에서도 구독이 남지 않습니다.
+    /// 기능이 늘어날 때 여기에 추가합니다.
+    /// </summary>
+    public sealed class GameEvents
+    {
+        public event Action<GameSession> SessionStarted;
+        public event Action<GamePhaseId, GamePhaseId> PhaseChanged; // (이전, 다음)
+        public event Action<int> DayStarted;
+        public event Action<bool> PausedChanged;
+
+        internal void RaiseSessionStarted(GameSession s) => SessionStarted?.Invoke(s);
+        internal void RaisePhaseChanged(GamePhaseId from, GamePhaseId to) => PhaseChanged?.Invoke(from, to);
+        internal void RaiseDayStarted(int day) => DayStarted?.Invoke(day);
+        internal void RaisePausedChanged(bool paused) => PausedChanged?.Invoke(paused);
+    }
+}

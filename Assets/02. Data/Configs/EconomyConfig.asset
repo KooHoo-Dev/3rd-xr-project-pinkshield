@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f256e37f0cad73745bc6a821b784796f, type: 3}
+  m_Name: EconomyConfig
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.EconomyConfig
+  packPrice: 10
+  boxPrice: 90
+  packsPerBox: 10
+  freePacksPerDay: 1
+  dailyBasePay: 40
+  cleanupBonus: 5
+  cleanupPenalty: 3
+  commissionRate: 0.1
+  minSellPrice: 1
+  salesDisplaySlots: 4
+  popularElementEnabled: 1
+  popularMultiplier: 1.5
+  popularCycleDays: 2
+  startingMoney: 0

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc1a67271b5a21d4abe8171e123d68e3, type: 3}
+  m_Name: ScoreConfig
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.ScoreConfig
+  pointsPerCollected: 10
+  ranks:
+  - name: S
+    minScore: 4000
+    isSuccess: 1
+  - name: A
+    minScore: 3400
+    isSuccess: 1
+  - name: B
+    minScore: 2400
+    isSuccess: 1
+  - name: C
+    minScore: 0
+    isSuccess: 0
+  successEnding: "\uC815\uC9C1\uC6D0 \uC804\uD658"
+  failEnding: "\uACC4\uC57D \uC5F0\uC7A5"

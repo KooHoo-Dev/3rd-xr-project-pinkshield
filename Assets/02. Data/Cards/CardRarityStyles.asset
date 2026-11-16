@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1e248a8995af08499560ca7659d55a4, type: 3}
+  m_Name: CardRarityStyles
+  m_EditorClassIdentifier: Assembly-CSharp::CardShop.Cards.CardRarityStyles
+  styles:
+  - label: "\uB178\uB9D0"
+    frameColor: {r: 0.8, g: 0.8, b: 0.82, a: 1}
+    accentColor: {r: 0.62, g: 0.62, b: 0.68, a: 1}
+    fullArt: 0
+    popOut: 0
+    charScale: 1
+    charOffsetY: 0
+    frameSparkle: 0
+    artHolo: 0
+    scrollPattern: 0
+    rim: 0
+    glow: 0
+  - label: "\uB808\uC5B4"
+    frameColor: {r: 0.62, g: 0.78, b: 0.95, a: 1}
+    accentColor: {r: 0.78, g: 0.9, b: 1, a: 1}
+    fullArt: 0
+    popOut: 0
+    charScale: 1
+    charOffsetY: 0
+    frameSparkle: 0.6
+    artHolo: 0
+    scrollPattern: 0
+    rim: 0
+    glow: 0
+  - label: "\uC218\uD37C\uB808\uC5B4"
+    frameColor: {r: 0.72, g: 0.6, b: 0.95, a: 1}
+    accentColor: {r: 0.92, g: 0.78, b: 1, a: 1}
+    fullArt: 0
+    popOut: 0
+    charScale: 1
+    charOffsetY: 0
+    frameSparkle: 0.8
+    artHolo: 0.8
+    scrollPattern: 0
+    rim: 0
+    glow: 0
+  - label: "\uC720\uB2C8\uD06C"
+    frameColor: {r: 0.93, g: 0.74, b: 0.35, a: 1}
+    accentColor: {r: 1, g: 0.86, b: 0.45, a: 1}
+    fullArt: 1
+    popOut: 0
+    charScale: 1.15
+    charOffsetY: 0.12
+    frameSparkle: 1
+    artHolo: 0.9
+    scrollPattern: 0.7
+    rim: 0.6
+    glow: 0
+  - label: "\uB808\uC804\uB354\uB9AC"
+    frameColor: {r: 0.95, g: 0.5, b: 0.32, a: 1}
+    accentColor: {r: 1, g: 0.78, b: 0.38, a: 1}
+    fullArt: 1
+    popOut: 1
+    charScale: 1.35
+    charOffsetY: 0.14
+    frameSparkle: 1
+    artHolo: 1
+    scrollPattern: 1
+    rim: 1
+    glow: 1
+  elementColors:
+  - {r: 0.7, g: 0.7, b: 0.72, a: 1}
+  - {r: 1, g: 0.55, b: 0.25, a: 1}
+  - {r: 0.3, g: 0.75, b: 0.9, a: 1}
+  - {r: 0.65, g: 0.6, b: 0.3, a: 1}
+  - {r: 0.7, g: 0.8, b: 1, a: 1}
+  - {r: 1, g: 0.75, b: 0.8, a: 1}

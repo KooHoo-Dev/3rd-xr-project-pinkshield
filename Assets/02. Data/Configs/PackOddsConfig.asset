@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b02d53fc9767e674c8cca38288ed64d3, type: 3}
+  m_Name: PackOddsConfig
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.PackOddsConfig
+  slotLayout: 0000000000000000000000000100000002000000
+  commonSlot:
+    normal: 93
+    rare: 6.6
+    superRare: 0.4
+    unique: 0
+    legendary: 0
+  rareSlot:
+    normal: 30
+    rare: 58
+    superRare: 10.7
+    unique: 1.2
+    legendary: 0.1
+  hitSlot:
+    normal: 0
+    rare: 66
+    superRare: 25
+    unique: 8.4
+    legendary: 0.6
+  clueMultipliers:
+  - 1
+  - 1.5
+  - 2
+  clueBoostFrom: 2
+  clueBoostedSlots: 0100000002000000
+  godPackChance: 0.2
+  godPackLegendaryShare: 15
+  legendaryPackChance: 1
+  shelfNoClue: 75
+  shelfOneClue: 20
+  shelfTwoClues: 5
