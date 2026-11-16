@@ -133,3 +133,8 @@ desktop.ini
 
 # DevLog: 버그 기록 창에서 저장 전인 캡처
 /DevLog/screenshots/_pending/
+
+# Unity Performance Testing이 빌드 때 생성하는 파일
+/Assets/Resources/PerformanceTestRun*
+# (Resources 폴더를 실제로 쓰게 되면 아래 줄을 지우세요)
+/Assets/Resources.meta
