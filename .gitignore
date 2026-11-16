@@ -130,3 +130,6 @@ desktop.ini
 /[Aa]ssets/UModelerX-Hub/
 /[Aa]ssets/UModelerX-Hub.meta
 /UModelerXPackages/
+
+# DevLog: 버그 기록 창에서 저장 전인 캡처
+/DevLog/screenshots/_pending/
