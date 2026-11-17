@@ -101,6 +101,7 @@ namespace CardShop.Presentation
             {
                 installedStash = new BinderStash(this, revealer.Stash);
                 revealer.Stash = installedStash;
+                revealer.PileStashed += OnPileStashed; // 테이블에 쌓아 둔 카드 전체(오래된 것 포함)를 퇴근 때 알려 줌
             }
         }
 
@@ -114,6 +115,7 @@ namespace CardShop.Presentation
                 context.Events.SessionStarted -= OnSessionStarted;
                 context.Events.PhaseChanged -= OnPhaseChanged;
             }
+            if (revealer != null) revealer.PileStashed -= OnPileStashed;
             if (revealer != null && installedStash != null && ReferenceEquals(revealer.Stash, installedStash))
                 revealer.Stash = installedStash.Inner;
             revealer = null;
@@ -139,6 +141,13 @@ namespace CardShop.Presentation
         /// 결과함에서 "보관함에 넣기"로 보낸 카드들 (BinderStash가 호출). 가게에서는 더미가 사라지는 연출만 하고,
         /// 집에 도착하면 이 카드들의 칸을 보여 주며 반짝입니다.
         /// </summary>
+        void OnPileStashed(IReadOnlyList<CardData> cards)
+        {
+            var ids = new List<string>(cards.Count);
+            foreach (CardData c in cards) if (c != null) ids.Add(c.id);
+            MarkStored(ids);
+        }
+
         public void MarkStored(IEnumerable<string> cardIds)
         {
             foreach (string id in cardIds)

@@ -8,7 +8,7 @@ namespace CardShop.Presentation
 {
     /// <summary>
     /// 상자 10팩 일괄 개봉 연출 (시연 피드백 B3). 판정은 이미 끝났고 보여 주기만 합니다(건너뛰어도 데이터는 같음).
-    /// ① 카드 묶음 자리에서 팩 10개가 눈앞 아치로 펼쳐짐 ② 왼쪽부터 0.12초 간격으로 윗띠가 뜯겨 날아가고 틈에서 빛줄기
+    /// ① 카드 묶음 자리에서 팩 10개가 눈앞에 일렬(기본, 모바일 카드 게임식)로 펼쳐짐 — 끄면 아치 ② 자르는 선이 한 번 가로지르며 왼쪽부터 0.12초 간격으로 윗띠가 뜯겨 날아가고 틈에서 빛줄기
     ///    (특수 팩 = 갓팩·레전더리 확정은 금빛 + 더 긴 빛줄기 + 다른 효과음 칸) ③ 팩들이 카드 묶음 자리로 모이며 사라짐.
     /// 실제 팩 프리팹(Rigidbody · XRI · TMP)이 아니라 판(스프라이트) 5장짜리 시각용 팩 10개를 재사용합니다(Quest 성능).
     /// 단일 팩 뜯김(PackTearEffect)의 움직임을 줄여 같은 느낌으로 맞췄습니다.
@@ -21,7 +21,21 @@ namespace CardShop.Presentation
         static readonly Color BackColor = new Color(0.36f, 0.27f, 0.55f);
         static readonly Color SealColor = new Color(0.78f, 0.74f, 0.9f);
 
-        [Header("아치 배치")]
+        [Header("일렬 배치 (모바일 카드 게임식: 한 줄로 늘어놓고 한 번에 가로질러 자름)")]
+        [SerializeField] bool rowLayout = true;
+        [Tooltip("머리에서 팩 줄까지 거리 (m)")]
+        [SerializeField] float rowDistance = 0.62f;
+        [SerializeField] float rowGap = 0.012f;
+        [Tooltip("눈높이보다 아래로 (m)")]
+        [SerializeField] float rowDrop = 0.1f;
+        [Tooltip("일렬 팩 크기 배율. 10팩이 한 시야에 들어오게 1보다 작게")]
+        [SerializeField] float rowPackScale = 0.85f;
+        [Tooltip("자르는 선이 줄 끝에서 끝까지 가로지르는 시간 (초)")]
+        [SerializeField] float sweepSeconds = 0.3f;
+        [Tooltip("팩이 펼쳐진 뒤 자르기 전 잠깐 멈춤 (초)")]
+        [SerializeField] float sweepHold = 0.15f;
+
+        [Header("아치 배치 (rowLayout을 끄면)")]
         [Tooltip("머리에서 팩까지 거리 (m)")]
         [SerializeField] float archRadius = 0.5f;
         [Tooltip("양 끝 팩이 정면에서 벌어지는 각도 (도)")]
@@ -53,6 +67,7 @@ namespace CardShop.Presentation
         }
 
         readonly List<VisualPack> packs = new List<VisualPack>();
+        SpriteRenderer slash;
         Coroutine routine;
 
         public bool IsPlaying => routine != null;
@@ -81,6 +96,25 @@ namespace CardShop.Presentation
             return new Pose(pos, Quaternion.LookRotation(dir, Vector3.up));
         }
 
+        /// <summary>일렬 배치의 index번째 팩 자리 (왼쪽 → 오른쪽). 앞면(-Z)이 머리 쪽을 봅니다.</summary>
+        /// <param name="step">팩 중심 사이 간격 (m)</param>
+        public static Pose RowPose(int index, int count, Vector3 head, Vector3 forward, float distance, float step, float drop)
+        {
+            Vector3 f = Vector3.ProjectOnPlane(forward, Vector3.up);
+            if (f.sqrMagnitude < 0.0001f) f = Vector3.forward;
+            f.Normalize();
+            Vector3 right = Vector3.Cross(Vector3.up, f);
+            float offset = (index - (count - 1) * 0.5f) * step;
+            return new Pose(head + f * distance + Vector3.down * drop + right * offset, Quaternion.LookRotation(f, Vector3.up));
+        }
+
+        // 팩마다 뜯기는 간격과 뜯기 시작 시각. 일렬이면 한 번 가로지르는 시간(sweepSeconds)에 맞춥니다.
+        void Timing(int n, float interval, out float tearInterval, out float tearStart)
+        {
+            tearInterval = rowLayout ? sweepSeconds / Mathf.Max(1, n - 1) : interval;
+            tearStart = spreadSeconds + (rowLayout ? sweepHold : 0f);
+        }
+
         /// <summary>연출을 시작하고 전체 시간(초)을 돌려줍니다. 끝나면 카드 묶음을 보여 주면 됩니다.</summary>
         /// <param name="gather">팩들이 나왔다가 다시 모이는 자리 (카드 묶음 자리)</param>
         /// <param name="interval">팩마다 뜯기는 간격 (초)</param>
@@ -91,7 +125,8 @@ namespace CardShop.Presentation
             Stop();
             int n = results.Count;
             EnsurePacks(n);
-            float total = spreadSeconds + Mathf.Max(0, n - 1) * interval + Mathf.Max(stripSeconds, beamSeconds) + gatherSeconds;
+            Timing(n, interval, out float iv, out float ts);
+            float total = ts + Mathf.Max(0, n - 1) * iv + Mathf.Max(stripSeconds, beamSeconds) + gatherSeconds;
             routine = StartCoroutine(Run(results, head, forward, gather, interval, beamColor, tearSound, specialSound));
             return total;
         }
@@ -100,6 +135,7 @@ namespace CardShop.Presentation
         {
             if (routine != null) { StopCoroutine(routine); routine = null; }
             foreach (VisualPack p in packs) p.Root.gameObject.SetActive(false);
+            if (slash != null) slash.color = Color.clear;
         }
 
         IEnumerator Run(IReadOnlyList<PackResult> results, Vector3 head, Vector3 forward, Pose gather, float interval,
@@ -112,13 +148,18 @@ namespace CardShop.Presentation
             var torn = new bool[n];
             for (int i = 0; i < n; i++)
             {
-                homes[i] = ArchPose(i, n, head, forward, archRadius, archHalfAngle, archDrop, archLift);
+                homes[i] = rowLayout
+                    ? RowPose(i, n, head, forward, rowDistance, (W + rowGap) * rowPackScale, rowDrop)
+                    : ArchPose(i, n, head, forward, archRadius, archHalfAngle, archDrop, archLift);
                 special[i] = false; // 뜯는 순간 등급·특수 팩이 미리 드러나지 않게 (DEC-004)
                 colors[i] = beamColor != null ? beamColor(results[i]) : Color.white;
                 ResetPack(packs[i]);
             }
 
-            float tearStart = spreadSeconds;
+            Timing(n, interval, out float tearGap, out float tearStart);
+            interval = tearGap;
+            float ps = rowLayout ? rowPackScale : packScale;
+            SpriteRenderer cut = rowLayout ? EnsureSlash() : null;
             float gatherStart = tearStart + Mathf.Max(0, n - 1) * interval + Mathf.Max(stripSeconds, beamSeconds);
             float end = gatherStart + gatherSeconds;
             for (float time = 0f; time < end; time += Time.deltaTime)
@@ -148,7 +189,7 @@ namespace CardShop.Presentation
                         scale = 1f - e;
                     }
                     vp.Root.SetPositionAndRotation(pos, rot);
-                    vp.Root.localScale = Vector3.one * (packScale * Mathf.Max(0.001f, scale));
+                    vp.Root.localScale = Vector3.one * (ps * Mathf.Max(0.001f, scale));
 
                     // 뜯김: 윗띠가 위로 튀었다가 옆으로 떨어지며 작아짐 + 틈에서 빛줄기
                     float tt = time - (tearStart + i * interval);
@@ -172,11 +213,35 @@ namespace CardShop.Presentation
                     float height = beamHeight * (special[i] ? specialBeamScale : 1f);
                     vp.Beam.transform.localScale = new Vector3(W * (special[i] ? 1.1f : 0.9f), height * Mathf.Lerp(0.3f, 1f, 1f - (1f - b) * (1f - b)), 1f);
                 }
+                if (cut != null) UpdateSlash(cut, homes, ps, time - tearStart);
                 yield return null;
             }
 
+            if (slash != null) slash.color = Color.clear;
             for (int i = 0; i < n; i++) packs[i].Root.gameObject.SetActive(false);
             routine = null;
+        }
+
+        // 자르는 선: 윗띠 아래(팩이 열리는 줄)를 따라 왼쪽 끝에서 오른쪽 끝으로 한 번 가로지르는 밝은 막대
+        void UpdateSlash(SpriteRenderer cut, Pose[] homes, float ps, float sweepTime)
+        {
+            if (sweepTime < 0f || sweepTime > sweepSeconds + 0.1f) { cut.color = Color.clear; return; }
+            float t = Mathf.Clamp01(sweepTime / Mathf.Max(0.01f, sweepSeconds));
+            Vector3 lift = homes[0].rotation * Vector3.up * ((H * 0.5f - SealH) * ps);
+            Vector3 right = homes[0].rotation * Vector3.right;
+            float half = (W + rowGap) * ps * 0.5f;
+            Vector3 from = homes[0].position - right * half + lift;
+            Vector3 to = homes[homes.Length - 1].position + right * half + lift;
+            cut.transform.SetPositionAndRotation(Vector3.Lerp(from, to, t), homes[0].rotation);
+            cut.transform.localScale = Vector3.one * ps;
+            cut.color = new Color(1f, 1f, 1f, 0.95f * Mathf.Sin(t * Mathf.PI));
+        }
+
+        SpriteRenderer EnsureSlash()
+        {
+            if (slash == null)
+                slash = RevealSprites.Quad(transform, "Slash", RevealSprites.Center, Vector3.zero, new Vector2(0.05f, 0.006f), Color.clear, 3);
+            return slash;
         }
 
         // (MonoBehaviour의 Reset 메시지와 이름이 겹치지 않게 ResetPack)

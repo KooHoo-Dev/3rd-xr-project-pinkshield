@@ -74,6 +74,30 @@ namespace CardShop.Tests
         }
 
         [Test]
+        public void GodOnly_KeepsOnlyGodPackItems_InOrder()
+        {
+            var packs = new List<PackResult>
+            {
+                Plain(),
+                Pack(new[] { U, U, U, U, L }, special: SpecialPackType.GodPack),
+                Plain(),
+                Pack(new[] { U, U, U, L, U }, special: SpecialPackType.GodPack),
+            };
+            List<RevealItem> q = RevealQueue.BuildAll(packs);
+            List<RevealItem> kept = RevealQueue.GodOnly(packs, q, 3); // 첫 팩 3장을 넘긴 뒤 건너뜀
+            Assert.AreEqual(10, kept.Count, "갓팩 2개 × 5장");
+            Assert.AreEqual(new RevealItem(1, 0), kept[0]);
+            Assert.AreEqual(new RevealItem(3, 4), kept[9]);
+        }
+
+        [Test]
+        public void GodOnly_NoGodPack_Empty()
+        {
+            var packs = new List<PackResult> { Plain(), Plain() };
+            Assert.IsEmpty(RevealQueue.GodOnly(packs, RevealQueue.BuildAll(packs), 0));
+        }
+
+        [Test]
         public void SinglePack_IsQueueOfLengthFive()
         {
             var packs = new List<PackResult> { Pack(new[] { N, R, N, S, U }) };
@@ -175,6 +199,22 @@ namespace CardShop.Tests
             t.Update(false, 0f);
             t.Update(true, 1f);
             Assert.IsTrue(t.Update(true, 4f));
+        }
+
+        // ---------------------------------------------------------- 일렬 배치
+
+        [Test]
+        public void RowPose_EvenlySpacedAndCentered_FacingPlayer()
+        {
+            Vector3 head = new Vector3(0f, 1.6f, 0f);
+            Pose first = BoxOpenEffect.RowPose(0, 10, head, Vector3.forward, 0.6f, 0.08f, 0.1f);
+            Pose last = BoxOpenEffect.RowPose(9, 10, head, Vector3.forward, 0.6f, 0.08f, 0.1f);
+            Assert.Less(first.position.x, 0f, "첫 팩은 왼쪽");
+            Assert.AreEqual(-first.position.x, last.position.x, 1e-4f, "줄이 가운데 정렬");
+            Assert.AreEqual(9 * 0.08f, last.position.x - first.position.x, 1e-4f, "일정한 간격");
+            Assert.AreEqual(first.position.y, last.position.y, 1e-4f, "일렬 = 같은 높이");
+            Assert.AreEqual(first.position.z, last.position.z, 1e-4f, "같은 거리");
+            Assert.Greater(Vector3.Dot(first.rotation * Vector3.back, Vector3.back), 0.99f, "앞면(-Z)이 머리 쪽");
         }
 
         // ---------------------------------------------------------- 아치 배치

@@ -30,7 +30,13 @@ namespace CardShop.Presentation
 
         public CardData Card => view.Data;
         public bool IsNew { get; private set; }
+
+        /// <summary>지금 손에 잡혀 있는지.</summary>
+        public bool IsHeld => grab != null && grab.isSelected;
         public event Action<CardRevealView> Revealed;
+        /// <summary>손에 잡았을 때 / 놓았을 때 (CardRevealer의 더미 정보 표시용).</summary>
+        public event Action<CardRevealView> GrabStarted;
+        public event Action<CardRevealView> GrabEnded;
 
         void Awake()
         {
@@ -40,6 +46,7 @@ namespace CardShop.Presentation
             visual = transform.Find("Visual");
             if (visual == null) Debug.LogWarning("[CardRevealView] 카드 프리팹에 Visual 자식이 없습니다. Build Card Prefab 을 다시 실행하세요.", this);
             grab.selectEntered.AddListener(OnGrabbed);
+            grab.selectExited.AddListener(_ => GrabEnded?.Invoke(this));
             grab.throwOnDetach = false; // 공개용 카드는 키네마틱이라 던질 수 없음 (XRI 경고 방지)
             if (body != null)
             {
@@ -201,6 +208,7 @@ namespace CardShop.Presentation
 
         void OnGrabbed(SelectEnterEventArgs _)
         {
+            GrabStarted?.Invoke(this);
             if (!faceDown) return;
             faceDown = false;
             if (visual != null) StartCoroutine(Flip());

@@ -1029,6 +1029,7 @@ MonoBehaviour:
   packDrop: 0.35
   packSide: 0.06
   packTumble: 35
+  packGrow: 0.12
   tearSound: {fileID: 0}
   specialTearSound: {fileID: 0}
   tearVolume: 0.8

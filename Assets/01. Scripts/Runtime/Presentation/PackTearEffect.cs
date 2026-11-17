@@ -43,6 +43,8 @@ namespace CardShop.Presentation
         [Tooltip("떨어지며 옆으로 밀리는 거리 (m)와 비틀리는 각도 (도)")]
         [SerializeField] float packSide = 0.06f;
         [SerializeField] float packTumble = 35f;
+        [Tooltip("뜯긴 팩이 커지는 정도 (0.12 = 12%)")]
+        [SerializeField] float packGrow = 0.12f;
 
         [Header("소리 (비워 두면 없음)")]
         [SerializeField] AudioClip tearSound;
@@ -122,7 +124,8 @@ namespace CardShop.Presentation
                     // 크기는 그대로, 비틀리며 아래로 떨어져 나감 (작아지며 사라지지 않게)
                     Vector3 pos = startPos - up * (packDrop * size * t * t) + right * (packSide * size * t);
                     Quaternion rot = Quaternion.AngleAxis(-packTumble * t * t, fwd) * startRot;
-                    Move(pos, rot, startScale);
+                    float grow = 1f + packGrow * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t * 4f)); // 뜯기자마자 살짝 커졌다가 떨어짐
+                    Move(pos, rot, startScale * grow);
                 }
                 yield return null;
             }

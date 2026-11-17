@@ -32,11 +32,24 @@ namespace CardShop.Presentation
     /// <summary>
     /// 상자·단일 팩 공통 "공개 대기열" 규칙 (시연 피드백 B3). 순수 계산이라 EditMode 테스트로 고정합니다 (BoxRevealTests).
     /// 파이프라인: [개봉 연출] → [공개 대기열] → [결과판].
-    /// - 모든 카드를 한 장씩 (갓팩 포함). 3초 꾹 누르면 남은 카드를 전 등급 건너뜁니다 (DEC-004).
+    /// - 모든 카드를 한 장씩 (갓팩 포함). 3초 꾹 누르면 남은 카드를 전 등급 건너뜁니다 (DEC-004). 단 갓팩은 건너뛸 수 없음 (DEC-008).
     /// 판정은 개봉 시점에 끝나 있으므로 여기서 무엇을 빼도 데이터(보유 목록)는 바뀌지 않습니다.
     /// </summary>
     public static class RevealQueue
     {
+        public static bool IsGodPack(PackResult pack) => pack != null && pack.Special == SpecialPackType.GodPack;
+
+        /// <summary>
+        /// 스킵 뒤 대기열: queue[from..] 중 갓팩의 카드만 (순서 유지). 갓팩은 건너뛸 수 없어 마지막에 한 장씩 열어 봅니다 (DEC-008).
+        /// </summary>
+        public static List<RevealItem> GodOnly(IReadOnlyList<PackResult> packs, IReadOnlyList<RevealItem> queue, int from)
+        {
+            var kept = new List<RevealItem>();
+            for (int i = Math.Max(0, from); i < queue.Count; i++)
+                if (IsGodPack(packs[queue[i].Pack])) kept.Add(queue[i]);
+            return kept;
+        }
+
         /// <summary>기본 대기열: 모든 카드를 팩 순서 · 카드 순서대로.</summary>
         public static List<RevealItem> BuildAll(IReadOnlyList<PackResult> packs)
         {

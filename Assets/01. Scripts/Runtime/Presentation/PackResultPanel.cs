@@ -42,8 +42,14 @@ namespace CardShop.Presentation
         /// <param name="popSeconds">작게 시작해 커지며 나타나는 시간 (초)</param>
         public void Show(PackResult pack, CardRarityStyles styles, Vector3 position, Quaternion rotation, float fontSize, float popSeconds)
         {
+            ShowText(Build(pack, styles), position, rotation, fontSize, popSeconds);
+        }
+
+        /// <summary>미리 만든 글(마크업 가능)을 어두운 띠 위에 띄웁니다. 카드 더미 정보에도 씁니다.</summary>
+        public void ShowText(string markup, Vector3 position, Quaternion rotation, float fontSize, float popSeconds)
+        {
             text.fontSize = fontSize;
-            text.text = Build(pack, styles);
+            text.text = $"<mark=#140F1ECC>{markup}</mark>";
             transform.SetPositionAndRotation(position, rotation);
             gameObject.SetActive(true);
             if (popRoutine != null) StopCoroutine(popRoutine);
@@ -89,8 +95,8 @@ namespace CardShop.Presentation
                 if (pack.IsNew[i]) sb.Append("  <color=#7CF29A><b>NEW</b></color>");
                 sb.Append('\n');
             }
-            sb.Append("<size=70%><color=#C9C3D9>오른손 트리거: 보관함에 넣기</color></size>");
-            return $"<mark=#140F1ECC>{sb}</mark>";
+            sb.Append("<size=70%><color=#C9C3D9>카드는 퇴근할 때 보관함으로 옮겨져요</color></size>");
+            return sb.ToString();
         }
     }
 }
