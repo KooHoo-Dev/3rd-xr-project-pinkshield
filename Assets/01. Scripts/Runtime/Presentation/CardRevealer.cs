@@ -53,6 +53,8 @@ namespace CardShop.Presentation
         [SerializeField] float stackScale = 1.5f;
         [Tooltip("단일 팩: 카드 묶음 크기 = 눈앞 팩 크기 × 이 값. 카드(63×88mm)가 팩 몸통(75×102mm) 안에 맞게 — 팩과 카드 크기 이질감 제거")]
         [SerializeField] float packFitRatio = 1.1f;
+        [Tooltip("단일 팩: 팩 크기로 시작한 카드 묶음이 위로 솟으며 이 배율만큼 커짐 (VR 실기기 피드백: 개봉 카드가 다시 작아 보임 → 1.5배)")]
+        [SerializeField] float singlePackRevealGrow = 1.5f;
         float curStackScale = 1.5f; // 이번 개봉에 쓰는 묶음 크기 (단일 팩은 팩 크기에 맞춤, 상자는 stackScale)
         [Tooltip("넘긴 카드가 더미까지 날아가는 시간 (초)")]
         [SerializeField] float flySeconds = 0.35f;
@@ -328,6 +330,7 @@ namespace CardShop.Presentation
                     if (delay > 0f) yield return new WaitForSeconds(delay);
                 }
                 Vector3 up = stack.rotation * Vector3.up;
+                curStackScale *= singlePackRevealGrow; // 팩에서 빠져나오며 커짐. 이후 넘기기 · 새로 채우는 카드도 이 크기
                 foreach (CardRevealView v in stackViews)
                     v.FlyTo(v.transform.position + up * cardRise, stack.rotation, riseSeconds, curStackScale, arcHeight: 0f, grabbableOnArrive: false);
                 stack = new Pose(stack.position + up * cardRise, stack.rotation);
