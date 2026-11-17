@@ -90,9 +90,15 @@ namespace CardShop.Tests
             Assert.IsNotNull(roster.maleController, "남성 Animator 미연결");
             Assert.IsNotNull(roster.femaleController, "여성 Animator 미연결");
 
-            // 바코드 계산: 물건 자리 · 물건 프리팹 · 스캐너
-            foreach (string field in new[] { "itemSpot", "packItemPrefab", "cardItemPrefab" })
-                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"CustomerDirector.{field} 미연결");
+            // 바코드 계산: 계산대(물건 자리 · 품목 설정 · 카드 프리팹 · 포스기) · 스캐너 (계산시스템_확장_설계)
+            var counter = (CardShop.Customers.CheckoutCounter)so.FindProperty("counter").objectReferenceValue;
+            Assert.IsNotNull(counter, "CustomerDirector.counter 미연결");
+            var counterSo = new SerializedObject(counter);
+            foreach (string field in new[] { "flow", "shopItems", "cardItemPrefab", "pos" })
+                Assert.IsNotNull(counterSo.FindProperty(field).objectReferenceValue, $"CheckoutCounter.{field} 미연결");
+            Assert.Greater(counterSo.FindProperty("itemSpots").arraySize, 0, "계산대 물건 자리 없음");
+            var shopItems = (CardShop.Cards.ShopItemConfig)counterSo.FindProperty("shopItems").objectReferenceValue;
+            Assert.Greater(shopItems.Options().Count, 0, "팔 수 있는 가게 재고가 없음 (품목 프리팹 확인)");
             var scanner = Object.FindAnyObjectByType<CardShop.Customers.BarcodeScanner>();
             Assert.IsNotNull(scanner, "바코드 스캐너 없음");
             var scannerSo = new SerializedObject(scanner);

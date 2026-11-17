@@ -8,8 +8,9 @@ namespace CardShop.Customers
 {
     /// <summary>
     /// 영업 중 손님 흐름 (설계서 7-4, Q1 · Q2 · Q10 / 타이틀연출_손님_설계 3장).
-    /// 등장 일정 → 입장 → 진열대 구경 → 계산대 줄 → 결제(Poke, 구매 판정은 SalesRules) 또는 인내 시간 초과 → 퇴장.
-    /// 외형은 CustomerRoster에서 그룹 가중치로 뽑습니다. 줄 관리 · 결제 · 이벤트는 여기, 걷기 · 제스처는 CustomerAgent.
+    /// 등장 일정 → 입장 → 진열대 구경 → 계산대 줄 → 계산(CheckoutCounter) 또는 인내 시간 초과 → 퇴장.
+    /// 외형은 CustomerRoster에서 그룹 가중치로 뽑습니다. 줄 관리 · 이벤트는 여기, 장바구니 · 바코드 · 결제는 CheckoutCounter,
+    /// 걷기 · 제스처는 CustomerAgent.
     /// </summary>
     public sealed class CustomerDirector : MonoBehaviour, ICustomerFloor
     {
@@ -28,13 +29,9 @@ namespace CardShop.Customers
         [Tooltip("계산대 줄. 0번이 맨 앞(결제 자리), forward = 플레이어 쪽")]
         [SerializeField] Transform[] queueSlots;
 
-        [Header("계산 (바코드)")]
-        [Tooltip("손님이 물건을 올려놓는 카운터 위 자리")]
-        [SerializeField] Transform itemSpot;
-        [Tooltip("가게 재고 카드팩 (진열 카드를 안 살 때)")]
-        [SerializeField] ScannableItem packItemPrefab;
-        [Tooltip("판매 등록 카드 (CardView 포함, 산 카드로 그림이 바뀜)")]
-        [SerializeField] ScannableItem cardItemPrefab;
+        [Header("계산")]
+        [Tooltip("장바구니 · 바코드 · 포스기 · 결제를 맡는 계산대")]
+        [SerializeField] CheckoutCounter counter;
 
         [Header("연출 시간(초)")]
         [SerializeField] float reactionSeconds = 1.6f;
@@ -47,8 +44,6 @@ namespace CardShop.Customers
 
         // 지금 계산대에 물건을 올린 손님 (줄 맨 앞 한 명뿐)
         CustomerAgent checkoutAgent;
-        ScannableItem checkoutItem;
-        CardData checkoutCard;
 
         float[] schedule = new float[0];
         int nextSpawn;
@@ -120,12 +115,21 @@ namespace CardShop.Customers
             }
 
             // 인내 시간 초과 (설계서 Q2): 감점 없이 그냥 떠남
-            float patience = context != null ? context.Campaign.customerPatienceSeconds : 30f;
             for (int i = queue.Count - 1; i >= 0; i--)
             {
                 CustomerAgent a = queue[i];
-                if (a.QueueSeconds >= patience) LeaveQueueAngry(a);
+                if (a.QueueSeconds >= Patience(a)) LeaveQueueAngry(a);
             }
+        }
+
+        // 계산 중인 손님은 물건이 2개째부터 한 개당 더 기다려 줌 (계산시스템_확장_설계 K6)
+        float Patience(CustomerAgent agent)
+        {
+            if (context == null) return 30f;
+            float seconds = context.Campaign.customerPatienceSeconds;
+            if (agent == checkoutAgent && counter != null)
+                seconds += context.Campaign.patiencePerExtraItemSeconds * Mathf.Max(0, counter.ItemCount - 1);
+            return seconds;
         }
 
         // ------------------------------------------------------------------ 손님 흐름
@@ -214,43 +218,16 @@ namespace CardShop.Customers
         }
 
         /// <summary>
-        /// 줄 맨 앞에 도착한 손님이 살 물건을 정해 카운터에 올립니다 (플레이 피드백: 바코드 계산).
-        /// 진열 카드를 고르면 그 카드, 아니면 가게 재고 카드팩. 판매 기록은 결제 버튼을 누를 때 합니다.
+        /// 줄 맨 앞에 도착한 손님이 장바구니를 카운터에 올립니다. 무엇을 몇 개 살지 · 바코드 · 결제는 CheckoutCounter가 맡고,
+        /// 결제가 끝나면 OnPaid로 돌아옵니다.
         /// </summary>
         void PrepareCheckout(CustomerAgent agent)
         {
             if (checkoutAgent == agent || queue.Count == 0 || queue[0] != agent) return;
-            ClearCheckout();
-
             agent.Gesture(CustomerAnim.Talk);
             checkoutAgent = agent;
-            checkoutCard = context.Sales.PickPurchase(context.Session);
-
-            ScannableItem prefab = checkoutCard != null ? cardItemPrefab : packItemPrefab;
-            if (prefab == null || itemSpot == null) return; // 물건 없이도 결제는 됨 (아래 ServeFront)
-            checkoutItem = Instantiate(prefab, itemSpot.position, itemSpot.rotation, transform);
-            if (checkoutCard != null)
-            {
-                var view = checkoutItem.GetComponentInChildren<CardView>();
-                if (view != null) view.Bind(checkoutCard);
-            }
-            checkoutItem.Scanned += OnItemScanned;
-        }
-
-        void OnItemScanned(ScannableItem item)
-        {
-            if (item != checkoutItem) return;
-            item.ShowLabel(checkoutCard != null
-                ? $"{checkoutCard.displayName}\n{context.Sales.CustomerPrice(checkoutCard, context.PopularToday)}"
-                : "카드팩 (가게 재고)");
-        }
-
-        void ClearCheckout()
-        {
-            if (checkoutItem != null) Destroy(checkoutItem.gameObject);
-            checkoutItem = null;
-            checkoutAgent = null;
-            checkoutCard = null;
+            if (counter != null) counter.Begin((bought, count) => OnPaid(agent, bought, count));
+            else Debug.LogWarning("[CustomerDirector] CheckoutCounter가 없어 계산할 수 없습니다 (Build Shop Scene 다시 실행).", this);
         }
 
         // 줄이 준비된 칸보다 길면 마지막 칸 뒤로 같은 간격만큼 이어서 섭니다.
@@ -273,27 +250,10 @@ namespace CardShop.Customers
             for (int i = 0; i < queue.Count; i++) MoveToSlot(queue[i], i);
         }
 
-        /// <summary>
-        /// 결제 버튼(Poke). 줄 맨 앞 손님이 물건을 올려놓았고, 그 물건의 바코드를 찍었어야 합니다.
-        /// </summary>
-        public void ServeFront()
+        void OnPaid(CustomerAgent agent, CardData bought, int itemCount)
         {
-            if (flow == null || flow.CurrentPhase != GamePhaseId.Business || IsPaused) return;
-            if (queue.Count == 0 || queue[0].IsMoving || checkoutAgent != queue[0])
-            {
-                context.Events.RaiseNotice("결제할 손님이 없어요.");
-                return;
-            }
-            if (checkoutItem != null && !checkoutItem.IsScanned)
-            {
-                context.Events.RaiseNotice("먼저 스캐너로 물건의 바코드를 찍어 주세요.");
-                return;
-            }
-
-            CustomerAgent agent = queue[0];
-            queue.RemoveAt(0);
-            CardData bought = context.Sales.CompleteSale(context.Session, checkoutCard, context.PopularToday) ? checkoutCard : null;
-            ClearCheckout(); // 손님이 물건을 가져감
+            checkoutAgent = null;
+            queue.Remove(agent);
             ShiftQueue();
 
             context.Events.RaiseCustomerServed(bought);
@@ -305,7 +265,7 @@ namespace CardShop.Customers
             }
             else
             {
-                context.Events.RaiseNotice("손님이 가게 재고를 사 갔어요.");
+                context.Events.RaiseNotice(itemCount > 1 ? $"손님이 가게 재고 {itemCount}개를 사 갔어요." : "손님이 가게 재고를 사 갔어요.");
                 agent.Gesture(CustomerAnim.Nod);
             }
 
@@ -315,7 +275,7 @@ namespace CardShop.Customers
 
         void LeaveQueueAngry(CustomerAgent agent)
         {
-            if (agent == checkoutAgent) ClearCheckout(); // 물건을 두고 가지 않음, 판매도 없음
+            if (agent == checkoutAgent) CancelCheckout(); // 물건을 두고 가지 않음, 판매도 없음
             queue.Remove(agent);
             ShiftQueue();
             agent.State = CustomerState.Leave;
@@ -354,9 +314,15 @@ namespace CardShop.Customers
 
         public void StopSpawning() => spawning = false;
 
+        void CancelCheckout()
+        {
+            checkoutAgent = null;
+            if (counter != null) counter.Cancel();
+        }
+
         public void DismissAll()
         {
-            ClearCheckout();
+            CancelCheckout();
             foreach (CustomerAgent a in agents)
                 if (a != null) Destroy(a.gameObject);
             agents.Clear();

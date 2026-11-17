@@ -47,6 +47,8 @@ namespace CardShop.Cards
         public float closingCleanupSeconds = 30f;
         [Tooltip("결제를 기다리는 손님의 인내 시간(초)")]
         public float customerPatienceSeconds = 30f;
+        [Tooltip("계산대 물건이 2개째부터 한 개당 더 기다려 주는 시간(초) (계산시스템_확장_설계 K6)")]
+        public float patiencePerExtraItemSeconds = 10f;
 
         [Header("선반 (설계서 Q5)")]
         public int shelfSlotCount = 12;
