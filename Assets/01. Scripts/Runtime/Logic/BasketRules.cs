@@ -30,6 +30,7 @@ namespace CardShop.Logic
         public readonly int StockIndex;
         public readonly CardData Card;
         public bool Scanned { get; internal set; }
+        public bool Bagged { get; internal set; }   // 종이봉투에 담음 (찍은 뒤에만)
 
         public BasketLine(string name, int price, int stockIndex, CardData card)
         {
@@ -70,6 +71,14 @@ namespace CardShop.Logic
         /// <summary>물건이 없으면(재고 설정이 비었을 때) 바로 true — 예전처럼 물건 없이도 결제는 됨.</summary>
         public bool AllScanned => ScannedCount == lines.Count;
 
+        public int BaggedCount
+        {
+            get { int n = 0; foreach (BasketLine l in lines) if (l.Bagged) n++; return n; }
+        }
+
+        /// <summary>다 담았으면 결제할 수 있음 (계산시스템_확장_설계 K2: 찍기 → 봉투 → 결제). 담은 물건은 모두 찍은 것.</summary>
+        public bool AllBagged => BaggedCount == lines.Count;
+
         /// <summary>판매 등록 카드 (없으면 null). 손님당 최대 1장.</summary>
         public CardData Card
         {
@@ -81,6 +90,14 @@ namespace CardShop.Logic
         {
             if (index < 0 || index >= lines.Count || lines[index].Scanned) return false;
             lines[index].Scanned = true;
+            return true;
+        }
+
+        /// <summary>봉투에 담기. 찍은 물건을 처음 담을 때만 true (안 찍은 물건은 봉투가 받지 않음).</summary>
+        public bool MarkBagged(int index)
+        {
+            if (index < 0 || index >= lines.Count || !lines[index].Scanned || lines[index].Bagged) return false;
+            lines[index].Bagged = true;
             return true;
         }
     }

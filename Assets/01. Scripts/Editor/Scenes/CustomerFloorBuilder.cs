@@ -40,6 +40,8 @@ namespace CardShop.EditorTools
             new Vector3(0.23f, CounterTop + 0.002f, 0.78f),
             new Vector3(0.41f, CounterTop + 0.002f, 0.78f),
         };
+        // 종이봉투: 카운터 오른쪽 끝, 상자 열기 · 퇴근 버튼(x 0.35 · 0.55)보다 오른쪽 (계산시스템_확장_설계 6장: 한 팔 거리 안)
+        static readonly Vector3 PaperBagPos = new Vector3(0.82f, CounterTop, 0.6f);
         // 스캐너 제자리: 손잡이를 세워 둠, 머리는 손님 쪽(+Z)
         static readonly Vector3 ScannerHomePos = new Vector3(-0.15f, CounterTop + 0.051f, 0.55f);
 
@@ -107,15 +109,10 @@ namespace CardShop.EditorTools
 
             // 카드팩 품목에 계산대용 팩 프리팹을 채움 (SO는 손으로 고친 값을 지키고 빈 칸만 채움)
             var shopItems = AssetDatabase.LoadAssetAtPath<ShopItemConfig>(DataPaths.ShopItems);
-            var packItem = AssetDatabase.LoadAssetAtPath<ScannableItem>(CustomerItemBuilder.PackItemPath);
-            if (shopItems != null && shopItems.items.Count > 0 && shopItems.items[0].prefab == null && packItem != null)
-            {
-                shopItems.items[0].prefab = packItem;
-                EditorUtility.SetDirty(shopItems);
-                AssetDatabase.SaveAssets();
-            }
+            FillShopItems(shopItems);
 
             PosTerminal pos = CreatePosTerminal(go.transform, font);
+            PaperBag bag = CreatePaperBag(go.transform, font);
 
             var counter = go.AddComponent<CheckoutCounter>();
             var so = new SerializedObject(counter);
@@ -123,6 +120,7 @@ namespace CardShop.EditorTools
             so.FindProperty("shopItems").objectReferenceValue = shopItems;
             so.FindProperty("cardItemPrefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ScannableItem>(CustomerItemBuilder.CardItemPath);
             so.FindProperty("pos").objectReferenceValue = pos;
+            so.FindProperty("bag").objectReferenceValue = bag;
             SetArray(so.FindProperty("itemSpots"), spots);
             so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -130,6 +128,68 @@ namespace CardShop.EditorTools
             pay.transform.SetParent(go.transform, true);
             UnityEventTools.AddPersistentListener(pay.pressed, counter.TryPay);
             return counter;
+        }
+
+        // 가게 재고 품목 (계산시스템_확장_설계 5-1). SO는 손으로 고친 값을 지키고, 빈 프리팹 칸과 없는 품목만 채웁니다.
+        // 가격 · 가중치 · 처음 나오는 일차는 잠정값 (상자 = EconomyConfig.boxPrice)
+        static void FillShopItems(ShopItemConfig shopItems)
+        {
+            if (shopItems == null) return;
+            bool firstMigration = shopItems.items.Find(i => i != null && i.displayName == "카드팩 상자") == null;
+            if (shopItems.items.Count > 0 && shopItems.items[0].prefab == null)
+                shopItems.items[0].prefab = AssetDatabase.LoadAssetAtPath<ScannableItem>(CustomerItemBuilder.PackItemPath);
+            // 예전 기본값(카드팩 가중치 1)이면 새 품목이 들어올 때 카드팩이 여전히 가장 흔하게 6으로
+            if (firstMigration && shopItems.items.Count == 1 && shopItems.items[0].weight == 1) shopItems.items[0].weight = 6;
+
+            var economy = AssetDatabase.LoadAssetAtPath<EconomyConfig>(DataPaths.Economy);
+            int[] figurePrice = { 30, 45, 60 };
+            int[] figureDay = { 2, 3, 5 };
+            int[] figureWeight = { 2, 1, 1 };
+            string[] figureName = { "미니 피규어", "피규어", "한정 피규어" };
+            for (int i = 0; i < CustomerItemBuilder.FigureArt.Length; i++)
+            {
+                string id = DecorFactory.ShowcaseArt[CustomerItemBuilder.FigureArt[i]];
+                EnsureItem(shopItems, figureName[i], figurePrice[i], figureWeight[i], figureDay[i], CustomerItemBuilder.FigureItemPath(id));
+            }
+            EnsureItem(shopItems, "카드팩 상자", economy != null ? economy.boxPrice : 90, 1, 3, CustomerItemBuilder.BoxItemPath);
+
+            EditorUtility.SetDirty(shopItems);
+            AssetDatabase.SaveAssets();
+        }
+
+        static void EnsureItem(ShopItemConfig shopItems, string name, int price, int weight, int firstDay, string prefabPath)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<ScannableItem>(prefabPath);
+            ShopItemConfig.Item item = shopItems.items.Find(i => i != null && i.displayName == name);
+            if (item == null)
+            {
+                item = new ShopItemConfig.Item { displayName = name, price = price, weight = weight, firstDay = firstDay };
+                shopItems.items.Add(item);
+            }
+            if (item.prefab == null) item.prefab = prefab;
+        }
+
+        // 종이봉투: 바닥 + 벽 4장(위가 열림), 원점 = 안쪽 바닥 가운데 (PaperBag). 콜라이더 없음 — 담기는 위치로만 판정
+        static PaperBag CreatePaperBag(Transform parent, TMP_FontAsset font)
+        {
+            var root = new GameObject("PaperBag");
+            root.transform.SetParent(parent);
+            root.transform.position = PaperBagPos + Vector3.up * 0.004f;
+            var bag = root.AddComponent<PaperBag>();
+            Vector3 inner = bag.InnerSize;
+            const float wall = 0.004f;
+
+            var kraft = new Material(Shader.Find("Universal Render Pipeline/Lit")) { color = new Color(0.72f, 0.56f, 0.38f) };
+            kraft.SetFloat("_Smoothness", 0.1f);
+            PosBox(root.transform, "Bottom", new Vector3(0f, -wall / 2f, 0f), new Vector3(inner.x + 2f * wall, wall, inner.z + 2f * wall), Quaternion.identity, kraft, false);
+            // 플레이어 쪽(-Z) 벽은 낮게: 안이 들여다보이고 넣기 쉬움
+            float front = inner.y * 0.6f;
+            PosBox(root.transform, "WallFront", new Vector3(0f, front / 2f, -(inner.z + wall) / 2f), new Vector3(inner.x + 2f * wall, front, wall), Quaternion.identity, kraft, false);
+            PosBox(root.transform, "WallBack", new Vector3(0f, inner.y / 2f, (inner.z + wall) / 2f), new Vector3(inner.x + 2f * wall, inner.y, wall), Quaternion.identity, kraft, false);
+            PosBox(root.transform, "WallLeft", new Vector3(-(inner.x + wall) / 2f, inner.y / 2f, 0f), new Vector3(wall, inner.y, inner.z), Quaternion.identity, kraft, false);
+            PosBox(root.transform, "WallRight", new Vector3((inner.x + wall) / 2f, inner.y / 2f, 0f), new Vector3(wall, inner.y, inner.z), Quaternion.identity, kraft, false);
+            Label(root.transform, "봉투\n(찍은 물건을 넣기)", root.transform.position + new Vector3(0f, inner.y + 0.12f, 0f), font, 0.25f);
+            return bag;
         }
 
         // 포스기: 받침 + 뒤로 기운 화면판 + 화면 글자 (플레이어 쪽 -Z를 봄)

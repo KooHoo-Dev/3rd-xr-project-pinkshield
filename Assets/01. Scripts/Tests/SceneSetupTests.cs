@@ -55,6 +55,36 @@ namespace CardShop.Tests
             return true;
         }
 
+        /// <summary>
+        /// 계산 확장 4 · 5단계: 계산대에 봉투가 연결되어 있고, 팔리는 품목 프리팹은 모두 찍고(ScannableItem) 잡을 수 있음(잡기 + 물리 없는 Rigidbody).
+        /// 봉투 칸은 예전 씬 호환으로 비워도 되게 해 두어서 위 통합 테스트가 잡지 못하므로 따로 검사합니다.
+        /// </summary>
+        [Test]
+        public void ShopScene_CheckoutHasBagAndGrabbableItems()
+        {
+            Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+
+            var counter = Object.FindAnyObjectByType<CardShop.Customers.CheckoutCounter>();
+            Assert.IsNotNull(counter, "계산대 없음");
+            var so = new SerializedObject(counter);
+            Assert.IsNotNull(so.FindProperty("bag").objectReferenceValue, "종이봉투 미연결 (Build Shop Scene 다시 실행)");
+
+            var config = so.FindProperty("shopItems").objectReferenceValue as CardShop.Cards.ShopItemConfig;
+            Assert.IsNotNull(config, "품목 설정 미연결");
+            var prefabs = new List<CardShop.Customers.ScannableItem>();
+            foreach (CardShop.Cards.ShopItemConfig.Item item in config.items) prefabs.Add(item.prefab);
+            prefabs.Add(so.FindProperty("cardItemPrefab").objectReferenceValue as CardShop.Customers.ScannableItem);
+            foreach (CardShop.Customers.ScannableItem p in prefabs)
+            {
+                Assert.IsNotNull(p, "품목 프리팹이 비어 있음");
+                Assert.IsNotNull(p.GetComponent("XRGrabInteractable"), $"{p.name}: 잡기 없음");
+                var rb = p.GetComponent<Rigidbody>();
+                Assert.IsTrue(rb != null && rb.isKinematic && !rb.useGravity, $"{p.name}: 물리 없는(kinematic) Rigidbody가 아님");
+                Assert.IsNotNull(p.GetComponent<BoxCollider>(), $"{p.name}: 콜라이더 없음 (봉투에 쌓을 높이 · 스캐너 판정)");
+            }
+        }
+
         [Test]
         public void ShopScene_HasOneGameContextWithFlow()
         {

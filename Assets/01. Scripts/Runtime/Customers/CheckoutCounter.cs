@@ -21,6 +21,8 @@ namespace CardShop.Customers
         [Tooltip("판매 등록 카드 (CardView 포함, 산 카드로 그림이 바뀜)")]
         [SerializeField] ScannableItem cardItemPrefab;
         [SerializeField] PosTerminal pos;
+        [Tooltip("찍은 물건을 담는 종이봉투 (계산시스템_확장_설계 K2). 비우면 봉투 없이 다 찍기만 하면 결제(예전 방식)")]
+        [SerializeField] PaperBag bag;
 
         /// <summary>결제 완료: (손님이 산 판매 등록 카드 또는 null, 물건 개수)</summary>
         public delegate void PaidHandler(CardData boughtCard, int itemCount, int net);
@@ -65,9 +67,10 @@ namespace CardShop.Customers
                 BasketLine line = basket.Lines[i];
                 ScannableItem item = Spawn(line, i);
                 spawned.Add(item);
-                if (item == null) { basket.MarkScanned(i); continue; } // 프리팹이 없으면 찍을 수 없으니 찍은 것으로 (멈춤 방지)
+                if (item == null) { basket.MarkScanned(i); basket.MarkBagged(i); continue; } // 프리팹이 없으면 찍을 수 없으니 담은 것으로 (멈춤 방지)
                 int index = i;
                 item.Scanned += _ => OnScanned(index);
+                item.Released += released => OnReleased(index, released);
             }
             if (pos != null) pos.Show(basket);
         }
@@ -101,10 +104,25 @@ namespace CardShop.Customers
             BasketLine line = basket.Lines[index];
             ScannableItem item = spawned[index];
             if (item != null) item.ShowLabel($"{line.Name}\n{line.Price}");
+            if (bag == null) basket.MarkBagged(index); // 봉투가 없는 씬: 찍으면 끝
             if (pos != null) pos.Show(basket);
         }
 
-        /// <summary>결제 버튼(Poke). 장바구니의 물건을 모두 찍었어야 합니다.</summary>
+        // 물건을 놓은 곳이 봉투 위면 담기. 안 찍은 물건은 받지 않고 안내만 (물건은 스스로 제자리로 돌아감)
+        void OnReleased(int index, ScannableItem item)
+        {
+            if (basket == null || bag == null || item == null || !bag.Contains(item.transform.position)) return;
+            if (!basket.Lines[index].Scanned)
+            {
+                Context.Events.RaiseNotice("먼저 바코드를 찍어 주세요.");
+                return;
+            }
+            if (!basket.MarkBagged(index)) return;
+            bag.Put(item);
+            if (pos != null) pos.Show(basket);
+        }
+
+        /// <summary>결제 버튼(Poke). 장바구니의 물건을 모두 찍고 봉투에 담았어야 합니다.</summary>
         public void TryPay()
         {
             if (flow == null || flow.CurrentPhase != GamePhaseId.Business || flow.IsPaused) return;
@@ -117,6 +135,11 @@ namespace CardShop.Customers
             if (!basket.AllScanned)
             {
                 ctx.Events.RaiseNotice($"먼저 스캐너로 물건의 바코드를 찍어 주세요. ({basket.ScannedCount}/{basket.Count})");
+                return;
+            }
+            if (!basket.AllBagged)
+            {
+                ctx.Events.RaiseNotice($"아직 봉투에 안 담은 물건이 있어요. ({basket.BaggedCount}/{basket.Count})");
                 return;
             }
 
@@ -140,6 +163,7 @@ namespace CardShop.Customers
             spawned.Clear();
             basket = null;
             onPaid = null;
+            if (bag != null) bag.Clear();
             if (pos != null) pos.Clear();
         }
     }

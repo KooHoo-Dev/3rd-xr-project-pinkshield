@@ -13,7 +13,8 @@ namespace CardShop.EditorTools
     /// <summary>
     /// 바코드 계산에 쓰는 프리팹을 만듭니다 (플레이 피드백: 계산 업무 디테일).
     /// - CustomerItem_Pack / CustomerItem_Card : 팩 · 카드 프리팹에서 보이는 부분만 복사 + 바코드 스티커 + 가격 표시 + ScannableItem
-    ///   (원본의 잡기 · 개봉 기능은 떼어 냄. 계산대 위에 놓여 찍히기만 하는 물건)
+    ///   (원본의 개봉 기능은 떼어 내고, 봉투에 담을 수 있게 잡기만 새로 붙임. 물리 없음)
+    /// - CustomerItem_Figure_* / CustomerItem_Box : 인테리어 소품(아크릴 스탠드 · 부스터 상자)으로 만든 가게 재고 (계산시스템_확장_설계 5단계)
     /// - BarcodeScanner : 손에 드는 스캐너 (잡기 + 트리거로 스캔)
     /// ShopSceneBuilder → CustomerFloorBuilder가 호출합니다.
     /// </summary>
@@ -22,6 +23,11 @@ namespace CardShop.EditorTools
         public const string PackItemPath = CustomerAnimatorBuilder.OutDir + "/CustomerItem_Pack.prefab";
         public const string CardItemPath = CustomerAnimatorBuilder.OutDir + "/CustomerItem_Card.prefab";
         public const string ScannerPath = CustomerAnimatorBuilder.OutDir + "/BarcodeScanner.prefab";
+        public const string BoxItemPath = CustomerAnimatorBuilder.OutDir + "/CustomerItem_Box.prefab";
+        public static string FigureItemPath(string artId) => $"{CustomerAnimatorBuilder.OutDir}/CustomerItem_Figure_{artId}.prefab";
+
+        /// <summary>가게 재고 피규어로 쓰는 아크릴 스탠드 (DecorFactory.ShowcaseArt의 위치). 싼 것부터.</summary>
+        public static readonly int[] FigureArt = { 7, 2, 0 }; // A_R1 · E_SR · F_L
 
         const string PackPrefab = "Assets/03. Prefabs/Packs/Pack.prefab";
         const string CardPrefab = "Assets/03. Prefabs/Cards/Card.prefab";
@@ -37,24 +43,39 @@ namespace CardShop.EditorTools
             DataPaths.EnsureFolder(ArtDir);
             Material barcode = Mat("Barcode", Color.white, BarcodeTexture());
 
-            BuildItem(PackPrefab, PackItemPath, "CustomerItem_Pack", new Vector2(0.035f, 0.018f), barcode, keepCardView: false);
-            BuildItem(CardPrefab, CardItemPath, "CustomerItem_Card", new Vector2(0.03f, 0.015f), barcode, keepCardView: true);
+            // 팩 · 카드: 선반과 같은 방향(앞면(-Z)이 위, 윗변이 +Z). 피규어: 그림 앞면(+Z)이 플레이어(-Z) 쪽을 보게 180도. 상자: 그대로
+            Quaternion flat = Quaternion.Euler(90f, 0f, 0f);
+            BuildItem(Load(PackPrefab), PackItemPath, "CustomerItem_Pack", flat, new Vector2(0.035f, 0.018f), barcode, keepCardView: false);
+            BuildItem(Load(CardPrefab), CardItemPath, "CustomerItem_Card", flat, new Vector2(0.03f, 0.015f), barcode, keepCardView: true);
+            foreach (int art in FigureArt)
+            {
+                string id = DecorFactory.ShowcaseArt[art];
+                BuildItem(DecorFactory.AcrylicStand(art), FigureItemPath(id), $"CustomerItem_Figure_{id}", Quaternion.Euler(0f, 180f, 0f), new Vector2(0.03f, 0.015f), barcode, keepCardView: false,
+                    stickerAt: new Vector3(0.02f, 0.0095f, -0.01f)); // 그림 위쪽 끝은 얇아서 받침 윗면(그림 앞)에 붙임
+            }
+            BuildItem(DecorFactory.BoosterBox(0), BoxItemPath, "CustomerItem_Box", Quaternion.identity, new Vector2(0.05f, 0.025f), barcode, keepCardView: false);
             BuildScanner();
             AssetDatabase.SaveAssets();
         }
 
         // ------------------------------------------------------------------ 계산대 물건
 
-        static void BuildItem(string sourcePath, string outPath, string name, Vector2 stickerSize, Material barcode, bool keepCardView)
+        static GameObject Load(string path)
         {
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
-            if (source == null) { Debug.LogError($"[CustomerItemBuilder] 원본 프리팹 없음: {sourcePath}"); return; }
+            var go = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (go == null) Debug.LogError($"[CustomerItemBuilder] 원본 프리팹 없음: {path}");
+            return go;
+        }
+
+        static void BuildItem(GameObject source, string outPath, string name, Quaternion visualRotation, Vector2 stickerSize, Material barcode, bool keepCardView,
+            Vector3? stickerAt = null)
+        {
+            if (source == null) return;
 
             var root = new GameObject(name);
             var visual = (GameObject)Object.Instantiate(source, root.transform);
             visual.name = "Visual";
-            // 선반과 같은 방향: 앞면(-Z)이 위, 윗변이 +Z(플레이어 반대쪽)
-            visual.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            visual.transform.localRotation = visualRotation;
             StripToVisual(visual, keepCardView);
 
             Bounds b = LocalBounds(root);
@@ -69,7 +90,8 @@ namespace CardShop.EditorTools
             Object.DestroyImmediate(sticker.GetComponent<Collider>());
             sticker.transform.SetParent(root.transform, false);
             const float margin = 0.006f;
-            sticker.transform.localPosition = new Vector3(b.max.x - stickerSize.x / 2f - margin, b.max.y + 0.0015f, b.min.z + stickerSize.y / 2f + margin);
+            sticker.transform.localPosition = stickerAt ??
+                new Vector3(b.max.x - stickerSize.x / 2f - margin, b.max.y + 0.0015f, b.min.z + stickerSize.y / 2f + margin);
             sticker.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // 위에서 보이게
             sticker.transform.localScale = new Vector3(stickerSize.x, stickerSize.y, 1f);
             sticker.GetComponent<MeshRenderer>().sharedMaterial = barcode;
@@ -85,6 +107,15 @@ namespace CardShop.EditorTools
             label.color = new Color(1f, 0.95f, 0.4f);
             label.outlineWidth = 0.2f;
             ((RectTransform)labelGo.transform).sizeDelta = new Vector2(0.3f, 0.1f);
+
+            // 봉투에 담으려고 잡을 수 있게 (계산시스템_확장_설계 4단계). 물리 없음: 놓으면 ScannableItem이 제자리로 되돌림
+            var rb = root.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            var grab = root.AddComponent<XRGrabInteractable>();
+            grab.movementType = XRBaseInteractable.MovementType.Instantaneous;
+            grab.throwOnDetach = false;
+            grab.useDynamicAttach = true; // 잡은 자리 그대로 들림 (손 가운데로 튀지 않게)
 
             var item = root.AddComponent<ScannableItem>();
             var so = new SerializedObject(item);

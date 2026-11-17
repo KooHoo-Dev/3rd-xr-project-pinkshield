@@ -30,7 +30,7 @@ namespace CardShop.Cards
 
         public List<Item> items = new List<Item>
         {
-            new Item { displayName = "카드팩", price = 10, weight = 1, firstDay = 1 },
+            new Item { displayName = "카드팩", price = 10, weight = 6, firstDay = 1 },
         };
 
         [Header("장바구니 개수")]

@@ -95,5 +95,37 @@ namespace CardShop.Tests
             Assert.AreEqual(20, b.ScannedTotal);
             Assert.IsFalse(b.MarkScanned(5), "없는 번호는 무시");
         }
+
+        [Test]
+        public void Bagging_OnlyScannedItemsAndOnce()
+        {
+            Basket b = BasketRules.Build(null, 0, 2, PackOnly, 1, new ScriptedRandom().Int(0, 0));
+            Assert.IsFalse(b.MarkBagged(0), "안 찍은 물건은 봉투가 받지 않음");
+            b.MarkScanned(0);
+            Assert.IsTrue(b.MarkBagged(0));
+            Assert.IsFalse(b.MarkBagged(0), "같은 물건을 두 번 담아도 한 번만");
+            Assert.AreEqual(1, b.BaggedCount);
+            Assert.IsFalse(b.MarkBagged(5), "없는 번호는 무시");
+        }
+
+        [Test]
+        public void Bagging_AllBaggedOnlyAfterEveryItemIsInBag()
+        {
+            Basket b = BasketRules.Build(null, 0, 2, PackOnly, 1, new ScriptedRandom().Int(0, 0));
+            b.MarkScanned(0);
+            b.MarkScanned(1);
+            Assert.IsTrue(b.AllScanned);
+            Assert.IsFalse(b.AllBagged, "다 찍어도 봉투에 담기 전에는 결제 불가 (K2: 찍기 → 봉투 → 결제)");
+            b.MarkBagged(0);
+            b.MarkBagged(1);
+            Assert.IsTrue(b.AllBagged);
+        }
+
+        [Test]
+        public void Bagging_EmptyBasketIsReadyToPay()
+        {
+            Basket b = BasketRules.Build(null, 0, 3, new List<StockOption>(), 1, new ScriptedRandom());
+            Assert.IsTrue(b.AllBagged, "물건이 없으면 바로 결제 가능 (예전 동작)");
+        }
     }
 }
