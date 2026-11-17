@@ -87,27 +87,47 @@ namespace CardShop.Logic
         }
 
         /// <summary>
-        /// 손님 한 명의 구매. 진열 카드를 샀으면 그 카드를, 가게 재고를 샀으면 null을 돌려줍니다.
-        /// 판매 내역은 당일 장부에 기록되어 정산 때 합산됩니다.
+        /// 손님 한 명의 구매를 한 번에 처리 (고르기 + 결제 완료). 진열 카드를 샀으면 그 카드, 가게 재고면 null.
         /// </summary>
         public CardData ServeCustomer(GameSession s, CardElement popular)
         {
-            s.Ledger.customersServed++;
-            if (s.SalesDisplay.Count == 0) return null;
+            CardData card = PickPurchase(s);
+            return CompleteSale(s, card, popular) ? card : null;
+        }
 
+        /// <summary>
+        /// 1단계: 손님이 계산대에 가져올 물건을 고릅니다. 진열 카드 1장을 균등하게 고르고 등급별 구매 확률로 판정,
+        /// 탈락하거나 진열이 비었으면 null(가게 재고 카드팩). 아직 진열대 · 장부는 바꾸지 않습니다
+        /// (바코드를 찍기 전에 손님이 기다리다 떠나면 판매가 없어야 하므로).
+        /// </summary>
+        public CardData PickPurchase(GameSession s)
+        {
+            if (s.SalesDisplay.Count == 0) return null;
             int index = random.Range(0, s.SalesDisplay.Count);
             CardData card = cards.Get(s.SalesDisplay[index]);
             if (card == null || random.NextDouble() >= rarity.Get(card.rarity).customerBuyChance) return null;
+            return card;
+        }
 
-            s.SalesDisplay.RemoveAt(index);
+        /// <summary>
+        /// 2단계: 결제 완료. 손님 수를 세고, 진열 카드면 진열대에서 빼서 당일 장부에 판매를 기록합니다(정산 때 합산).
+        /// 카드가 그새 진열대에서 사라졌으면 가게 재고를 산 것으로 보고 false.
+        /// </summary>
+        public bool CompleteSale(GameSession s, CardData card, CardElement popular)
+        {
+            s.Ledger.customersServed++;
+            if (card == null || !s.SalesDisplay.Remove(card.id)) return false;
             s.Ledger.sales.Add(new DayLedger.Sale
             {
                 cardId = card.id,
                 gross = prices.GrossPrice(card, popular),
                 net = prices.SellPrice(card, popular),
             });
-            return card;
+            return true;
         }
+
+        /// <summary>손님이 내는 금액(수수료 전). 계산대 화면 표시용.</summary>
+        public int CustomerPrice(CardData card, CardElement popular) => prices.GrossPrice(card, popular);
 
         /// <summary>하루가 끝날 때 안 팔린 진열 카드를 보유 목록으로 돌려놓습니다. 돌려놓은 장수를 돌려줍니다.</summary>
         public int ReturnUnsold(GameSession s)

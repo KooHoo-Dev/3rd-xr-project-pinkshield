@@ -94,8 +94,14 @@ namespace CardShop.Core
         public event Action<PackResult[]> PacksOpened;
         /// <summary>플레이어에게 보여줄 짧은 안내 (재화 부족 등). 지금은 디버그 패널, 나중에 사장님 말풍선.</summary>
         public event Action<string> Notice;
+        /// <summary>손님 결제 완료. 진열 카드를 샀으면 그 카드, 가게 재고를 샀으면 null.</summary>
+        public event Action<CardData> CustomerServed;
+        /// <summary>손님이 매장을 나감 (매장 안 마지막 위치). 청소 구역 생성용.</summary>
+        public event Action<Vector3> CustomerLeft;
 
         public void RaisePacksOpened(PackResult[] packs) => PacksOpened?.Invoke(packs);
+        public void RaiseCustomerServed(CardData boughtCard) => CustomerServed?.Invoke(boughtCard);
+        public void RaiseCustomerLeft(Vector3 lastPosition) => CustomerLeft?.Invoke(lastPosition);
         public void RaiseNotice(string message)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

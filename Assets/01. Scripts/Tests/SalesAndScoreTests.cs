@@ -111,6 +111,34 @@ namespace CardShop.Tests
             Assert.IsFalse(sales.CanDisplay(f.Db.Get("F-N1")));
         }
 
+        // 바코드 계산: 고르기만 해서는 진열대 · 장부가 바뀌지 않고, 결제 완료 때 기록됨
+        [Test]
+        public void PickPurchase_DoesNotChangeState_UntilCompleteSale()
+        {
+            s.SalesDisplay.Add("F-SR");
+            SalesRules sales = f.Sales(new ScriptedRandom().Int(0).Double(0.0));
+
+            CardData picked = sales.PickPurchase(s);
+            Assert.AreEqual("F-SR", picked.id);
+            CollectionAssert.AreEqual(new[] { "F-SR" }, s.SalesDisplay, "고르기만 해서는 진열대 그대로");
+            Assert.AreEqual(0, s.Ledger.customersServed);
+            Assert.IsEmpty(s.Ledger.sales);
+
+            Assert.IsTrue(sales.CompleteSale(s, picked, CardElement.Water));
+            Assert.IsEmpty(s.SalesDisplay);
+            Assert.AreEqual(1, s.Ledger.customersServed);
+            Assert.AreEqual(1, s.Ledger.sales.Count);
+        }
+
+        [Test]
+        public void CompleteSale_StockPack_CountsCustomer_NoSale()
+        {
+            SalesRules sales = f.Sales(new ScriptedRandom());
+            Assert.IsFalse(sales.CompleteSale(s, null, CardElement.Fire));
+            Assert.AreEqual(1, s.Ledger.customersServed);
+            Assert.IsEmpty(s.Ledger.sales);
+        }
+
         [TestCase("F-N1", 1)]   // 1 × 0.6 = 0.6 → 내림 0 → 최소 1
         [TestCase("W-R1", 3)]   // 5 × 0.6 = 3
         [TestCase("F-SR", 12)]  // 20 × 0.6

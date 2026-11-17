@@ -26,6 +26,17 @@ namespace CardShop.Core
         IEnumerator Play(Action switchPhase);
     }
 
+    /// <summary>영업 중 매장의 손님들. 구현은 Customers의 CustomerDirector. 없으면 손님 없이 타이머만 돕니다.</summary>
+    public interface ICustomerFloor
+    {
+        /// <summary>아직 매장에 남은 손님이 있거나 오늘 올 손님이 남았는가</summary>
+        bool HasCustomers { get; }
+        /// <summary>영업 시간이 끝남: 새 손님은 그만 오고, 남은 손님은 결제 대기만 처리</summary>
+        void StopSpawning();
+        /// <summary>디버그 · 강제 종료: 남은 손님을 모두 즉시 내보냄</summary>
+        void DismissAll();
+    }
+
     public interface IGamePhase
     {
         GamePhaseId Id { get; }
@@ -54,6 +65,9 @@ namespace CardShop.Core
 
         /// <summary>장면 전환 연출. 없으면 GoToFaded는 그냥 GoTo처럼 동작합니다.</summary>
         public IPhaseTransition Transition { get; set; }
+
+        /// <summary>매장 손님. CustomerDirector가 Awake에서 등록합니다.</summary>
+        public ICustomerFloor Customers { get; set; }
 
         /// <summary>전환 연출 중에는 버튼 입력을 받지 않습니다.</summary>
         public bool IsTransitioning => isTransitioning;

@@ -70,6 +70,39 @@ namespace CardShop.Tests
             Assert.Greater(sleep.GetComponent<CardShop.Interaction.PokeButton>().pressed.GetPersistentEventCount(), 0, "잠자기 버튼에 연결된 동작 없음");
         }
 
+        // 손님: 동선 · 외형 목록 · 결제 버튼이 연결돼 있어야 영업 중 손님이 오고 결제가 됨
+        [Test]
+        public void ShopScene_HasCustomerDirectorAndPayButton()
+        {
+            Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+
+            var director = Object.FindAnyObjectByType<CardShop.Customers.CustomerDirector>();
+            Assert.IsNotNull(director, "CustomerDirector 없음 (Build Shop Scene 다시 실행)");
+            var so = new SerializedObject(director);
+            foreach (string field in new[] { "flow", "roster", "outside", "door" })
+                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"CustomerDirector.{field} 미연결");
+            Assert.Greater(so.FindProperty("browseSpots").arraySize, 0, "구경 자리 없음");
+            Assert.Greater(so.FindProperty("queueSlots").arraySize, 0, "계산대 줄 자리 없음");
+
+            var roster = (CardShop.Cards.CustomerRoster)so.FindProperty("roster").objectReferenceValue;
+            Assert.Greater(roster.entries.Count, 0, "손님 외형 목록이 비어 있음");
+            Assert.IsNotNull(roster.maleController, "남성 Animator 미연결");
+            Assert.IsNotNull(roster.femaleController, "여성 Animator 미연결");
+
+            // 바코드 계산: 물건 자리 · 물건 프리팹 · 스캐너
+            foreach (string field in new[] { "itemSpot", "packItemPrefab", "cardItemPrefab" })
+                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"CustomerDirector.{field} 미연결");
+            var scanner = Object.FindAnyObjectByType<CardShop.Customers.BarcodeScanner>();
+            Assert.IsNotNull(scanner, "바코드 스캐너 없음");
+            var scannerSo = new SerializedObject(scanner);
+            Assert.IsNotNull(scannerSo.FindProperty("tip").objectReferenceValue, "스캐너 tip 미연결");
+
+            var pay = GameObject.Find("Button_Pay");
+            Assert.IsNotNull(pay, "결제 버튼 없음");
+            Assert.Greater(pay.GetComponent<CardShop.Interaction.PokeButton>().pressed.GetPersistentEventCount(), 0, "결제 버튼에 연결된 동작 없음");
+        }
+
         // 시연 피드백 C1: 일시정지 메뉴가 연결돼 있어야 헤드셋을 벗었다 써도 영업을 이어갈 수 있음
         [Test]
         public void ShopScene_HasPauseMenuWithAllReferences()

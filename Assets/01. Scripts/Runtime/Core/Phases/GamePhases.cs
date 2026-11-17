@@ -55,7 +55,8 @@ namespace CardShop.Core.Phases
     }
 
     /// <summary>
-    /// 영업. 타이머 종료 → (TODO 4일차: 남은 손님 처리 → 마지막 손님 퇴장 후 마감 정리 시간) → 정산.
+    /// 영업. 타이머 종료 → 새 손님 중단, 남은 손님은 결제 대기만 처리(설계서 Q1) → 마지막 손님 퇴장 → 정산.
+    /// TODO(청소): 마지막 손님 퇴장 후 마감 정리 시간(CampaignConfig.closingCleanupSeconds)은 청소가 생기면 추가.
     /// </summary>
     public sealed class BusinessPhase : GamePhase
     {
@@ -63,22 +64,37 @@ namespace CardShop.Core.Phases
         public override GamePhaseId Id => GamePhaseId.Business;
 
         public float TimeLeft { get; private set; }
+        /// <summary>타이머는 끝났고 남은 손님을 기다리는 중</summary>
+        public bool IsClosing { get; private set; }
 
         public override void Enter()
         {
             TimeLeft = Context.Campaign.GetDay(Context.Session.Day).businessSeconds;
+            IsClosing = false;
             Log($"영업 시작 ({TimeLeft:0}초)");
         }
 
         public override void Tick(float deltaTime)
         {
             if (Flow.IsPaused) return;
-            TimeLeft -= deltaTime;
-            if (TimeLeft <= 0f) Flow.GoTo(GamePhaseId.Settlement);
+            if (!IsClosing)
+            {
+                TimeLeft -= deltaTime;
+                if (TimeLeft > 0f) return;
+                TimeLeft = 0f;
+                IsClosing = true;
+                Flow.Customers?.StopSpawning();
+                Log("영업 시간 종료 (남은 손님 결제 대기)");
+            }
+            if (Flow.Customers == null || !Flow.Customers.HasCustomers) Flow.GoTo(GamePhaseId.Settlement);
         }
 
-        /// <summary>디버그: 영업 즉시 종료</summary>
-        public override void OnAdvanceRequested() => TimeLeft = 0f;
+        /// <summary>디버그: 영업 즉시 종료 (남은 손님도 내보냄)</summary>
+        public override void OnAdvanceRequested()
+        {
+            TimeLeft = 0f;
+            Flow.Customers?.DismissAll();
+        }
     }
 
     /// <summary>일일 정산. 기본급 기록 → 합계 지급 → 확인 버튼.</summary>

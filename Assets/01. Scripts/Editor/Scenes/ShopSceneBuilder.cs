@@ -70,6 +70,7 @@ namespace CardShop.EditorTools
             PackOpener opener = CreatePackSystem(flow);
             CreateShelf(env, opener);
             CreateCounterButtons(flow, opener);
+            CustomerFloorBuilder.Create(flow, font);
             CreateDebugPanel(flow);
             CreatePauseMenu(flow);
             CreateHome(flow);
@@ -232,8 +233,8 @@ namespace CardShop.EditorTools
             UnityEventTools.AddPersistentListener(clockOut.pressed, opener.TryClockOut);
         }
 
-        // 카운터 위에 놓인 누름 버튼: 받침 + 위로 튀어나온 버튼 + 글자
-        static PokeButton CreatePokeButton(string name, Vector3 position, string label, Color color)
+        // 카운터 위에 놓인 누름 버튼: 받침 + 위로 튀어나온 버튼 + 글자 (CustomerFloorBuilder의 결제 버튼도 사용)
+        internal static PokeButton CreatePokeButton(string name, Vector3 position, string label, Color color)
         {
             var root = new GameObject(name);
             root.transform.position = position;
