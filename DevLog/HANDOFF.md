@@ -14,8 +14,9 @@
 - 계산 확장 **1~3단계 코드 완료**: `CheckoutCounter`(계산 분리) · `ShopItemConfig` + `BasketRules`(장바구니 1~4개, 테스트 8개) · `PosTerminal`(포스기 화면, 결제 버튼은 포스기 앞)
 
 **⚠️ 먼저 할 것 (순서대로)**
-1. Unity를 열어 컴파일 오류가 없는지 확인 — 계산 확장 코드는 **아직 한 번도 컴파일하지 못했습니다** (작업 중 Unity가 열려 있어 배치 모드 실패). 버그 수정 코드는 배치 모드에서 컴파일 · 테스트 120개 통과 확인됨.
-2. `Tools > CardShop > Build Shop Scene` 실행 — **안 하면 손님 계산이 안 됩니다**(예전 씬은 새 `CheckoutCounter`와 연결 안 됨). `PlayAreaGuard`도 이때 씬에 들어갑니다. `ShopItemConfig.asset`도 이때 생기고 카드팩 프리팹이 자동으로 채워집니다.
+0. **리팩토링(2026-11-18 밤)** 반영 확인 — 내용 · 바뀐 동작은 [리팩토링 정리 결과](리팩토링%20정리%20결과.md). 배치 모드 컴파일 · EditMode 126개 통과(계산 확장 코드 포함), 에디터 Play · 실기기는 확인 전.
+1. ~~Unity를 열어 컴파일 오류가 없는지 확인~~ → 리팩토링 때 배치 모드로 확인됨.
+2. `Tools > CardShop > Build Shop Scene` **다시** 실행 (리팩토링 2 · 3차 빌더 변경 반영) — **안 하면 손님 계산이 안 됩니다**(예전 씬은 새 `CheckoutCounter`와 연결 안 됨). `PlayAreaGuard`도 이때 씬에 들어갑니다. `ShopItemConfig.asset`도 이때 생기고 카드팩 프리팹이 자동으로 채워집니다.
 3. Test Runner (EditMode) 전부 통과 확인 — 실패하면 Claude에게 결과를 보여 주기
 4. Quest 빌드로 확인하고 버그 카드 BUG-008~010에 결과 · before/after 사진 채우기
    - 눈높이: 앉아서 시작 → 일어서기 → 헤드셋 벗었다 쓰기 / 앱 다시 실행 / 스틱 이동 후에도 1.6m 유지되는지

@@ -69,15 +69,6 @@ namespace CardShop.Interaction
             }
         }
 
-        /// <summary>개봉되어 사라짐. 손에 들려 있으면 놓게 한 뒤 제거합니다.</summary>
-        public void Consume()
-        {
-            consumed = true;
-            if (grab.isSelected && grab.interactionManager != null)
-                grab.interactionManager.CancelInteractableSelection((IXRSelectInteractable)grab);
-            Destroy(gameObject);
-        }
-
         /// <summary>
         /// 개봉됨: 바로 지우지 않고 뜯김 연출(PackTearEffect)을 위해 그 자리(눈앞)에 그대로 멈춰 둡니다 (시연 피드백 A4).
         /// 손에서 놓게 하고, 다시 잡히거나 선반으로 돌아가거나 또 열리지 않게 상호작용·물리를 모두 끕니다.

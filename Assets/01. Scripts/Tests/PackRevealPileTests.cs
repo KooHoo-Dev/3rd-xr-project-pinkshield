@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CardShop.Tests
 {
-    /// <summary>시연 피드백 B1·B2: 카드 더미 자리 계산과 "보관함에 넣기" 입력 잠금.</summary>
+    /// <summary>시연 피드백 B1·B2: 카드 더미 자리 계산.</summary>
     public class PackRevealPileTests
     {
         const float Thickness = 0.002f, MaxAngle = 7f, MaxOffset = 0.004f;
@@ -61,31 +61,6 @@ namespace CardShop.Tests
             Pose a = CardPileLayout.GetPose(0, Base, Thickness, MaxAngle, MaxOffset);
             Pose b = CardPileLayout.GetPose(1, Base, Thickness, MaxAngle, MaxOffset);
             Assert.Greater(Quaternion.Angle(a.rotation, b.rotation), 0.5f, "이웃 카드끼리 각도가 달라야 더미처럼 보임");
-        }
-
-        [Test]
-        public void InputGate_BlocksUntilLockEnds()
-        {
-            var gate = new RevealInputGate();
-            Assert.IsTrue(gate.IsOpen(0f), "처음엔 열림");
-
-            gate.Lock(10f, 0.4f); // 마지막 장을 넘긴 순간
-            Assert.IsFalse(gate.IsOpen(10f), "같은 눌림은 무시");
-            Assert.IsFalse(gate.IsOpen(10.39f));
-            Assert.IsTrue(gate.IsOpen(10.41f));
-        }
-
-        [Test]
-        public void InputGate_ShorterLockDoesNotShortenLongerOne()
-        {
-            var gate = new RevealInputGate();
-            gate.Lock(0f, 0.4f);
-            gate.Lock(0.1f, 0.1f); // 결과함 등장(짧음)이 앞선 잠금을 줄이면 안 됨
-            Assert.IsFalse(gate.IsOpen(0.3f));
-            Assert.IsTrue(gate.IsOpen(0.4f));
-
-            gate.Reset();
-            Assert.IsTrue(gate.IsOpen(0.1f), "초기화하면 바로 열림");
         }
     }
 }

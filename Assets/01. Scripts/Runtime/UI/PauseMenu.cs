@@ -106,11 +106,8 @@ namespace CardShop.UI
         {
             Camera cam = Camera.main;
             if (cam == null) return;
-            Vector3 forward = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up);
-            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
-            forward.Normalize();
-            Vector3 pos = cam.transform.position + forward * distance + Vector3.down * 0.1f;
-            root.transform.SetPositionAndRotation(pos, Quaternion.LookRotation(forward, Vector3.up));
+            Pose p = HeadPose.InFront(cam.transform, distance, 0.1f);
+            root.transform.SetPositionAndRotation(p.position, p.rotation);
         }
 
         void ShowMain()

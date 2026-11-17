@@ -12,7 +12,7 @@ namespace CardShop.UI
     /// 집(Home) 페이즈에 들어올 때 오늘 · 내일 인기 속성, 인기 카드 TOP3, 분위기 글을 새로 채우고, 집에서만 보입니다.
     /// 내용은 순수 C# CommunityBoard가 계산하고 이 컴포넌트는 글자로 옮기기만 합니다.
     /// </summary>
-    public sealed class CommunityScreen : MonoBehaviour
+    public sealed class CommunityScreen : HomePanel
     {
         // 문구는 한 곳에 모읍니다.
         const string TodayFormat = "오늘 인기  <color=#FFC857>{0}</color>";
@@ -21,72 +21,14 @@ namespace CardShop.UI
         const string TopHeader = "인기 카드 TOP3";
         const string TopEmpty = "아직 가진 인기 카드가 없어요";
 
-        [Tooltip("화면 내용을 담은 오브젝트. 집이 아닐 때 꺼집니다.")]
-        [SerializeField] GameObject content;
         [SerializeField] TMP_Text forecastLabel;
         [SerializeField] TMP_Text topLabel;
         [SerializeField] TMP_Text moodLabel;
 
-        GameContext subscribed;
-        Collection collection;
-        bool dirty;
-
-        void OnEnable()
+        // 집에서 카드를 팔거나 진열하면 TOP3(보유 카드 기준)가 달라지므로 HomePanel이 다시 그리게 함
+        protected override void Redraw()
         {
-            subscribed = GameContext.Instance;
-            if (subscribed != null)
-            {
-                subscribed.Events.PhaseChanged += OnPhaseChanged;
-                subscribed.Events.SessionStarted += OnSessionStarted;
-                Bind(subscribed.Session);
-            }
-            SetVisible(false);
-        }
-
-        void OnDisable()
-        {
-            if (subscribed != null)
-            {
-                subscribed.Events.PhaseChanged -= OnPhaseChanged;
-                subscribed.Events.SessionStarted -= OnSessionStarted;
-            }
-            Bind(null);
-            subscribed = null;
-        }
-
-        void OnSessionStarted(GameSession session) => Bind(session);
-
-        // 집에서 카드를 팔거나 진열하면 TOP3(보유 카드 기준)가 달라지므로 다시 그림
-        void Bind(GameSession session)
-        {
-            if (collection != null) collection.Changed -= OnCollectionChanged;
-            collection = session?.Collection;
-            if (collection != null) collection.Changed += OnCollectionChanged;
-        }
-
-        void OnCollectionChanged(string _) => dirty = true; // 한 프레임에 한 번만
-
-        void LateUpdate()
-        {
-            if (dirty && content != null && content.activeSelf) Refresh();
-        }
-
-        void OnPhaseChanged(GamePhaseId from, GamePhaseId to)
-        {
-            bool home = to == GamePhaseId.Home;
-            if (home) Refresh();
-            SetVisible(home);
-        }
-
-        void SetVisible(bool visible)
-        {
-            if (content != null) content.SetActive(visible);
-        }
-
-        void Refresh()
-        {
-            dirty = false;
-            GameContext ctx = GameContext.Instance;
+            GameContext ctx = Context;
             if (ctx == null || ctx.Session == null || ctx.PopularElements == null) return;
 
             int dayCount = ctx.Campaign.DayCount;

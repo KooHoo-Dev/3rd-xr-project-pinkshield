@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CardShop.Decor
 {
-    /// <summary>출입구 위 OPEN / CLOSED 팻말 (인테리어 설계 S2). 영업 중에만 OPEN, 퇴근 페이즈부터 CLOSED.</summary>
+    /// <summary>출입구 위 OPEN / CLOSED 팻말 (인테리어 설계 S2). 영업 중(1일차 인트로 포함)에만 OPEN, 정산부터 CLOSED.</summary>
     public sealed class ShopSign : PhaseListener
     {
         [SerializeField] TMP_Text label;

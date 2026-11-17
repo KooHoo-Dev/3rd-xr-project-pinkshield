@@ -1,3 +1,4 @@
+using CardShop.Cards.EditorTools;
 using CardShop.Presentation;
 using CardShop.UI;
 using TMPro;
@@ -14,8 +15,8 @@ namespace CardShop.EditorTools
     /// </summary>
     public static class SalesPanelBuilder
     {
-        const string FontPath = "Assets/99. External Assets/Font/Noto_Sans_KR/NotoSansKR-Regular SDF.asset";
-        const int DisplayedButtonCount = 4; // EconomyConfig.salesDisplaySlots 기본값과 같게
+        const string FontPath = DataPaths.Font;
+        const int ButtonRowsThatFit = 4; // 패널 아래쪽에 들어가는 목록 버튼 줄 수
 
         // 패널 캔버스 크기 (1px = 1mm). 버튼 높이 56mm · 간격 20mm (시연 피드백 C2).
         const float PanelWidth = 440f;
@@ -47,29 +48,33 @@ namespace CardShop.EditorTools
 
             var content = new GameObject("Content", typeof(RectTransform));
             content.transform.SetParent(canvasGo.transform, false);
-            Stretch((RectTransform)content.transform, Vector2.zero, Vector2.one);
+            WorldUi.Stretch((RectTransform)content.transform, Vector2.zero, Vector2.one);
 
-            Image bg = AddImage(content.transform, "Background", Vector2.zero, Vector2.one, new Color(0.93f, 0.91f, 0.86f));
+            Image bg = WorldUi.AddImage(content.transform, "Background", Vector2.zero, Vector2.one, new Color(0.93f, 0.91f, 0.86f));
             bg.raycastTarget = false;
 
-            AddText(content.transform, "Title", "판매", new Vector2(0.04f, 0.95f), new Vector2(0.96f, 0.99f), 30f, new Color(0.16f, 0.12f, 0.2f));
-            TMP_Text selected = AddText(content.transform, "Selected", "", new Vector2(0.06f, 0.74f), new Vector2(0.94f, 0.945f), 26f, new Color(0.16f, 0.12f, 0.2f));
+            WorldUi.AddText(content.transform, "Title", "판매", new Vector2(0.04f, 0.95f), new Vector2(0.96f, 0.99f), 30f, new Color(0.16f, 0.12f, 0.2f), font);
+            TMP_Text selected = WorldUi.AddText(content.transform, "Selected", "", new Vector2(0.06f, 0.74f), new Vector2(0.94f, 0.945f), 26f, new Color(0.16f, 0.12f, 0.2f), font);
             selected.alignment = TextAlignmentOptions.TopLeft;
 
             float top = 0.728f;
-            Button display = CreateUiButton(content.transform, "판매 등록", new Vector2(0.06f, top - ButtonH), new Vector2(0.94f, top));
+            Button display = WorldUi.AddButton(content.transform, "판매 등록", new Vector2(0.06f, top - ButtonH), new Vector2(0.94f, top), font);
             top -= ButtonH + Gap;
-            Button sell = CreateUiButton(content.transform, "즉시 판매", new Vector2(0.06f, top - ButtonH), new Vector2(0.94f, top));
+            Button sell = WorldUi.AddButton(content.transform, "즉시 판매", new Vector2(0.06f, top - ButtonH), new Vector2(0.94f, top), font);
 
-            TMP_Text status = AddText(content.transform, "Status", "", new Vector2(0.04f, 0.50f), new Vector2(0.96f, 0.555f), 20f, new Color(0.35f, 0.32f, 0.4f));
-            TMP_Text message = AddText(content.transform, "Message", "", new Vector2(0.04f, 0.44f), new Vector2(0.96f, 0.495f), 22f, new Color(0.75f, 0.25f, 0.1f));
-            AddText(content.transform, "ListHeader", "판매 등록 중 (누르면 취소)", new Vector2(0.04f, 0.395f), new Vector2(0.96f, 0.435f), 20f, new Color(0.35f, 0.32f, 0.4f));
+            TMP_Text status = WorldUi.AddText(content.transform, "Status", "", new Vector2(0.04f, 0.50f), new Vector2(0.96f, 0.555f), 20f, new Color(0.35f, 0.32f, 0.4f), font);
+            TMP_Text message = WorldUi.AddText(content.transform, "Message", "", new Vector2(0.04f, 0.44f), new Vector2(0.96f, 0.495f), 22f, new Color(0.75f, 0.25f, 0.1f), font);
+            WorldUi.AddText(content.transform, "ListHeader", "판매 등록 중 (누르면 취소)", new Vector2(0.04f, 0.395f), new Vector2(0.96f, 0.435f), 20f, new Color(0.35f, 0.32f, 0.4f), font);
 
-            var listButtons = new Button[DisplayedButtonCount];
+            // 목록 버튼 수 = 판매 등록 칸 수 (EconomyConfig가 원본)
+            var economy = AssetDatabase.LoadAssetAtPath<CardShop.Cards.EconomyConfig>(DataPaths.Economy);
+            int slots = economy != null ? economy.salesDisplaySlots : ButtonRowsThatFit;
+            if (slots > ButtonRowsThatFit) Debug.LogWarning($"[SalesPanelBuilder] 판매 등록 칸 {slots}개가 패널에 다 들어가지 않습니다 (최대 {ButtonRowsThatFit}). 패널 높이를 늘려 주세요.");
+            var listButtons = new Button[slots];
             float y = 0.385f;
-            for (int i = 0; i < DisplayedButtonCount; i++)
+            for (int i = 0; i < slots; i++)
             {
-                listButtons[i] = CreateUiButton(content.transform, $"판매 등록 {i + 1}", new Vector2(0.06f, y - ButtonH), new Vector2(0.94f, y));
+                listButtons[i] = WorldUi.AddButton(content.transform, $"판매 등록 {i + 1}", new Vector2(0.06f, y - ButtonH), new Vector2(0.94f, y), font);
                 listButtons[i].GetComponentInChildren<TMP_Text>().fontSize = 24f;
                 y -= ButtonH + Gap;
             }
@@ -89,70 +94,6 @@ namespace CardShop.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             content.SetActive(false); // 집에 들어올 때 켜짐
-        }
-
-        // ------------------------------------------------------------------ 도우미 (BinderBuilder와 같은 방식)
-
-        static Image AddImage(Transform parent, string name, Vector2 min, Vector2 max, Color color)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(parent, false);
-            Stretch((RectTransform)go.transform, min, max);
-            var image = go.GetComponent<Image>();
-            image.color = color;
-            return image;
-        }
-
-        static TMP_Text AddText(Transform parent, string name, string text, Vector2 min, Vector2 max, float size, Color color)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            Stretch((RectTransform)go.transform, min, max);
-            var label = go.GetComponent<TextMeshProUGUI>();
-            label.text = text;
-            label.fontSize = size;
-            label.alignment = TextAlignmentOptions.Center;
-            label.color = color;
-            label.raycastTarget = false;
-            if (font != null) label.font = font;
-            return label;
-        }
-
-        // ShopSceneBuilder.CreateUiButton과 같은 모양 (그쪽 함수는 private이라 BinderBuilder처럼 같은 규칙으로 따로 둠)
-        static Button CreateUiButton(Transform parent, string text, Vector2 anchorMin, Vector2 anchorMax)
-        {
-            GameObject go = TMP_DefaultControls.CreateButton(new TMP_DefaultControls.Resources());
-            go.name = "Button_" + text;
-            go.transform.SetParent(parent, false);
-            Stretch((RectTransform)go.transform, anchorMin, anchorMax);
-            var label = go.GetComponentInChildren<TMP_Text>();
-            label.text = text;
-            label.fontSize = 28f;
-            label.color = Color.white;
-            if (font != null) label.font = font;
-
-            var button = go.GetComponent<Button>();
-            button.targetGraphic.color = Color.white;
-            button.transition = Selectable.Transition.ColorTint;
-            button.colors = new ColorBlock
-            {
-                normalColor = new Color(0.28f, 0.22f, 0.42f, 1f),
-                highlightedColor = new Color(0.95f, 0.55f, 0.15f, 1f),
-                pressedColor = new Color(0.65f, 0.28f, 0.05f, 1f),
-                selectedColor = new Color(0.28f, 0.22f, 0.42f, 1f),
-                disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f),
-                colorMultiplier = 1f,
-                fadeDuration = 0.05f,
-            };
-            go.AddComponent<UiHoverFeedback>();
-            return button;
-        }
-
-        static void Stretch(RectTransform rt, Vector2 min, Vector2 max)
-        {
-            rt.anchorMin = min;
-            rt.anchorMax = max;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
         }
     }
 }

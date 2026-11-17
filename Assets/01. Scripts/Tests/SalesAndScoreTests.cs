@@ -124,17 +124,18 @@ namespace CardShop.Tests
             Assert.AreEqual(0, s.Ledger.customersServed);
             Assert.IsEmpty(s.Ledger.sales);
 
-            Assert.IsTrue(sales.CompleteSale(s, picked, CardElement.Water));
+            Assert.IsTrue(sales.CompleteSale(s, picked, CardElement.Water, out int net));
             Assert.IsEmpty(s.SalesDisplay);
             Assert.AreEqual(1, s.Ledger.customersServed);
             Assert.AreEqual(1, s.Ledger.sales.Count);
+            Assert.AreEqual(s.Ledger.sales[0].net, net, "판매 알림 금액 = 장부에 적힌 수령액");
         }
 
         [Test]
         public void CompleteSale_StockPack_CountsCustomer_NoSale()
         {
             SalesRules sales = f.Sales(new ScriptedRandom());
-            Assert.IsFalse(sales.CompleteSale(s, null, CardElement.Fire));
+            Assert.IsFalse(sales.CompleteSale(s, null, CardElement.Fire, out _));
             Assert.AreEqual(1, s.Ledger.customersServed);
             Assert.IsEmpty(s.Ledger.sales);
         }

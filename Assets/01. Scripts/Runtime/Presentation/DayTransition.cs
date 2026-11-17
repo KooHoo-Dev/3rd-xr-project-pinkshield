@@ -94,9 +94,7 @@ namespace CardShop.Presentation
                 toast = WorldToast.Create(transform, font);
                 toast.transform.localScale = Vector3.one * 2f; // 1m 거리에서 읽히도록 크게
             }
-            Vector3 forward = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up);
-            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
-            toast.Show(message, cam.transform.position + forward.normalized * 1.0f + Vector3.down * 0.05f);
+            toast.Show(message, HeadPose.InFront(cam.transform, 1.0f, 0.05f).position);
         }
 
         // 집으로, 또는 집에 있다가 다른 페이즈가 되면 가게로. 높이(눈높이 보정값)는 그대로 둡니다.

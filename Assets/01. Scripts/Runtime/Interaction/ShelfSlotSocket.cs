@@ -15,8 +15,6 @@ namespace CardShop.Interaction
 
         bool faceDown;
 
-        public Transform FaceUpAttach => faceUpAttach;
-        public Transform FaceDownAttach => faceDownAttach;
         public Transform AttachFor(bool isFaceDown) => isFaceDown ? faceDownAttach : faceUpAttach;
 
         public void Configure(Transform up, Transform down)

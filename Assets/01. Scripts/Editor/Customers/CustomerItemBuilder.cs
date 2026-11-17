@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CardShop.Cards;
 using CardShop.Cards.EditorTools;
+using CardShop.EditorTools.Interior;
 using CardShop.Customers;
 using TMPro;
 using UnityEditor;
@@ -149,10 +150,10 @@ namespace CardShop.EditorTools
             Material laserMat = Mat("ScannerLaser", new Color(1f, 0.1f, 0.05f), null);
 
             // 손잡이를 쥐면 머리가 앞(+Z)을 향함. 원점 = 손잡이 가운데(잡는 곳)
-            Box(root.transform, "Handle", new Vector3(0f, 0f, -0.01f), new Vector3(0.032f, 0.1f, 0.038f), body);
-            Box(root.transform, "Head", new Vector3(0f, 0.065f, 0.025f), new Vector3(0.05f, 0.045f, 0.12f), body);
-            Box(root.transform, "Trigger", new Vector3(0f, 0.03f, 0.018f), new Vector3(0.012f, 0.02f, 0.012f), accent);
-            Box(root.transform, "Window", new Vector3(0f, 0.065f, 0.0855f), new Vector3(0.042f, 0.032f, 0.002f), glass);
+            Placer.Prim(root.transform, PrimitiveType.Cube, "Handle", new Vector3(0f, 0f, -0.01f), new Vector3(0.032f, 0.1f, 0.038f), body);
+            Placer.Prim(root.transform, PrimitiveType.Cube, "Head", new Vector3(0f, 0.065f, 0.025f), new Vector3(0.05f, 0.045f, 0.12f), body);
+            Placer.Prim(root.transform, PrimitiveType.Cube, "Trigger", new Vector3(0f, 0.03f, 0.018f), new Vector3(0.012f, 0.02f, 0.012f), accent);
+            Placer.Prim(root.transform, PrimitiveType.Cube, "Window", new Vector3(0f, 0.065f, 0.0855f), new Vector3(0.042f, 0.032f, 0.002f), glass);
 
             var tip = new GameObject("Tip").transform;
             tip.SetParent(root.transform, false);
@@ -187,17 +188,6 @@ namespace CardShop.EditorTools
             Object.DestroyImmediate(root);
         }
 
-        static void Box(Transform parent, string name, Vector3 pos, Vector3 size, Material mat)
-        {
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            go.name = name;
-            Object.DestroyImmediate(go.GetComponent<Collider>());
-            go.transform.SetParent(parent, false);
-            go.transform.localPosition = pos;
-            go.transform.localScale = size;
-            go.GetComponent<MeshRenderer>().sharedMaterial = mat;
-        }
-
         // ------------------------------------------------------------------ 에셋
 
         static Material Mat(string name, Color color, Texture2D tex)
@@ -218,6 +208,10 @@ namespace CardShop.EditorTools
         // 흰 여백 + 굵기가 다른 검은 막대. 실제 규격 바코드가 아니라 "바코드처럼 보이는" 그림
         static Texture2D BarcodeTexture()
         {
+            // 같은 시드로 늘 같은 그림이라, 이미 있으면 다시 쓰지 않음 (빌드할 때마다 git 변경이 생기지 않게)
+            var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(BarcodeTexPath);
+            if (existing != null) return existing;
+
             const int w = 128, h = 48;
             var tex = new Texture2D(w, h, TextureFormat.RGB24, false);
             var px = new Color32[w * h];

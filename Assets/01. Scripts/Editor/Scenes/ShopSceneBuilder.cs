@@ -34,7 +34,7 @@ namespace CardShop.EditorTools
         public const string ScenePath = "Assets/00. Scenes/Shop.unity";
         const string XrOriginPrefab = "Assets/Samples/XR Interaction Toolkit/3.5.1/Starter Assets/Prefabs/XR Origin (XR Rig).prefab";
         const string CardPrefabPath = "Assets/03. Prefabs/Cards/Card.prefab";
-        const string FontPath = "Assets/99. External Assets/Font/Noto_Sans_KR/NotoSansKR-Regular SDF.asset";
+        const string FontPath = DataPaths.Font;
 
         const float CounterTop = ShopLayout.CounterTop;
         const float TableTop = ShopLayout.TableTop;
@@ -68,7 +68,7 @@ namespace CardShop.EditorTools
             InteriorBuilder.EnsurePrefabs();
             ExternalArt.ApplyShadowDistance(10f);
 
-            CreateLight();
+            Light sun = CreateLight();
             Transform env = CreateEnvironment();
             CreateXr();
             GameFlow flow = CreateGame();
@@ -78,7 +78,7 @@ namespace CardShop.EditorTools
             CustomerFloorBuilder.Create(flow, font);
             CreateDebugPanel(flow);
             CreatePauseMenu(flow);
-            CreateHome(flow);
+            CreateHome(flow, sun);
             BinderBuilder.Create();
             SalesPanelBuilder.Create();
 
@@ -90,7 +90,7 @@ namespace CardShop.EditorTools
 
         // ------------------------------------------------------------------ 환경
 
-        static void CreateLight()
+        static Light CreateLight()
         {
             var go = new GameObject("Directional Light");
             var light = go.AddComponent<Light>();
@@ -103,40 +103,19 @@ namespace CardShop.EditorTools
             // 천장이 해를 막으므로 실내는 대부분 환경광. 페이즈별 값은 PhaseLighting이 바꿈
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.62f, 0.6f, 0.58f);
+            return light;
         }
 
-        // 가게 인테리어(LowPolyInterior) + 바깥 거리(PolygonCity) 프리팹. 프리팹이 없으면(에셋 미임포트) 예전 블록아웃.
+        // 가게 인테리어(LowPolyInterior) + 바깥 거리(PolygonCity) 프리팹. InteriorBuilder.EnsurePrefabs가 먼저 만들어 둠.
         static Transform CreateEnvironment()
         {
             var root = new GameObject("Environment").transform;
             var shop = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.ShopPath);
             var street = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.StreetPath);
             if (street != null) ((GameObject)PrefabUtility.InstantiatePrefab(street)).transform.SetParent(root, false);
-            if (shop != null)
-            {
-                ((GameObject)PrefabUtility.InstantiatePrefab(shop)).transform.SetParent(root, false);
-                return root;
-            }
-            Debug.LogWarning("[ShopSceneBuilder] ShopInterior 프리팹이 없어 블록아웃으로 만듭니다 (LowPolyInterior 임포트 확인).");
-
-            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            floor.name = "Floor";
-            floor.transform.SetParent(root);
-            floor.transform.localScale = new Vector3(0.6f, 1f, 0.6f); // 6m x 6m
-
-            Cube(root, "Counter", new Vector3(0f, CounterTop / 2f, 0.7f), new Vector3(1.4f, CounterTop, 0.6f));
-            Cube(root, "PackTable", PackTablePos + Vector3.up * (TableTop / 2f), new Vector3(0.6f, TableTop, 0.5f));
+            if (shop != null) ((GameObject)PrefabUtility.InstantiatePrefab(shop)).transform.SetParent(root, false);
+            else Debug.LogError($"[ShopSceneBuilder] {InteriorBuilder.ShopPath} 프리팹이 없습니다 (LowPolyInterior 임포트 확인).");
             return root;
-        }
-
-        static GameObject Cube(Transform parent, string name, Vector3 pos, Vector3 scale)
-        {
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            go.name = name;
-            go.transform.SetParent(parent);
-            go.transform.position = pos;
-            go.transform.localScale = scale;
-            return go;
         }
 
         static void CreateXr()
@@ -316,13 +295,13 @@ namespace CardShop.EditorTools
 
             var bg = new GameObject("Background", typeof(RectTransform), typeof(Image));
             bg.transform.SetParent(canvasGo.transform, false);
-            Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one);
+            WorldUi.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one);
             bg.GetComponent<Image>().color = new Color(0.1f, 0.08f, 0.14f, 0.85f);
 
             var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(canvasGo.transform, false);
             var labelRt = (RectTransform)labelGo.transform;
-            Stretch(labelRt, new Vector2(0f, 0.636f), Vector2.one);
+            WorldUi.Stretch(labelRt, new Vector2(0f, 0.636f), Vector2.one);
             labelRt.offsetMin = new Vector2(24f, 0f);
             labelRt.offsetMax = new Vector2(-24f, -20f);
             var label = labelGo.GetComponent<TextMeshProUGUI>();
@@ -341,7 +320,7 @@ namespace CardShop.EditorTools
             for (int i = 0; i < names.Length; i++)
             {
                 float top = 0.62f - i * ButtonStep;
-                Button b = CreateUiButton(canvasGo.transform, names[i], new Vector2(0.08f, top - ButtonHeight), new Vector2(0.92f, top));
+                Button b = WorldUi.AddButton(canvasGo.transform, names[i], new Vector2(0.08f, top - ButtonHeight), new Vector2(0.92f, top), font);
                 if (actions[i] != null) UnityEventTools.AddPersistentListener(b.onClick, actions[i]);
                 else advance = b;
             }
@@ -360,22 +339,14 @@ namespace CardShop.EditorTools
         static readonly Vector3 HomeOrigin = ShopLayout.HomeOrigin;
         public const string HomeRootName = "Home";
 
-        static void CreateHome(GameFlow flow)
+        static void CreateHome(GameFlow flow, Light sun)
         {
             var root = new GameObject(HomeRootName).transform;
             root.position = HomeOrigin;
 
             var interior = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.HomePath);
             if (interior != null) ((GameObject)PrefabUtility.InstantiatePrefab(interior)).transform.SetParent(root, false);
-            else
-            {
-                Debug.LogWarning("[ShopSceneBuilder] HomeInterior 프리팹이 없어 집을 블록아웃으로 만듭니다.");
-                GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                floor.name = "Floor";
-                floor.transform.SetParent(root, false);
-                floor.transform.localScale = new Vector3(0.5f, 1f, 0.5f); // 5m x 5m
-                floor.GetComponent<MeshRenderer>().sharedMaterial = TintedMaterial(new Color(0.55f, 0.42f, 0.32f));
-            }
+            else Debug.LogError($"[ShopSceneBuilder] {InteriorBuilder.HomePath} 프리팹이 없습니다 (LowPolyInterior 임포트 확인).");
 
             // 책상(바인더 자리): BinderBuilder가 이 상자의 위치 · 크기로 바인더를 올림. 모양은 인테리어의 OfficeTable(윗면 0.8)이라 상자는 숨김(충돌만).
             HomeCube(root, "Desk", new Vector3(-1.2f, 0.4f, 1.6f), new Vector3(1.2f, 0.8f, 0.6f), new Color(0.6f, 0.45f, 0.3f));
@@ -423,7 +394,7 @@ namespace CardShop.EditorTools
             // 페이즈별 조명 분위기
             var lighting = transitionGo.AddComponent<PhaseLighting>();
             var lso = new SerializedObject(lighting);
-            lso.FindProperty("sun").objectReferenceValue = Object.FindFirstObjectByType<Light>();
+            lso.FindProperty("sun").objectReferenceValue = sun; // 이름 · 순서로 찾지 않음: 인테리어 조명이 해로 잡히지 않게
             lso.FindProperty("homeLight").objectReferenceValue = lightGo;
             lso.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -460,21 +431,21 @@ namespace CardShop.EditorTools
 
             var bg = new GameObject("Background", typeof(RectTransform), typeof(Image));
             bg.transform.SetParent(canvasGo.transform, false);
-            Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one);
+            WorldUi.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one);
             bg.GetComponent<Image>().color = new Color(0.1f, 0.08f, 0.14f, 0.92f);
 
-            CreateLabel(canvasGo.transform, "Title", "일시정지", new Vector2(0f, 0.7f), new Vector2(1f, 0.95f), 44f);
+            WorldUi.AddText(canvasGo.transform, "Title", "일시정지", new Vector2(0f, 0.7f), new Vector2(1f, 0.95f), 44f, Color.white, font);
 
             GameObject main = CreatePanel(canvasGo.transform, "MainPanel");
-            Button resume = CreateUiButton(main.transform, "이어서 하기", new Vector2(0.08f, 0.44f), new Vector2(0.92f, 0.54f));
-            Button restart = CreateUiButton(main.transform, "처음부터 다시 시작", new Vector2(0.08f, 0.28f), new Vector2(0.92f, 0.38f));
+            Button resume = WorldUi.AddButton(main.transform, "이어서 하기", new Vector2(0.08f, 0.44f), new Vector2(0.92f, 0.54f), font);
+            Button restart = WorldUi.AddButton(main.transform, "처음부터 다시 시작", new Vector2(0.08f, 0.28f), new Vector2(0.92f, 0.38f), font);
 
             GameObject confirm = CreatePanel(canvasGo.transform, "ConfirmPanel");
-            CreateLabel(confirm.transform, "Message", "정말 처음부터 다시 시작할까요?\n진행 상황이 사라져요.", new Vector2(0.05f, 0.45f), new Vector2(0.95f, 0.7f), 28f);
-            Button yes = CreateUiButton(confirm.transform, "예, 처음부터", new Vector2(0.08f, 0.27f), new Vector2(0.92f, 0.37f));
-            Button no = CreateUiButton(confirm.transform, "아니요", new Vector2(0.08f, 0.12f), new Vector2(0.92f, 0.22f));
+            WorldUi.AddText(confirm.transform, "Message", "정말 처음부터 다시 시작할까요?\n진행 상황이 사라져요.", new Vector2(0.05f, 0.45f), new Vector2(0.95f, 0.7f), 28f, Color.white, font);
+            Button yes = WorldUi.AddButton(confirm.transform, "예, 처음부터", new Vector2(0.08f, 0.27f), new Vector2(0.92f, 0.37f), font);
+            Button no = WorldUi.AddButton(confirm.transform, "아니요", new Vector2(0.08f, 0.12f), new Vector2(0.92f, 0.22f), font);
 
-            TMP_Text countdown = CreateLabel(canvasGo.transform, "Countdown", "3", new Vector2(0f, 0.2f), new Vector2(1f, 0.7f), 160f);
+            TMP_Text countdown = WorldUi.AddText(canvasGo.transform, "Countdown", "3", new Vector2(0f, 0.2f), new Vector2(1f, 0.7f), 160f, Color.white, font);
 
             var menu = system.AddComponent<PauseMenu>();
             var so = new SerializedObject(menu);
@@ -496,59 +467,8 @@ namespace CardShop.EditorTools
         {
             var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            Stretch((RectTransform)go.transform, Vector2.zero, Vector2.one);
+            WorldUi.Stretch((RectTransform)go.transform, Vector2.zero, Vector2.one);
             return go;
-        }
-
-        static TMP_Text CreateLabel(Transform parent, string name, string text, Vector2 min, Vector2 max, float size)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            Stretch((RectTransform)go.transform, min, max);
-            var label = go.GetComponent<TextMeshProUGUI>();
-            label.text = text;
-            label.fontSize = size;
-            label.alignment = TextAlignmentOptions.Center;
-            label.color = Color.white;
-            if (font != null) label.font = font;
-            return label;
-        }
-
-        static Button CreateUiButton(Transform parent, string text, Vector2 anchorMin, Vector2 anchorMax)
-        {
-            GameObject go = TMP_DefaultControls.CreateButton(new TMP_DefaultControls.Resources());
-            go.name = "Button_" + text;
-            go.transform.SetParent(parent, false);
-            Stretch((RectTransform)go.transform, anchorMin, anchorMax);
-            var label = go.GetComponentInChildren<TMP_Text>();
-            label.text = text;
-            label.fontSize = 28f;
-            label.color = Color.white;
-            if (font != null) label.font = font;
-
-            // 레이가 닿으면 색이 확 바뀌게 (시연 피드백 C3: 기본 하이라이트는 거의 흰색이라 안 보였음)
-            var button = go.GetComponent<Button>();
-            button.targetGraphic.color = Color.white;
-            button.transition = Selectable.Transition.ColorTint;
-            button.colors = new ColorBlock
-            {
-                normalColor = new Color(0.28f, 0.22f, 0.42f, 1f),
-                highlightedColor = new Color(0.95f, 0.55f, 0.15f, 1f),
-                pressedColor = new Color(0.65f, 0.28f, 0.05f, 1f),
-                selectedColor = new Color(0.28f, 0.22f, 0.42f, 1f),
-                disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f),
-                colorMultiplier = 1f,
-                fadeDuration = 0.05f,
-            };
-            go.AddComponent<UiHoverFeedback>();
-            return button;
-        }
-
-        static void Stretch(RectTransform rt, Vector2 min, Vector2 max)
-        {
-            rt.anchorMin = min;
-            rt.anchorMax = max;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
         }
     }
 }

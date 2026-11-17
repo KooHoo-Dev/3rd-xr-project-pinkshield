@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Reflection;
 using CardShop.Core;
 using NUnit.Framework;
 using UnityEditor;
@@ -11,18 +13,56 @@ namespace CardShop.Tests
     {
         const string ScenePath = "Assets/00. Scenes/Shop.unity";
 
+        /// <summary>
+        /// 씬의 모든 CardShop 컴포넌트에서 [SerializeField] 오브젝트 참조(배열 칸 포함)가 비어 있지 않은지 한 번에 검사합니다.
+        /// 필드를 새로 추가해도 테스트를 고칠 필요가 없습니다. 비워 둬도 되는 필드는 Tooltip에 "비워"라고 적거나 AudioClip이면 건너뜁니다.
+        /// </summary>
         [Test]
-        public void ShopScene_HasOneGameContextWithAllConfigs()
+        public void ShopScene_AllCardShopReferencesAreConnected()
+        {
+            Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+
+            var missing = new List<string>();
+            foreach (MonoBehaviour mb in Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (mb == null || mb.GetType().Namespace == null || !mb.GetType().Namespace.StartsWith("CardShop")) continue;
+                SerializedProperty it = new SerializedObject(mb).GetIterator();
+                while (it.NextVisible(true))
+                {
+                    if (it.propertyType != SerializedPropertyType.ObjectReference || it.objectReferenceValue != null) continue;
+                    if (it.name == "m_Script" || IsOptional(mb.GetType(), it.propertyPath)) continue;
+                    missing.Add($"{mb.gameObject.name}/{mb.GetType().Name}.{it.propertyPath}");
+                }
+            }
+            Assert.IsEmpty(missing, "미연결 참조 (Build Shop Scene 다시 실행):\n" + string.Join("\n", missing));
+        }
+
+        // 검사 대상: CardShop 클래스가 직접 선언한 필드만 (XRI 부모 클래스 필드 · UnityEvent 내부 값은 제외).
+        // 비워 둬도 되는 필드: AudioClip, 또는 Tooltip에 "비우면/비워 두면"이라고 적힌 필드.
+        static bool IsOptional(System.Type type, string propertyPath)
+        {
+            if (propertyPath.Contains("m_PersistentCalls")) return true;
+            string root = propertyPath.Split('.')[0];
+            for (System.Type t = type; t != null && t.Namespace != null && t.Namespace.StartsWith("CardShop"); t = t.BaseType)
+            {
+                FieldInfo f = t.GetField(root, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+                if (f == null) continue;
+                if (typeof(AudioClip).IsAssignableFrom(f.FieldType)) return true;
+                var tip = f.GetCustomAttribute<TooltipAttribute>();
+                return tip != null && (tip.tooltip.Contains("비워") || tip.tooltip.Contains("비우면"));
+            }
+            return true;
+        }
+
+        [Test]
+        public void ShopScene_HasOneGameContextWithFlow()
         {
             Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
             GameContext[] contexts = Object.FindObjectsByType<GameContext>(FindObjectsSortMode.None);
             Assert.AreEqual(1, contexts.Length, "GameContext는 씬에 하나");
-
-            var so = new SerializedObject(contexts[0]);
-            foreach (string field in new[] { "cardDatabase", "rarityTable", "packOdds", "economy", "campaign", "score" })
-                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"GameContext.{field} 미연결");
 
             Assert.IsNotNull(contexts[0].GetComponent<GameFlow>(), "GameFlow 없음");
         }
@@ -61,10 +101,6 @@ namespace CardShop.Tests
 
             var transition = Object.FindAnyObjectByType<CardShop.Presentation.DayTransition>();
             Assert.IsNotNull(transition, "DayTransition 없음 (Build Shop Scene 다시 실행)");
-            var so = new SerializedObject(transition);
-            foreach (string field in new[] { "flow", "origin", "homeSpawn" })
-                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"DayTransition.{field} 미연결");
-
             var sleep = GameObject.Find("Button_Sleep");
             Assert.IsNotNull(sleep, "잠자기 버튼 없음");
             Assert.Greater(sleep.GetComponent<CardShop.Interaction.PokeButton>().pressed.GetPersistentEventCount(), 0, "잠자기 버튼에 연결된 동작 없음");
@@ -80,8 +116,6 @@ namespace CardShop.Tests
             var director = Object.FindAnyObjectByType<CardShop.Customers.CustomerDirector>();
             Assert.IsNotNull(director, "CustomerDirector 없음 (Build Shop Scene 다시 실행)");
             var so = new SerializedObject(director);
-            foreach (string field in new[] { "flow", "roster", "outside", "door" })
-                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"CustomerDirector.{field} 미연결");
             Assert.Greater(so.FindProperty("browseSpots").arraySize, 0, "구경 자리 없음");
             Assert.Greater(so.FindProperty("queueSlots").arraySize, 0, "계산대 줄 자리 없음");
 
@@ -94,8 +128,6 @@ namespace CardShop.Tests
             var counter = (CardShop.Customers.CheckoutCounter)so.FindProperty("counter").objectReferenceValue;
             Assert.IsNotNull(counter, "CustomerDirector.counter 미연결");
             var counterSo = new SerializedObject(counter);
-            foreach (string field in new[] { "flow", "shopItems", "cardItemPrefab", "pos" })
-                Assert.IsNotNull(counterSo.FindProperty(field).objectReferenceValue, $"CheckoutCounter.{field} 미연결");
             Assert.Greater(counterSo.FindProperty("itemSpots").arraySize, 0, "계산대 물건 자리 없음");
             var shopItems = (CardShop.Cards.ShopItemConfig)counterSo.FindProperty("shopItems").objectReferenceValue;
             Assert.Greater(shopItems.Options().Count, 0, "팔 수 있는 가게 재고가 없음 (품목 프리팹 확인)");
@@ -107,34 +139,6 @@ namespace CardShop.Tests
             var pay = GameObject.Find("Button_Pay");
             Assert.IsNotNull(pay, "결제 버튼 없음");
             Assert.Greater(pay.GetComponent<CardShop.Interaction.PokeButton>().pressed.GetPersistentEventCount(), 0, "결제 버튼에 연결된 동작 없음");
-        }
-
-        // 시연 피드백 C1: 일시정지 메뉴가 연결돼 있어야 헤드셋을 벗었다 써도 영업을 이어갈 수 있음
-        [Test]
-        public void ShopScene_HasPauseMenuWithAllReferences()
-        {
-            Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
-            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-
-            var menu = Object.FindAnyObjectByType<CardShop.UI.PauseMenu>(FindObjectsInactive.Include);
-            Assert.IsNotNull(menu, "PauseMenu 없음 (Build Shop Scene 다시 실행)");
-            var so = new SerializedObject(menu);
-            foreach (string field in new[] { "flow", "root", "mainPanel", "confirmPanel", "countdownLabel", "resumeButton", "restartButton", "confirmYesButton", "confirmNoButton" })
-                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"PauseMenu.{field} 미연결");
-        }
-
-        // 집 컴퓨터의 카드 커뮤니티 화면이 연결돼 있어야 인기 속성 예보가 보임
-        [Test]
-        public void ShopScene_HasCommunityScreenWithAllReferences()
-        {
-            Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
-            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-
-            var screen = Object.FindAnyObjectByType<CardShop.UI.CommunityScreen>(FindObjectsInactive.Include);
-            Assert.IsNotNull(screen, "CommunityScreen 없음 (Build Shop Scene 다시 실행)");
-            var so = new SerializedObject(screen);
-            foreach (string field in new[] { "content", "forecastLabel", "topLabel", "moodLabel" })
-                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"CommunityScreen.{field} 미연결");
         }
 
         // 바인더: 칸 · 페이지 버튼 · 등급 색 · 표지 소켓이 연결돼 있고, 표지 소켓과 카드가 같은 Interaction Layer(Card)를 써야 카드가 꽂힘
@@ -151,10 +155,8 @@ namespace CardShop.Tests
             Assert.Greater(slots.arraySize, 0, "바인더 칸 없음");
             for (int i = 0; i < slots.arraySize; i++)
                 Assert.IsNotNull(slots.GetArrayElementAtIndex(i).objectReferenceValue, $"바인더 칸 {i} 미연결");
-            foreach (string field in new[] { "prevButton", "nextButton", "pageLabel", "styles", "coverSocket" })
-                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"BinderView.{field} 미연결");
 
-            const long cardLayer = 1L << 3; // CardInteractionLayers.CardIndex
+            const long cardLayer = 1L << CardShop.Interaction.CardInteractionLayers.CardIndex;
             var socket = new SerializedObject(so.FindProperty("coverSocket").objectReferenceValue);
             Assert.AreEqual(cardLayer, socket.FindProperty("m_InteractionLayers.m_Bits").longValue, "표지 소켓은 Card 층만");
 
@@ -162,24 +164,6 @@ namespace CardShop.Tests
             Assume.That(card, Is.Not.Null, "카드 프리팹 없음");
             var grab = new SerializedObject(card.GetComponent("XRGrabInteractable"));
             Assert.AreNotEqual(0L, grab.FindProperty("m_InteractionLayers.m_Bits").longValue & cardLayer, "카드가 Card 층에 없어 바인더에 안 꽂힘 (Build Card Prefab 다시 실행)");
-        }
-
-        // 판매 패널: 바인더와 버튼 · 글자 · 진열 목록 버튼이 연결돼 있어야 카드를 골라 진열 · 즉시 판매할 수 있음
-        [Test]
-        public void ShopScene_HasSalesPanelWithAllReferences()
-        {
-            Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
-            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-
-            var panel = Object.FindAnyObjectByType<CardShop.UI.SalesPanel>(FindObjectsInactive.Include);
-            Assert.IsNotNull(panel, "SalesPanel 없음 (Build Shop Scene 다시 실행)");
-            var so = new SerializedObject(panel);
-            foreach (string field in new[] { "content", "binder", "selectedLabel", "statusLabel", "messageLabel", "displayButton", "sellButton" })
-                Assert.IsNotNull(so.FindProperty(field).objectReferenceValue, $"SalesPanel.{field} 미연결");
-            SerializedProperty list = so.FindProperty("displayedButtons");
-            Assert.Greater(list.arraySize, 0, "진열 목록 버튼 없음");
-            for (int i = 0; i < list.arraySize; i++)
-                Assert.IsNotNull(list.GetArrayElementAtIndex(i).objectReferenceValue, $"진열 목록 버튼 {i} 미연결");
         }
 
         // BUG-001: 스크립트가 빠진 컴포넌트는 에러 없이 조용히 동작을 멈춥니다.

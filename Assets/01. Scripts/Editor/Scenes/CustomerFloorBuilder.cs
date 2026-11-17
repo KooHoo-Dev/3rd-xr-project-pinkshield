@@ -21,7 +21,7 @@ namespace CardShop.EditorTools
     /// </summary>
     public static class CustomerFloorBuilder
     {
-        const float CounterTop = 0.9f; // ShopSceneBuilder와 같게
+        const float CounterTop = ShopLayout.CounterTop;
         static readonly Vector3 OutsidePos = ShopLayout.OutsidePos;
         static readonly Vector3 DoorOutsidePos = ShopLayout.DoorOutsidePos;
         static readonly Vector3 DoorPos = ShopLayout.DoorInsidePos;
@@ -54,16 +54,7 @@ namespace CardShop.EditorTools
             Transform doorOutside = Point(root, "DoorOutside", DoorOutsidePos, Quaternion.LookRotation(Vector3.back));
             Transform door = Point(root, "Door", DoorPos, Quaternion.LookRotation(Vector3.back));
 
-            // 진열대 모델은 인테리어 프리팹에 있음. 인테리어가 없으면(에셋 미임포트) 예전 블록아웃 상자
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.ShopPath) == null)
-            {
-                DoorMarker(root, DoorPos);
-                GameObject stand = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                stand.name = "SalesStand (Blockout)";
-                stand.transform.SetParent(root);
-                stand.transform.position = StandPos + Vector3.up * (StandSize.y / 2f);
-                stand.transform.localScale = StandSize;
-            }
+            // 진열대 모델은 인테리어 프리팹(SalesStand)에 있음
             Label(root, "판매 진열대", StandPos + new Vector3(0f, StandSize.y + 0.15f, -0.15f), font);
 
             var browse = new Transform[BrowsePos.Length];
@@ -198,19 +189,6 @@ namespace CardShop.EditorTools
             t.SetParent(parent);
             t.SetPositionAndRotation(pos, rot);
             return t;
-        }
-
-        // 바닥의 문 표시 (얇은 판)
-        static void DoorMarker(Transform parent, Vector3 pos)
-        {
-            GameObject mat = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            mat.name = "DoorMat";
-            mat.transform.SetParent(parent);
-            mat.transform.position = pos + Vector3.up * 0.005f;
-            mat.transform.localScale = new Vector3(1.0f, 0.01f, 0.6f);
-            Object.DestroyImmediate(mat.GetComponent<Collider>());
-            mat.GetComponent<MeshRenderer>().sharedMaterial =
-                new Material(Shader.Find("Universal Render Pipeline/Lit")) { color = new Color(0.45f, 0.3f, 0.2f) };
         }
 
         static void Label(Transform parent, string text, Vector3 pos, TMP_FontAsset font, float size = 0.5f)

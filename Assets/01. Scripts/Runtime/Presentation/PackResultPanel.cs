@@ -85,13 +85,13 @@ namespace CardShop.Presentation
 
             var sb = new StringBuilder();
             // 상자 결과판의 "5점 줄"과 같은 기호 (한 장당 하나, 등급 색)
-            sb.Append("<b>이번 팩 결과</b>  ").Append(RevealQueue.Dots(pack, r => CardRevealer.RarityHex(styles, r)));
+            sb.Append("<b>이번 팩 결과</b>  ").Append(RevealQueue.Dots(pack, r => RevealText.RarityHex(styles, r)));
             if (newCount > 0) sb.Append($"  <color=#7CF29A>새 카드 {newCount}장</color>");
             sb.Append('\n');
             for (int i = 0; i < pack.Cards.Length; i++)
             {
                 CardData c = pack.Cards[i];
-                sb.Append(CardRevealer.RarityTag(styles, c.rarity)).Append("  ").Append(c.displayName);
+                sb.Append(RevealText.RarityTag(styles, c.rarity)).Append("  ").Append(c.displayName);
                 if (pack.IsNew[i]) sb.Append("  <color=#7CF29A><b>NEW</b></color>");
                 sb.Append('\n');
             }

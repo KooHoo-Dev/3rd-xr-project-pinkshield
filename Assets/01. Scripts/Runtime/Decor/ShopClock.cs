@@ -30,8 +30,7 @@ namespace CardShop.Decor
             switch (CurrentPhase)
             {
                 case GamePhaseId.Business:
-                    var flow = Context != null ? Context.GetComponent<GameFlow>() : null;
-                    var business = flow != null ? flow.GetPhase<BusinessPhase>(GamePhaseId.Business) : null;
+                    var business = Flow != null ? Flow.GetPhase<BusinessPhase>(GamePhaseId.Business) : null;
                     float total = Context != null && Context.Session != null
                         ? Context.Campaign.GetDay(Context.Session.Day).businessSeconds : 0f;
                     if (business == null || total <= 0f) return openHour;

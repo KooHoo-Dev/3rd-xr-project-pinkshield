@@ -30,11 +30,7 @@ namespace CardShop.Presentation
         enum PackStage { None, Tearing, Flipping, Result, Summary }
         enum Advance { Next, Skip }
 
-        // 카드 프리팹 크기 (CardPrefabBuilder.Width · Height, 두께 1.2mm). 에디터 어셈블리라 직접 참조하지 못해 같은 값을 둡니다.
-        const float CardWidth = 0.063f, CardHeight = 0.088f, CardThickness = 0.0012f;
         static readonly Color SpecialGold = new Color(1f, 0.82f, 0.3f);
-        const string GoldHex = "FFD54A";
-        const string NewHex = "7CF29A";
 
         [SerializeField] CardView cardPrefab;
         [Tooltip("카드가 놓일 기준점. 카드 앞면(-Z)이 플레이어를 향하도록 회전")]
@@ -123,8 +119,6 @@ namespace CardShop.Presentation
         [Tooltip("TMP 3D 글자 크기 (1 ≈ 10cm)")]
         [SerializeField] float resultFontSize = 0.2f;
         [SerializeField] float resultPopSeconds = 0.25f;
-        [Tooltip("마지막 장을 넘긴 뒤 '보관함에 넣기' 입력을 무시하는 시간 (초). 넘기기 눌림이 곧바로 넣기가 되지 않게")]
-        [SerializeField] float resultInputLock = 0.4f;
 
         [Header("갓팩 (건너뛰기 불가, 특수 효과 후 한 장씩 — DEC-008)")]
         [SerializeField] float godIntroSeconds = 1f;
@@ -166,7 +160,6 @@ namespace CardShop.Presentation
         readonly List<CardRevealView> stackViews = new List<CardRevealView>(); // 눈앞 묶음에 실체화된 카드 (맨 앞부터)
         readonly List<BoxPileEntry> boxPile = new List<BoxPileEntry>();        // 상자: 더미 위쪽에 실제 카드로 남은 것
         readonly Stack<CardRevealView> pool = new Stack<CardRevealView>();
-        readonly RevealInputGate inputGate = new RevealInputGate();
         GameContext context;
         TextMeshPro boxBoard;
         PackResultPanel resultPanel;
@@ -188,8 +181,7 @@ namespace CardShop.Presentation
         int createdCount;
 
         // 연출 중 오른손 레이의 UI 클릭을 잠시 끔 (트리거 하나가 넘기기 · 넣기 · UI 클릭을 동시에 하지 않게)
-        XRBaseInputInteractor uiSuppressedHand;
-        bool uiWasEnabled;
+        readonly RayUiSuppressor rayUi = new RayUiSuppressor();
 
         /// <summary>팩이 뜯기거나, 카드를 넘기는 중이거나, 상자 결과판이 채워지는 중. 결과함 UI만 떠 있는 동안은 바쁘지 않습니다(새 개봉 시 자동 보관).</summary>
         public bool IsBusy => stage == PackStage.Tearing || stage == PackStage.Flipping || stage == PackStage.Summary;
@@ -243,7 +235,7 @@ namespace CardShop.Presentation
         {
             if (context != null) context.Events.PhaseChanged -= OnPhaseChanged;
             warmRoutine = null; // 코루틴은 비활성화와 함께 멈춤
-            RestoreRightRayUI();
+            rayUi.Restore();
         }
 
         // 다음 영업이 시작되면 카운터를 비웁니다. 집으로 갈 때 남은 더미는 보관함으로. 퇴근 후가 되면 풀을 미리 데웁니다.
@@ -312,7 +304,7 @@ namespace CardShop.Presentation
             curStackScale = !isBox && tear != null ? tear.transform.lossyScale.y * packFitRatio : stackScale;
             stage = PackStage.Tearing;
             XRBaseInputInteractor hand = HandFinder.Find(InteractorHandedness.Right);
-            SuppressRightRayUI(hand);
+            rayUi.Suppress(hand); // 연출 중 오른손 트리거가 Ray UI 클릭까지 하지 않게
             skipTimer = new HoldToSkipTimer(fastForwardHoldSeconds, holdGaugeGrace);
             skipTimer.RequireRelease(); // 자르기 제스처로 트리거를 누른 채 열렸을 수 있음
             pileBasePose = PileBase();
@@ -401,7 +393,7 @@ namespace CardShop.Presentation
             EnsureResultPanel().Show(packs[0], cardPrefab != null ? cardPrefab.Styles : null,
                 pileBasePose.position + Vector3.up * (packBase + resultPanelHeight), anchor.rotation, resultFontSize, resultPopSeconds);
             foreach (CardRevealView v in pile) v.SetGrabbable(true);
-            RestoreRightRayUI(); // 연출 중 꺼 둔 오른손 레이 UI 복귀 (결과 단계에서는 트리거를 쓰지 않음)
+            rayUi.Restore(); // 연출 중 꺼 둔 오른손 레이 UI 복귀 (결과 단계에서는 트리거를 쓰지 않음)
             packRoutine = null;
         }
 
@@ -438,7 +430,6 @@ namespace CardShop.Presentation
 
         string BuildPileInfo(CardRevealView held)
         {
-            CardRarityStyles styles = cardPrefab != null ? cardPrefab.Styles : null;
             var cards = new List<CardData>(tableCards);
             int newCount = tableNew;
             foreach (CardRevealView v in pile)
@@ -446,30 +437,8 @@ namespace CardShop.Presentation
                 cards.Add(v.Card);
                 if (v.IsNew) newCount++;
             }
-
-            var sb = new System.Text.StringBuilder();
-            sb.Append($"<b>테이블 카드 더미 {cards.Count}장</b>");
-            if (newCount > 0) sb.Append($"  <color=#{NewHex}>새 카드 {newCount}장</color>");
-            sb.Append('\n');
-
-            var counts = new List<string>();
-            for (CardRarity r = CardRarity.Legendary; r >= CardRarity.Normal; r--)
-            {
-                int n = cards.Count(c => c.rarity == r);
-                if (n > 0) counts.Add($"{RarityTag(styles, r)} {n}");
-            }
-            sb.Append(string.Join("  ", counts)).Append('\n');
-
-            if (held != null && held.Card != null)
-                sb.Append($"집은 카드  {RarityTag(styles, held.Card.rarity)}  {held.Card.displayName}{(held.IsNew ? $"  <color=#{NewHex}><b>NEW</b></color>" : "")}\n");
-
-            foreach (var g in cards.Where(c => c.rarity >= CardRarity.SuperRare)
-                         .GroupBy(c => c.id)
-                         .OrderByDescending(g => g.First().rarity).ThenBy(g => g.First().displayName).Take(6))
-                sb.Append($"{RarityTag(styles, g.First().rarity)}  {g.First().displayName}{(g.Count() > 1 ? $" ×{g.Count()}" : "")}\n");
-
-            sb.Append("<size=70%><color=#C9C3D9>퇴근하면 보관함으로 옮겨져요</color></size>");
-            return sb.ToString();
+            return RevealText.PileInfo(cards, newCount, held != null ? held.Card : null, held != null && held.IsNew,
+                cardPrefab != null ? cardPrefab.Styles : null);
         }
 
         // 눈앞 · 테이블에 실제 카드로 두는 수를 넘으면 가장 오래된 카드부터 옆면 덩어리로 바꿉니다 (손에 든 카드는 건드리지 않음).
@@ -677,12 +646,12 @@ namespace CardShop.Presentation
                 return;
             }
             Transform block = EnsurePileBlock();
-            float cardT = CardThickness * counterScale;
+            float cardT = CardView.Thickness * counterScale;
             float h = CardPileLayout.Height(blockTop - 1, blockThickness) + cardT;
             block.gameObject.SetActive(true);
             block.SetPositionAndRotation(pileBasePose.position + Vector3.up * (h * 0.5f - cardT * 0.5f), pileBasePose.rotation);
             // 눕힌 카드 기준: 로컬 X = 가로, Y = 세로, Z = 두께(아래쪽)
-            block.localScale = new Vector3(CardWidth * counterScale * 0.98f, CardHeight * counterScale * 0.98f, h);
+            block.localScale = new Vector3(CardView.Width * counterScale * 0.98f, CardView.Height * counterScale * 0.98f, h);
         }
 
         Transform EnsurePileBlock()
@@ -720,28 +689,18 @@ namespace CardShop.Presentation
             TextMeshPro board = EnsureBoard();
             board.gameObject.SetActive(true);
             CardRarityStyles styles = cardPrefab != null ? cardPrefab.Styles : null;
-            Func<CardRarity, string> colorize = r => RarityHex(styles, r);
 
             var rows = new System.Text.StringBuilder();
             for (int i = 0; i < packs.Count; i++)
             {
-                PackResult p = packs[i];
-                rows.Append(RevealQueue.DotLine(p, i + 1, colorize, NewHex));
-                if (p.Special != SpecialPackType.None) rows.Append($"  <color=#{GoldHex}>{SpecialLabel(p.Special)}!</color>");
-                rows.Append('\n');
-                board.text = Mark($"<b>상자 개봉 {i + 1}/{packs.Count}</b>\n{rows}");
+                rows.Append(RevealText.BoxRow(packs[i], i + 1, styles));
+                board.text = RevealText.BoxProgress(rows.ToString(), i + 1, packs.Count);
                 yield return new WaitForSeconds(boxRowInterval);
             }
 
+            board.text = RevealText.BoxSummary(packs, rows.ToString(), styles);
             int total = packs.Sum(p => p.Cards.Length);
             int newCount = packs.Sum(p => p.IsNew.Count(n => n));
-            CardRarity top = packs.Max(p => p.BestRarity);
-            int superRares = packs.Sum(p => p.Cards.Count(c => c.rarity == CardRarity.SuperRare));
-            string legend = $"<size=70%><color=#C9C3D9>● 노말·레어  <color=#{GoldHex}>◆</color> 수퍼레어  ★ 유니크 이상</color></size>";
-            board.text = Mark($"<b>상자 개봉 완료 {packs.Count}/{packs.Count}</b>\n{rows}" +
-                              $"<b>합계 {total}장 · 새 카드 {newCount}장 · 최고 {RarityTag(styles, top)}</b>" +
-                              (superRares > 0 ? $"  <color=#{GoldHex}>수퍼레어 {superRares}장</color>" : "") +
-                              $"\n{legend}");
             context?.Events.RaiseNotice($"상자 개봉: {packs.Count}팩 {total}장, 새 카드 {newCount}장");
 
             List<(int pack, int card)> best = RevealQueue.PickHighlights(packs, boxHighlightCount);
@@ -753,8 +712,7 @@ namespace CardShop.Presentation
 
             // 끝: 결과판 · 하이라이트는 다음 상자 · 영업 시작 때 정리 (기존 동작)
             stage = PackStage.None;
-            inputGate.Reset();
-            RestoreRightRayUI();
+            rayUi.Restore();
             packRoutine = null;
         }
 
@@ -772,11 +730,7 @@ namespace CardShop.Presentation
                 if (flat.sqrMagnitude < 0.0001f) flat = Vector3.forward;
                 return new Pose(anchor.position + Vector3.up * 0.15f, Quaternion.LookRotation(flat.normalized, Vector3.up));
             }
-            Transform head = cam.transform;
-            Vector3 forward = Vector3.ProjectOnPlane(head.forward, Vector3.up);
-            if (forward.sqrMagnitude < 0.001f) forward = head.up; // 바로 아래를 보고 있을 때
-            forward.Normalize();
-            return new Pose(head.position + forward * boxStackDistance + Vector3.down * boxStackDrop, Quaternion.LookRotation(forward, Vector3.up));
+            return HeadPose.InFront(cam.transform, boxStackDistance, boxStackDrop);
         }
 
         Color RarityColor(CardRarity rarity)
@@ -853,31 +807,6 @@ namespace CardShop.Presentation
                 hand.SendHapticImpulse(amplitude, seconds);
             }
         }
-
-        /// <summary>등급 이름을 등급 색으로 (결과판 · 결과함 공용).</summary>
-        internal static string RarityTag(CardRarityStyles styles, CardRarity r)
-        {
-            if (styles == null) return r.ToString();
-            CardRarityStyles.Style s = styles.Get(r);
-            return $"<color=#{ColorUtility.ToHtmlStringRGB(s.accentColor)}>{s.label}</color>";
-        }
-
-        /// <summary>5점 줄 기호 색 (RRGGBB). 수퍼레어는 결과판에서 눈에 띄도록 금빛 고정. 스타일이 없으면 null(색 없음).</summary>
-        internal static string RarityHex(CardRarityStyles styles, CardRarity r)
-        {
-            if (r == CardRarity.SuperRare) return GoldHex;
-            return styles == null ? null : ColorUtility.ToHtmlStringRGB(styles.Get(r).accentColor);
-        }
-
-        static string SpecialLabel(SpecialPackType t) => t switch
-        {
-            SpecialPackType.GodPack => "갓팩",
-            SpecialPackType.LegendaryPack => "레전더리 확정",
-            _ => t.ToString(),
-        };
-
-        // 배경판 없이도 읽히도록 글자 뒤에 어두운 띠를 깝니다.
-        static string Mark(string text) => $"<mark=#140F1ECC>{text}</mark>";
 
         // 결과판: 카드 위쪽에 카드와 같은 방향으로. 한글 폰트는 카드 프리팹의 글꼴을 빌려 씁니다.
         TextMeshPro EnsureBoard()
@@ -977,37 +906,10 @@ namespace CardShop.Presentation
         {
             if (packRoutine != null) { StopCoroutine(packRoutine); packRoutine = null; }
             stage = PackStage.None;
-            inputGate.Reset();
             if (resultPanel != null) resultPanel.Hide();
             HidePileInfo();
             if (gauge != null) gauge.Hide();
-            RestoreRightRayUI();
-        }
-
-        // 오른손 트리거는 Ray UI 클릭에도 쓰입니다. 연출 중에는 오른손 레이의 UI 상호작용만 끄고(잡기 · 근접은 그대로), 끝나면 원래대로.
-        void SuppressRightRayUI(XRBaseInputInteractor hand)
-        {
-            if (uiSuppressedHand != null || hand == null) return;
-            if (hand is NearFarInteractor nearFar)
-            {
-                uiWasEnabled = nearFar.enableUIInteraction;
-                nearFar.enableUIInteraction = false;
-            }
-            else if (hand is XRRayInteractor ray)
-            {
-                uiWasEnabled = ray.enableUIInteraction;
-                ray.enableUIInteraction = false;
-            }
-            else return;
-            uiSuppressedHand = hand;
-        }
-
-        void RestoreRightRayUI()
-        {
-            if (uiSuppressedHand == null) { uiSuppressedHand = null; return; } // 파괴된 경우도 정리
-            if (uiSuppressedHand is NearFarInteractor nearFar) nearFar.enableUIInteraction = uiWasEnabled;
-            else if (uiSuppressedHand is XRRayInteractor ray) ray.enableUIInteraction = uiWasEnabled;
-            uiSuppressedHand = null;
+            rayUi.Restore();
         }
 
         // 카운터 위 가로 한 줄의 index번째 자리 (상자 하이라이트)

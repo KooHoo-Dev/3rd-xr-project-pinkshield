@@ -1,4 +1,5 @@
 using CardShop.Cards.EditorTools;
+using CardShop.EditorTools.Interior;
 using CardShop.Interaction;
 using TMPro;
 using UnityEditor;
@@ -17,7 +18,7 @@ namespace CardShop.EditorTools
     {
         public const string PrefabPath = "Assets/03. Prefabs/Packs/Pack.prefab";
         const string MatDir = "Assets/05. Shaders/Packs/Materials";
-        const string FontPath = "Assets/99. External Assets/Font/Noto_Sans_KR/NotoSansKR-Regular SDF.asset";
+        const string FontPath = DataPaths.Font;
 
         // 실제 카드팩처럼 얇은 호일 봉지: 가운데(몸통)는 3mm, 위아래 압착 띠는 1.2mm로 더 얇음.
         // 접힘 단서는 '표지가 접힌 것'이 아니라 '얇은 윗띠의 한쪽 모서리가 살짝 꺾인 것' (시연 피드백 A3, Quest)
@@ -52,7 +53,7 @@ namespace CardShop.EditorTools
 
             // 몸통(위아래 압착 띠 사이)
             float bodyH = H - 2f * SealH;
-            Box(visual, "Body", Vector3.zero, new Vector3(W, bodyH, T), body);
+            Placer.Prim(visual, PrimitiveType.Cube, "Body", Vector3.zero, new Vector3(W, bodyH, T), body);
             Quad(visual, "Front", new Vector3(0f, 0f, -T / 2f - 0.0002f), new Vector2(W * 0.94f, bodyH * 0.96f), front, false);
             Quad(visual, "Back", new Vector3(0f, 0f, T / 2f + 0.0002f), new Vector2(W * 0.94f, bodyH * 0.96f), back, true);
             Label(visual);
@@ -63,7 +64,7 @@ namespace CardShop.EditorTools
             {
                 float sign = s == 0 ? 1f : -1f;
                 string side = s == 0 ? "Top" : "Bottom";
-                Box(visual, "Seal" + side, new Vector3(0f, sign * (H / 2f - SealH / 2f), 0f), new Vector3(W, SealH, SealT), seal);
+                Placer.Prim(visual, PrimitiveType.Cube, "Seal" + side, new Vector3(0f, sign * (H / 2f - SealH / 2f), 0f), new Vector3(W, SealH, SealT), seal);
                 for (int i = 0; i < 4; i++)
                 {
                     float y = sign * (H / 2f - SealH * (0.15f + 0.23f * i));
@@ -104,7 +105,6 @@ namespace CardShop.EditorTools
         static Mesh BuildCornerMesh()
         {
             const string path = "Assets/03. Prefabs/Packs/PackCornerFlap.asset";
-            AssetDatabase.DeleteAsset(path);
             float h = CornerLeg / Mathf.Sqrt(2f);
             var mesh = new Mesh { name = "PackCornerFlap" };
             mesh.vertices = new[]
@@ -121,8 +121,16 @@ namespace CardShop.EditorTools
             mesh.subMeshCount = 2;
             mesh.SetTriangles(new[] { 0, 1, 2 }, 0); // 앞면(-Z에서 보임)
             mesh.SetTriangles(new[] { 3, 5, 4 }, 1); // 뒷면(+Z에서 보임)
-            AssetDatabase.CreateAsset(mesh, path);
-            return mesh;
+            // 이미 있으면 내용만 덮어써 GUID를 유지 (다시 빌드할 때마다 프리팹 참조 · git 변경이 생기지 않게, CardPrefabBuilder.SaveMesh와 같은 방식)
+            var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (existing == null)
+            {
+                AssetDatabase.CreateAsset(mesh, path);
+                return mesh;
+            }
+            EditorUtility.CopySerialized(mesh, existing);
+            Object.DestroyImmediate(mesh);
+            return existing;
         }
 
         static void Label(Transform parent)
@@ -141,17 +149,6 @@ namespace CardShop.EditorTools
             var rt = (RectTransform)go.transform;
             rt.sizeDelta = new Vector2(W * 0.9f, 0.05f);
             rt.localPosition = new Vector3(0f, -0.01f, -T / 2f - 0.0006f);
-        }
-
-        static void Box(Transform parent, string name, Vector3 pos, Vector3 size, Material mat)
-        {
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            go.name = name;
-            Object.DestroyImmediate(go.GetComponent<Collider>());
-            go.transform.SetParent(parent, false);
-            go.transform.localPosition = pos;
-            go.transform.localScale = size;
-            go.GetComponent<MeshRenderer>().sharedMaterial = mat;
         }
 
         // Unity Quad는 -Z 쪽에서 보입니다. 뒷면용은 180도 돌립니다.

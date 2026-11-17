@@ -11,6 +11,7 @@ namespace CardShop.Decor
     [RequireComponent(typeof(AudioSource))]
     public sealed class DoorBell : MonoBehaviour
     {
+        [Tooltip("비우면 시작할 때 씬에서 찾음 (인테리어 프리팹은 씬 오브젝트를 참조할 수 없음)")]
         [SerializeField] CustomerDirector director;
         [Tooltip("비우면 코드로 만든 두 음 종소리")]
         [SerializeField] AudioClip clip;

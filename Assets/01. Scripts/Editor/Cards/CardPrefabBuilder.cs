@@ -16,10 +16,9 @@ namespace CardShop.Cards.EditorTools
     /// </summary>
     public static class CardPrefabBuilder
     {
-        // 실제 TCG 카드 크기 (63 x 88 mm)
-        public const float Width = 0.063f;
-        public const float Height = 0.088f;
-        const float Thickness = 0.0012f;
+        public const float Width = CardView.Width;
+        public const float Height = CardView.Height;
+        const float Thickness = CardView.Thickness;
         const float CornerRadius = 0.0035f;
         const int CornerSegments = 6;
 
@@ -32,16 +31,16 @@ namespace CardShop.Cards.EditorTools
         const string StylesPath = DataDir + "/CardRarityStyles.asset";
         const string SampleDataPath = DataDir + "/F_N1.asset";
         const string SampleCharPath = ArtDir + "/Char/F_N1_char.png";
-        const string FontPath = "Assets/99. External Assets/Font/Noto_Sans_KR/NotoSansKR-Regular SDF.asset";
+        const string FontPath = DataPaths.Font;
 
         [MenuItem("Tools/CardShop/Build Card Prefab")]
         public static void Build()
         {
-            EnsureFolder(ArtDir + "/Meshes");
-            EnsureFolder(MatDir);
-            EnsureFolder(ArtDir + "/Back");
-            EnsureFolder("Assets/03. Prefabs/Cards");
-            EnsureFolder(DataDir);
+            DataPaths.EnsureFolder(ArtDir + "/Meshes");
+            DataPaths.EnsureFolder(MatDir);
+            DataPaths.EnsureFolder(ArtDir + "/Back");
+            DataPaths.EnsureFolder("Assets/03. Prefabs/Cards");
+            DataPaths.EnsureFolder(DataDir);
 
             Mesh mesh = SaveMesh(CreateCardMesh());
             Texture2D backTex = EnsureBackTexture();
@@ -361,14 +360,6 @@ namespace CardShop.Cards.EditorTools
                 (uvRect.center.y - 0.5f) * Height,
                 -Thickness / 2f - 0.0003f);
             return text;
-        }
-
-        static void EnsureFolder(string path)
-        {
-            if (AssetDatabase.IsValidFolder(path)) return;
-            string parent = Path.GetDirectoryName(path).Replace('\\', '/');
-            EnsureFolder(parent);
-            AssetDatabase.CreateFolder(parent, Path.GetFileName(path));
         }
 
         // ---------------------------------------------------------------- Preview (verification)

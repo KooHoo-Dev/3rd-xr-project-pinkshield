@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CardShop.Cards;
 using CardShop.Logic;
 
 namespace CardShop.Core
@@ -22,9 +23,6 @@ namespace CardShop.Core
     /// </summary>
     public static class MorningLines
     {
-        // 등급 숫자는 CardRarity와 같음 (Normal 0 · Rare 1 · SuperRare 2 · Unique 3 · Legendary 4)
-        const int SuperRareRank = 2, UniqueRank = 3, LegendaryRank = 4;
-
         static readonly Dictionary<MorningMood, string[]> Defaults = new Dictionary<MorningMood, string[]>
         {
             [MorningMood.Plain] = new[]
@@ -66,9 +64,9 @@ namespace CardShop.Core
         {
             if (dayCount > 1 && day >= dayCount) return MorningMood.LastDay;
             if (prev == null) return MorningMood.Plain;
-            if (prev.godPack || prev.legendaryPack || prev.bestRarity >= LegendaryRank) return MorningMood.Legendary;
-            if (prev.bestRarity >= UniqueRank) return MorningMood.Unique;
-            if (prev.bestRarity >= SuperRareRank) return MorningMood.SuperRare;
+            if (prev.godPack || prev.legendaryPack || prev.bestRarity >= (int)CardRarity.Legendary) return MorningMood.Legendary;
+            if (prev.bestRarity >= (int)CardRarity.Unique) return MorningMood.Unique;
+            if (prev.bestRarity >= (int)CardRarity.SuperRare) return MorningMood.SuperRare;
             if (prev.packsOpened == 0) return MorningMood.NoPacks;
             return MorningMood.Plain;
         }

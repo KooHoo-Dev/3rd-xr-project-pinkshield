@@ -1,4 +1,5 @@
 using System;
+using CardShop.Core;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -101,14 +102,9 @@ namespace CardShop.Interaction
             grab.trackPosition = false;
             grab.trackRotation = false;
 
-            Transform head = cam.transform;
-            Vector3 forward = Vector3.ProjectOnPlane(head.forward, Vector3.up);
-            if (forward.sqrMagnitude < 0.001f) forward = head.up; // 바로 아래를 보고 있을 때
-            forward.Normalize();
             // 앞면(-Z)이 플레이어를 향하고 윗변(+Y)이 위
-            Vector3 pos = head.position + forward * presentDistance + Vector3.down * presentDrop;
-            Quaternion rot = Quaternion.LookRotation(forward, Vector3.up);
-            transform.SetPositionAndRotation(pos, rot);
+            Pose p = HeadPose.InFront(cam.transform, presentDistance, presentDrop);
+            transform.SetPositionAndRotation(p.position, p.rotation);
             scaleBeforePresent = transform.localScale;
             transform.localScale = scaleBeforePresent * presentScale;
             if (body != null)
@@ -116,8 +112,8 @@ namespace CardShop.Interaction
                 // Transform만 옮기면 Rigidbody 보간이 손 위치로 되돌려 놓을 수 있습니다 (BUG-003과 같은 원인).
                 interpolationBeforePresent = body.interpolation;
                 body.interpolation = RigidbodyInterpolation.None;
-                body.position = pos;
-                body.rotation = rot;
+                body.position = p.position;
+                body.rotation = p.rotation;
             }
 
             cutter = HandFinder.Find(InteractorHandedness.Right, grab.interactionManager);

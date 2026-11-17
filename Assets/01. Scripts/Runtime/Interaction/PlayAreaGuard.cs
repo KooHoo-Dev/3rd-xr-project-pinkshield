@@ -105,10 +105,7 @@ namespace CardShop.Interaction
         void ShowMessage()
         {
             if (toast == null) return;
-            Transform cam = origin.Camera.transform;
-            Vector3 forward = Vector3.ProjectOnPlane(cam.forward, Vector3.up);
-            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
-            toast.Show(message, cam.position + forward.normalized * 1.0f + Vector3.down * 0.1f);
+            toast.Show(message, HeadPose.InFront(origin.Camera.transform, 1.0f, 0.1f).position);
         }
     }
 }

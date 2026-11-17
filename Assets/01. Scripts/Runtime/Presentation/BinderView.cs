@@ -28,6 +28,7 @@ namespace CardShop.Presentation
         [SerializeField] Button nextButton;
         [SerializeField] TMP_Text pageLabel;
         [SerializeField] CardRarityStyles styles;
+        public CardRarityStyles Styles => styles;
         [Tooltip("표지 소켓 (카드를 꽂는 곳). 비워 두면 보기 전용")]
         [SerializeField] BinderCoverSocket coverSocket;
         [Tooltip("꽂은 카드가 칸까지 날아가는 시간 (초)")]

@@ -23,6 +23,9 @@ namespace CardShop.Cards.EditorTools
         public const string ArtChar = ArtRoot + "/Char";
         public const string ArtBg = ArtRoot + "/BG";
 
+        /// <summary>한글 TMP 글꼴 (빌더 공용)</summary>
+        public const string Font = "Assets/99. External Assets/Font/Noto_Sans_KR/NotoSansKR-Regular SDF.asset";
+
         public static void EnsureFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path)) return;

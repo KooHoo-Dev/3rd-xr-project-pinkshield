@@ -23,7 +23,7 @@ namespace CardShop.Customers
         [SerializeField] PosTerminal pos;
 
         /// <summary>결제 완료: (손님이 산 판매 등록 카드 또는 null, 물건 개수)</summary>
-        public delegate void PaidHandler(CardData boughtCard, int itemCount);
+        public delegate void PaidHandler(CardData boughtCard, int itemCount, int net);
 
         GameContext context;
         Basket basket;
@@ -117,9 +117,9 @@ namespace CardShop.Customers
             int count = basket.Count;
             PaidHandler paid = onPaid;
             // 진열 카드면 진열대에서 빼서 장부에 기록. 그새 진열대에서 사라졌으면 가게 재고를 산 것으로 봄 (SalesRules)
-            CardData bought = ctx.Sales.CompleteSale(ctx.Session, card, ctx.PopularToday) ? card : null;
+            CardData bought = ctx.Sales.CompleteSale(ctx.Session, card, ctx.PopularToday, out int net) ? card : null;
             Clear(); // 손님이 물건을 가져감
-            paid?.Invoke(bought, count);
+            paid?.Invoke(bought, count, net);
         }
 
         /// <summary>손님이 기다리다 떠나거나 영업이 끝남: 물건을 치우고 판매 없음.</summary>

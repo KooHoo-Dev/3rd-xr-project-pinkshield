@@ -21,6 +21,7 @@ namespace CardShop.Interaction
     {
         [SerializeField] XROrigin origin;
         [SerializeField] float targetEyeHeight = 1.6f;
+        public float TargetEyeHeight => targetEyeHeight;
         [Tooltip("이 시간(초) 동안 고개가 수평이고 머리가 거의 안 움직이면 그 자세로 맞춤")]
         [SerializeField] float stableSeconds = 0.5f;
         [Tooltip("수평으로 보는 고개 각도 한계(도). 숙이거나 젖힌 채로는 맞추지 않음 (BUG-007)")]

@@ -52,7 +52,6 @@ namespace CardShop.Customers
 
         public bool IsPaused => flow != null && flow.IsPaused;
         public bool HasCustomers => agents.Count > 0 || (spawning && nextSpawn < schedule.Length);
-        public int ActiveCount => agents.Count;
         /// <summary>지금 매장 안팎에 있는 손님 (입구 종 등 연출이 읽기만 함)</summary>
         public IReadOnlyList<CustomerAgent> Agents => agents;
         /// <summary>출입문 지점 (입구 종이 문을 지나는지 판단할 때 사용)</summary>
@@ -171,7 +170,7 @@ namespace CardShop.Customers
             float current = head != null ? head.position.y - go.transform.position.y : 0f;
             if (current < 0.5f) return 1f; // 뼈를 못 찾음: 크기 그대로
 
-            float target = range.x + (float)context.Random.NextDouble() * Mathf.Max(0f, range.y - range.x);
+            float target = RandomIn(range);
             float scale = target / current;
             go.transform.localScale *= scale;
             return scale;
@@ -196,10 +195,11 @@ namespace CardShop.Customers
         {
             agent.State = CustomerState.Browse;
             agent.Gesture(CustomerAnim.Question);
-            Vector2 range = roster.browseSeconds;
-            float seconds = range.x + (float)context.Random.NextDouble() * Mathf.Max(0f, range.y - range.x);
-            agent.Wait(seconds, () => JoinQueue(agent));
+            agent.Wait(RandomIn(roster.browseSeconds), () => JoinQueue(agent));
         }
+
+        // range.x ~ range.y 사이 균등 (x > y면 x)
+        float RandomIn(Vector2 range) => range.x + (float)context.Random.NextDouble() * Mathf.Max(0f, range.y - range.x);
 
         void JoinQueue(CustomerAgent agent)
         {
@@ -226,7 +226,7 @@ namespace CardShop.Customers
             if (checkoutAgent == agent || queue.Count == 0 || queue[0] != agent) return;
             agent.Gesture(CustomerAnim.Talk);
             checkoutAgent = agent;
-            if (counter != null) counter.Begin((bought, count) => OnPaid(agent, bought, count));
+            if (counter != null) counter.Begin((bought, count, net) => OnPaid(agent, bought, count, net));
             else Debug.LogWarning("[CustomerDirector] CheckoutCounter가 없어 계산할 수 없습니다 (Build Shop Scene 다시 실행).", this);
         }
 
@@ -250,7 +250,7 @@ namespace CardShop.Customers
             for (int i = 0; i < queue.Count; i++) MoveToSlot(queue[i], i);
         }
 
-        void OnPaid(CustomerAgent agent, CardData bought, int itemCount)
+        void OnPaid(CustomerAgent agent, CardData bought, int itemCount, int net)
         {
             checkoutAgent = null;
             queue.Remove(agent);
@@ -259,7 +259,6 @@ namespace CardShop.Customers
             context.Events.RaiseCustomerServed(bought);
             if (bought != null)
             {
-                int net = context.Session.Ledger.sales[context.Session.Ledger.sales.Count - 1].net;
                 context.Events.RaiseNotice($"손님이 판매 등록한 「{bought.displayName}」을(를) 샀어요! (정산 때 +{net})");
                 agent.Gesture(CustomerAnim.Cheer);
             }

@@ -1,3 +1,4 @@
+using CardShop.Core;
 using TMPro;
 using UnityEngine;
 

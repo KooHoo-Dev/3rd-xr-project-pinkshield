@@ -10,6 +10,9 @@ namespace CardShop.Cards
     [ExecuteAlways]
     public class CardView : MonoBehaviour
     {
+        /// <summary>실제 TCG 카드 크기 63 × 88mm, 두께 1.2mm (프리팹 빌더와 연출이 같이 씀)</summary>
+        public const float Width = 0.063f, Height = 0.088f, Thickness = 0.0012f;
+
         [SerializeField] CardData data;
         [SerializeField] CardRarityStyles styles;
 

@@ -92,7 +92,7 @@ namespace CardShop.Logic
         public CardData ServeCustomer(GameSession s, CardElement popular)
         {
             CardData card = PickPurchase(s);
-            return CompleteSale(s, card, popular) ? card : null;
+            return CompleteSale(s, card, popular, out _) ? card : null;
         }
 
         /// <summary>
@@ -112,16 +112,19 @@ namespace CardShop.Logic
         /// <summary>
         /// 2단계: 결제 완료. 손님 수를 세고, 진열 카드면 진열대에서 빼서 당일 장부에 판매를 기록합니다(정산 때 합산).
         /// 카드가 그새 진열대에서 사라졌으면 가게 재고를 산 것으로 보고 false.
+        /// <paramref name="net"/>: 정산 때 받을 금액(수수료 뒤). 판매가 아니면 0.
         /// </summary>
-        public bool CompleteSale(GameSession s, CardData card, CardElement popular)
+        public bool CompleteSale(GameSession s, CardData card, CardElement popular, out int net)
         {
+            net = 0;
             s.Ledger.customersServed++;
             if (card == null || !s.SalesDisplay.Remove(card.id)) return false;
+            net = prices.SellPrice(card, popular);
             s.Ledger.sales.Add(new DayLedger.Sale
             {
                 cardId = card.id,
                 gross = prices.GrossPrice(card, popular),
-                net = prices.SellPrice(card, popular),
+                net = net,
             });
             return true;
         }

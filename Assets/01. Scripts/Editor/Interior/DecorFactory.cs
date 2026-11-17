@@ -21,7 +21,7 @@ namespace CardShop.EditorTools.Interior
         public const string MatDir = "Assets/05. Shaders/Interior/Materials";
         const string PackMatDir = "Assets/05. Shaders/Packs/Materials";
         const string ArtDir = "Assets/04. Art/Cards/Char";
-        const string FontPath = "Assets/99. External Assets/Font/Noto_Sans_KR/NotoSansKR-Regular SDF.asset";
+        const string FontPath = DataPaths.Font;
 
         public static readonly string[] SlimeColors = { "Pink", "Sky", "Lime", "Orange", "Lavender" };
         static readonly Color[] SlimeColorValues =

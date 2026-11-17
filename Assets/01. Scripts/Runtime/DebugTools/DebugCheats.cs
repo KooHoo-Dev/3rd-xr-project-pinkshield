@@ -55,8 +55,9 @@ namespace CardShop.DebugTools
         public void CalibrateHeight()
         {
             var calibrator = FindAnyObjectByType<CardShop.Interaction.PlayerHeightCalibrator>();
-            if (calibrator != null) calibrator.Calibrate();
-            Ctx.Events.RaiseNotice("[치트] 눈높이 1.6m로 맞춤");
+            if (calibrator == null) return;
+            calibrator.Calibrate();
+            Ctx.Events.RaiseNotice($"[치트] 눈높이 {calibrator.TargetEyeHeight:0.0#}m로 맞춤");
         }
 
         static void Force(System.Action<PackRoller> apply, string message)

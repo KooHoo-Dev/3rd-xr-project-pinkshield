@@ -234,5 +234,25 @@ namespace CardShop.Tests
                 Assert.Greater(Vector3.Dot(p.rotation * Vector3.back, toHead), 0.99f, "팩 앞면(-Z)이 머리 쪽");
             }
         }
+
+        // 결과판 · 더미 정보 문구 (RevealText): CardRevealer에서 떼어 낸 순수 문자열 함수
+        [Test]
+        public void BoxRow_SpecialPack_ShowsLabelAndEndsWithNewline()
+        {
+            string row = RevealText.BoxRow(Pack(new[] { U, U, U, U, U }, special: SpecialPackType.GodPack), 3, null);
+            StringAssert.Contains("갓팩!", row);
+            StringAssert.EndsWith("\n", row);
+        }
+
+        [Test]
+        public void PileInfo_CountsCardsNewAndRarities()
+        {
+            PackResult p = Pack(new[] { N, S, L });
+            string info = RevealText.PileInfo(p.Cards, 1, p.Cards[2], true, null);
+            StringAssert.Contains("테이블 카드 더미 3장", info);
+            StringAssert.Contains("새 카드 1장", info);
+            StringAssert.Contains("Legendary 1", info);
+            StringAssert.Contains("NEW", info, "집은 카드가 새 카드면 NEW 표시");
+        }
     }
 }
