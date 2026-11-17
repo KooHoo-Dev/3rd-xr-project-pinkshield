@@ -138,3 +138,7 @@ desktop.ini
 /Assets/Resources/PerformanceTestRun*
 # (Resources 폴더를 실제로 쓰게 되면 아래 줄을 지우세요)
 /Assets/Resources.meta
+
+# Unity crash recovery scenes
+_Recovery/
+_Recovery.meta
