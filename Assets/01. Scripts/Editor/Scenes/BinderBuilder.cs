@@ -20,7 +20,7 @@ namespace CardShop.EditorTools
     {
         const string FontPath = "Assets/99. External Assets/Font/Noto_Sans_KR/NotoSansKR-Regular SDF.asset";
         const string StylesPath = DataPaths.CardsDir + "/CardRarityStyles.asset";
-        const string HomeRoot = "Home (Blockout)";
+        const string HomeRoot = ShopSceneBuilder.HomeRootName;
 
         // 한 페이지 칸 수. 카드 수(50)·페이지 수는 CardDatabase에서 계산합니다 (BinderLayout).
         // 9칸이면 칸 오브젝트 9개를 페이지마다 재사용 (Quest 성능, 설계서 7-3).

@@ -1,6 +1,7 @@
 using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Customers;
+using CardShop.EditorTools.Interior;
 using CardShop.Interaction;
 using TMPro;
 using UnityEditor;
@@ -12,19 +13,21 @@ namespace CardShop.EditorTools
     /// <summary>
     /// 매장 손님 동선과 결제 버튼을 만듭니다. ShopSceneBuilder.Build가 카운터 버튼 다음에 호출합니다.
     ///
-    /// 배치 (플레이어는 원점에서 +Z를 봄, 카운터 x -0.7~0.7 · z 0.4~1.0, 바닥 6m x 6m):
-    ///   밖(2.4, 3.6) → 문(2.4, 2.7) → 판매 진열대(왼쪽 안쪽) 앞 구경 → 카운터 건너편 줄(z 1.4부터 뒤로) → 문 → 밖
-    /// 진열대는 임시 블록아웃입니다. 실제 진열대 모델 · 등록 카드 표시는 판매 진열대 작업에서 교체.
+    /// 배치 (플레이어는 원점에서 +Z를 봄, 카운터 x -1.11~1.11 · z 0.385~1.015, 가게 9 × 6m — ShopLayout):
+    ///   밖(5.6, 5.6: 문 오른쪽 벽 뒤, 계산대에서 안 보임) → 문 바깥(3.0, 5.0) → 문 안(3.0, 3.5)
+    ///   → 판매 진열대(왼쪽 안쪽) 앞 구경 → 카운터 건너편 줄(z 1.4부터 뒤로) → 문 안 → 문 바깥 → 밖
+    /// 진열대 모델은 ShopInterior 프리팹(SalesStand). 등록 카드 표시는 판매 진열대 작업에서.
     /// </summary>
     public static class CustomerFloorBuilder
     {
         const float CounterTop = 0.9f; // ShopSceneBuilder와 같게
-        static readonly Vector3 OutsidePos = new Vector3(2.4f, 0f, 3.6f);
-        static readonly Vector3 DoorPos = new Vector3(2.4f, 0f, 2.7f);
-        static readonly Vector3 StandPos = new Vector3(-1.9f, 0f, 2.4f);
-        static readonly Vector3 StandSize = new Vector3(1.0f, 1.0f, 0.4f);
-        static readonly Vector3[] BrowsePos = { new Vector3(-2.2f, 0f, 1.75f), new Vector3(-1.6f, 0f, 1.75f), new Vector3(-0.95f, 0f, 1.9f) };
-        static readonly Vector3[] QueuePos = { new Vector3(0f, 0f, 1.4f), new Vector3(0f, 0f, 2.0f), new Vector3(0f, 0f, 2.6f) };
+        static readonly Vector3 OutsidePos = ShopLayout.OutsidePos;
+        static readonly Vector3 DoorOutsidePos = ShopLayout.DoorOutsidePos;
+        static readonly Vector3 DoorPos = ShopLayout.DoorInsidePos;
+        static readonly Vector3 StandPos = ShopLayout.StandPos;
+        static readonly Vector3 StandSize = ShopLayout.StandSize;
+        static readonly Vector3[] BrowsePos = ShopLayout.BrowsePositions;
+        static readonly Vector3[] QueuePos = ShopLayout.QueuePositions;
         static readonly Vector3 PayButtonPos = new Vector3(-0.35f, CounterTop, 0.5f);
         // 손님이 물건을 올리는 자리 (카운터 손님 쪽 가장자리 근처, 플레이어 손이 닿는 거리)
         static readonly Vector3 ItemSpotPos = new Vector3(0.05f, CounterTop + 0.002f, 0.78f);
@@ -39,15 +42,20 @@ namespace CardShop.EditorTools
             var root = new GameObject("Customers").transform;
 
             Transform outside = Point(root, "Outside", OutsidePos, Quaternion.LookRotation(Vector3.back));
+            Transform doorOutside = Point(root, "DoorOutside", DoorOutsidePos, Quaternion.LookRotation(Vector3.back));
             Transform door = Point(root, "Door", DoorPos, Quaternion.LookRotation(Vector3.back));
-            DoorMarker(root, DoorPos);
 
-            GameObject stand = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            stand.name = "SalesStand (Blockout)";
-            stand.transform.SetParent(root);
-            stand.transform.position = StandPos + Vector3.up * (StandSize.y / 2f);
-            stand.transform.localScale = StandSize;
-            Label(root, "판매 진열대 (임시)", StandPos + new Vector3(0f, StandSize.y + 0.15f, -0.15f), font);
+            // 진열대 모델은 인테리어 프리팹에 있음. 인테리어가 없으면(에셋 미임포트) 예전 블록아웃 상자
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.ShopPath) == null)
+            {
+                DoorMarker(root, DoorPos);
+                GameObject stand = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                stand.name = "SalesStand (Blockout)";
+                stand.transform.SetParent(root);
+                stand.transform.position = StandPos + Vector3.up * (StandSize.y / 2f);
+                stand.transform.localScale = StandSize;
+            }
+            Label(root, "판매 진열대", StandPos + new Vector3(0f, StandSize.y + 0.15f, -0.15f), font);
 
             var browse = new Transform[BrowsePos.Length];
             Vector3 standFront = StandPos + new Vector3(0f, 0f, -StandSize.z / 2f);
@@ -81,6 +89,7 @@ namespace CardShop.EditorTools
             so.FindProperty("flow").objectReferenceValue = flow;
             so.FindProperty("roster").objectReferenceValue = roster;
             so.FindProperty("outside").objectReferenceValue = outside;
+            so.FindProperty("doorOutside").objectReferenceValue = doorOutside;
             so.FindProperty("door").objectReferenceValue = door;
             SetArray(so.FindProperty("browseSpots"), browse);
             SetArray(so.FindProperty("queueSlots"), queue);

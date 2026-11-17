@@ -19,6 +19,13 @@ namespace CardShop.Presentation
         [SerializeField] Color homeColor = new Color(1f, 0.8f, 0.6f);
         [SerializeField] float homeIntensity = 0.25f;
 
+        [Header("환경광 (천장이 해를 막아 실내는 대부분 환경광으로 밝힘)")]
+        [Tooltip("끄면 RenderSettings 환경광을 건드리지 않음")]
+        [SerializeField] bool driveAmbient = true;
+        [SerializeField] Color dayAmbient = new Color(0.62f, 0.6f, 0.58f);
+        [SerializeField] Color eveningAmbient = new Color(0.5f, 0.42f, 0.38f);
+        [SerializeField] Color homeAmbient = new Color(0.42f, 0.36f, 0.32f);
+
         GameContext subscribed;
 
         void OnEnable()
@@ -40,15 +47,21 @@ namespace CardShop.Presentation
         {
             Color color = dayColor;
             float intensity = dayIntensity;
+            Color ambient = dayAmbient;
             switch (phase)
             {
                 case GamePhaseId.Settlement:
                 case GamePhaseId.AfterHours:
-                    color = eveningColor; intensity = eveningIntensity; break;
+                    color = eveningColor; intensity = eveningIntensity; ambient = eveningAmbient; break;
                 case GamePhaseId.Home:
-                    color = homeColor; intensity = homeIntensity; break;
+                    color = homeColor; intensity = homeIntensity; ambient = homeAmbient; break;
             }
             if (sun != null) { sun.color = color; sun.intensity = intensity; }
+            if (driveAmbient)
+            {
+                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+                RenderSettings.ambientLight = ambient;
+            }
             if (homeLight != null) homeLight.SetActive(phase == GamePhaseId.Home);
         }
     }

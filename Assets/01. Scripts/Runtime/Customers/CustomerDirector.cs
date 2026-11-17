@@ -19,6 +19,8 @@ namespace CardShop.Customers
         [Header("동선 (CustomerFloorBuilder가 배치)")]
         [Tooltip("매장 밖 등장 · 퇴장 지점")]
         [SerializeField] Transform outside;
+        [Tooltip("출입문 바로 바깥. 손님은 직선으로 걸으므로 밖 → 이 지점 → 문 순서로 지나가야 벽을 뚫지 않음 (비우면 밖 → 문)")]
+        [SerializeField] Transform doorOutside;
         [Tooltip("출입문. 들어오고 나갈 때 지나감")]
         [SerializeField] Transform door;
         [Tooltip("진열대 앞 구경 자리. forward = 진열대 쪽")]
@@ -56,6 +58,10 @@ namespace CardShop.Customers
         public bool IsPaused => flow != null && flow.IsPaused;
         public bool HasCustomers => agents.Count > 0 || (spawning && nextSpawn < schedule.Length);
         public int ActiveCount => agents.Count;
+        /// <summary>지금 매장 안팎에 있는 손님 (입구 종 등 연출이 읽기만 함)</summary>
+        public IReadOnlyList<CustomerAgent> Agents => agents;
+        /// <summary>출입문 지점 (입구 종이 문을 지나는지 판단할 때 사용)</summary>
+        public Transform Door => door;
 
         void OnEnable()
         {
@@ -151,7 +157,7 @@ namespace CardShop.Customers
             agent.State = CustomerState.Enter;
             agent.Gesture(CustomerAnim.Wave);
             Transform spot = PickBrowseSpot(agent);
-            agent.WalkPath(new[] { door.position, spot.position }, spot.rotation, () => StartBrowse(agent));
+            agent.WalkPath(EnterPath(spot.position), spot.rotation, () => StartBrowse(agent));
         }
 
         /// <summary>머리 뼈 높이가 range 안의 무작위 값이 되도록 균일 축소/확대. 적용한 배율을 돌려줍니다.</summary>
@@ -321,12 +327,21 @@ namespace CardShop.Customers
         void Leave(CustomerAgent agent, bool wave)
         {
             if (wave) agent.Gesture(CustomerAnim.Wave);
-            agent.WalkPath(new[] { door.position, outside.position }, null, () =>
+            agent.WalkPath(ExitPath(), null, () =>
             {
                 context.Events.RaiseCustomerLeft(agent.BrowsePosition);
                 Remove(agent);
             });
         }
+
+        // 밖 → (문 바깥) → 문 → 목적지. 문 바깥 지점이 없으면 예전처럼 밖 → 문.
+        Vector3[] EnterPath(Vector3 target) => doorOutside != null
+            ? new[] { doorOutside.position, door.position, target }
+            : new[] { door.position, target };
+
+        Vector3[] ExitPath() => doorOutside != null
+            ? new[] { door.position, doorOutside.position, outside.position }
+            : new[] { door.position, outside.position };
 
         void Remove(CustomerAgent agent)
         {

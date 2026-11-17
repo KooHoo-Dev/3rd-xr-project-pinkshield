@@ -2,6 +2,7 @@ using CardShop.Cards;
 using CardShop.Cards.EditorTools;
 using CardShop.Core;
 using CardShop.DebugTools;
+using CardShop.EditorTools.Interior;
 using CardShop.Interaction;
 using CardShop.Presentation;
 using CardShop.UI;
@@ -35,10 +36,10 @@ namespace CardShop.EditorTools
         const string CardPrefabPath = "Assets/03. Prefabs/Cards/Card.prefab";
         const string FontPath = "Assets/99. External Assets/Font/Noto_Sans_KR/NotoSansKR-Regular SDF.asset";
 
-        const float CounterTop = 0.9f;
-        const float TableTop = 0.8f;
-        // 팩 테이블(선반) 위치. 카운터(x -0.7~0.7, z 0.4~1.0)와 겹치지 않게 씬에서 조정한 값.
-        static readonly Vector3 PackTablePos = new Vector3(-1.356f, 0f, 0.65f);
+        const float CounterTop = ShopLayout.CounterTop;
+        const float TableTop = ShopLayout.TableTop;
+        // 팩 테이블(선반) 위치. 카운터 2.22m(x -1.11~1.11)와 겹치지 않게 (인테리어 설계 D8)
+        static readonly Vector3 PackTablePos = ShopLayout.PackTablePos;
 
         static TMP_FontAsset font;
 
@@ -63,8 +64,12 @@ namespace CardShop.EditorTools
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
+            // 인테리어 프리팹: 없을 때만 처음 배치로 만들고, 있으면 손으로 고친 그대로 씀 (D7)
+            InteriorBuilder.EnsurePrefabs();
+            ExternalArt.ApplyShadowDistance(10f);
+
             CreateLight();
-            Transform env = CreateBlockout();
+            Transform env = CreateEnvironment();
             CreateXr();
             GameFlow flow = CreateGame();
             PackOpener opener = CreatePackSystem(flow);
@@ -91,14 +96,28 @@ namespace CardShop.EditorTools
             var light = go.AddComponent<Light>();
             light.type = LightType.Directional;
             light.intensity = 1.1f;
-            light.shadows = LightShadows.Soft;
-            go.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+            light.shadows = LightShadows.Hard; // Mobile_RPAsset은 소프트 그림자 미지원
+            // 거리 쪽(+Z) 하늘에서 가게 안(-Z)으로: 앞 파노라마 창으로 햇빛이 들어와 카운터 앞까지 닿음 (인테리어 설계 5-1)
+            go.transform.rotation = Quaternion.Euler(35f, 160f, 0f);
+
+            // 천장이 해를 막으므로 실내는 대부분 환경광. 페이즈별 값은 PhaseLighting이 바꿈
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(0.62f, 0.6f, 0.58f);
         }
 
-        // 임시 블록아웃: 바닥 + 카운터 + 팩 테이블. 맵 에셋으로 교체 예정.
-        static Transform CreateBlockout()
+        // 가게 인테리어(LowPolyInterior) + 바깥 거리(PolygonCity) 프리팹. 프리팹이 없으면(에셋 미임포트) 예전 블록아웃.
+        static Transform CreateEnvironment()
         {
-            var root = new GameObject("Environment (Blockout)").transform;
+            var root = new GameObject("Environment").transform;
+            var shop = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.ShopPath);
+            var street = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.StreetPath);
+            if (street != null) ((GameObject)PrefabUtility.InstantiatePrefab(street)).transform.SetParent(root, false);
+            if (shop != null)
+            {
+                ((GameObject)PrefabUtility.InstantiatePrefab(shop)).transform.SetParent(root, false);
+                return root;
+            }
+            Debug.LogWarning("[ShopSceneBuilder] ShopInterior 프리팹이 없어 블록아웃으로 만듭니다 (LowPolyInterior 임포트 확인).");
 
             GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
             floor.name = "Floor";
@@ -334,34 +353,40 @@ namespace CardShop.EditorTools
 
         // ------------------------------------------------------------------ 집 구역 (시연 피드백: 퇴근 후 쉬는 느낌)
 
-        // 가게에서 멀리 떨어진 같은 씬의 다른 구역. 임시 블록아웃이며 모델은 나중에 교체.
-        static readonly Vector3 HomeOrigin = new Vector3(30f, 0f, 0f);
+        // 가게에서 멀리 떨어진 같은 씬의 다른 구역. 모델은 HomeInterior 프리팹(LowPolyInterior), 여기서는 게임 기능만 붙임.
+        static readonly Vector3 HomeOrigin = ShopLayout.HomeOrigin;
+        public const string HomeRootName = "Home";
 
         static void CreateHome(GameFlow flow)
         {
-            var root = new GameObject("Home (Blockout)").transform;
+            var root = new GameObject(HomeRootName).transform;
             root.position = HomeOrigin;
 
-            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            floor.name = "Floor";
-            floor.transform.SetParent(root, false);
-            floor.transform.localScale = new Vector3(0.5f, 1f, 0.5f); // 5m x 5m
-            floor.GetComponent<MeshRenderer>().sharedMaterial = TintedMaterial(new Color(0.55f, 0.42f, 0.32f));
+            var interior = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.HomePath);
+            if (interior != null) ((GameObject)PrefabUtility.InstantiatePrefab(interior)).transform.SetParent(root, false);
+            else
+            {
+                Debug.LogWarning("[ShopSceneBuilder] HomeInterior 프리팹이 없어 집을 블록아웃으로 만듭니다.");
+                GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                floor.name = "Floor";
+                floor.transform.SetParent(root, false);
+                floor.transform.localScale = new Vector3(0.5f, 1f, 0.5f); // 5m x 5m
+                floor.GetComponent<MeshRenderer>().sharedMaterial = TintedMaterial(new Color(0.55f, 0.42f, 0.32f));
+            }
 
-            Color wall = new Color(0.85f, 0.78f, 0.68f);
-            HomeCube(root, "Wall_Back", new Vector3(0f, 1.25f, 2.5f), new Vector3(5f, 2.5f, 0.1f), wall);
-            HomeCube(root, "Wall_Left", new Vector3(-2.5f, 1.25f, 0f), new Vector3(0.1f, 2.5f, 5f), wall);
-            HomeCube(root, "Wall_Right", new Vector3(2.5f, 1.25f, 0f), new Vector3(0.1f, 2.5f, 5f), wall);
-
-            // 책상(바인더 자리), 컴퓨터(커뮤니티 자리), 침대 + 잠자기 버튼
+            // 책상(바인더 자리): BinderBuilder가 이 상자의 위치 · 크기로 바인더를 올림. 모양은 인테리어의 OfficeTable(윗면 0.8)이라 상자는 숨김(충돌만).
             HomeCube(root, "Desk", new Vector3(-1.2f, 0.4f, 1.6f), new Vector3(1.2f, 0.8f, 0.6f), new Color(0.6f, 0.45f, 0.3f));
-            HomeLabel(root, "책상\n(바인더 · 준비 중)", new Vector3(-1.2f, 1.15f, 1.6f));
-            HomeCube(root, "ComputerDesk", new Vector3(1.2f, 0.4f, 1.6f), new Vector3(1.0f, 0.8f, 0.6f), new Color(0.35f, 0.35f, 0.4f));
+            if (interior != null) root.Find("Desk").GetComponent<MeshRenderer>().enabled = false;
+            // 커뮤니티 모니터 (벽걸이 큰 화면). CommunityScreenBuilder가 크기 · 위치를 정함
             HomeCube(root, "Monitor", new Vector3(1.2f, 1.05f, 1.8f), new Vector3(0.7f, 0.4f, 0.04f), new Color(0.1f, 0.15f, 0.25f));
             CommunityScreenBuilder.Create(root, font); // 카드 커뮤니티 화면 (모니터 확대 + 월드 텍스트)
-            HomeCube(root, "Bed", new Vector3(0f, 0.25f, 2.0f), new Vector3(0.9f, 0.5f, 1.0f), new Color(0.75f, 0.85f, 1f));
-            HomeCube(root, "BedTable", new Vector3(0.9f, 0.4f, 0.8f), new Vector3(0.4f, 0.8f, 0.4f), new Color(0.6f, 0.45f, 0.3f));
-            PokeButton sleep = CreatePokeButton("Button_Sleep", HomeOrigin + new Vector3(0.9f, TableTop, 0.8f), "잠자기", new Color(0.55f, 0.6f, 1f));
+
+            // 잠자기 = 침대 옆 벽 전등 스위치 (H1: "불 끄고 잠자기"). 누르는 면이 방 안(+Z)을 봄
+            Vector3 switchPos = HomeOrigin + ShopLayout.HomeSleepSwitch + new Vector3(0f, 0f, 0.012f);
+            PokeButton sleep = CreatePokeButton("Button_Sleep", switchPos, "불 끄고 자기", new Color(0.55f, 0.6f, 1f));
+            sleep.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            Transform sleepLabel = sleep.transform.Find("Label");
+            if (sleepLabel != null) sleepLabel.SetPositionAndRotation(switchPos + new Vector3(0f, 0.12f, 0.01f), Quaternion.Euler(0f, 180f, 0f));
             sleep.transform.SetParent(root, true);
             UnityEventTools.AddPersistentListener(sleep.pressed, flow.Sleep);
 
@@ -414,19 +439,6 @@ namespace CardShop.EditorTools
             go.transform.localPosition = localPos;
             go.transform.localScale = size;
             go.GetComponent<MeshRenderer>().sharedMaterial = TintedMaterial(color);
-        }
-
-        static void HomeLabel(Transform parent, string text, Vector3 localPos)
-        {
-            var go = new GameObject("Label", typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            go.transform.localPosition = localPos;
-            var tmp = go.AddComponent<TextMeshPro>();
-            if (font != null) tmp.font = font;
-            tmp.text = text;
-            tmp.fontSize = 0.6f;
-            tmp.alignment = TextAlignmentOptions.Center;
-            ((RectTransform)go.transform).sizeDelta = new Vector2(1.2f, 0.4f);
         }
 
         // ------------------------------------------------------------------ 일시정지 메뉴 (시연 피드백 C1)
