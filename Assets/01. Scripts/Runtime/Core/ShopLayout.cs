@@ -68,6 +68,27 @@ namespace CardShop.Core
         /// <summary>집 잠자기 스위치 (앞벽 안쪽 면, 침대와 현관 사이, 높이 1.2m) — H1 "불 끄고 잠자기"</summary>
         public static readonly Vector3 HomeSleepSwitch = new Vector3(0.55f, 1.2f, HomeFrontZ + HomeWallHalf);
 
+        // ---------------------------------------------------------------- 걸어 다닐 수 있는 곳 (PlayAreaGuard)
+        /// <summary>가게 앞 인도에서 걸을 수 있는 끝 z (연석 · 가로등 줄 바로 앞. 그 너머는 도로라 바닥 콜라이더가 없음)</summary>
+        public const float SidewalkMaxZ = FrontZ + 4.4f;
+        /// <summary>가게 앞 인도에서 걸을 수 있는 x 범위의 절반 (인도 타일은 ±27.5까지)</summary>
+        public const float SidewalkHalfX = 25f;
+
+        /// <summary>
+        /// 점이 플레이어가 걸어 다녀도 되는 곳인가: 가게 안 · 출입구 · 가게 앞 인도 · 집 안.
+        /// 도로 · 골목 · 맞은편 인도는 바닥 콜라이더가 없거나 업무와 상관없는 곳이라 막습니다.
+        /// </summary>
+        public static bool InsideWalkArea(Vector3 p)
+        {
+            if (InsideShop(p)) return true;
+            bool door = Mathf.Abs(p.x - DoorX) < DoorHalfWidth && p.z > FrontZ - 0.5f && p.z < FrontZ + 0.5f;
+            if (door) return true;
+            bool sidewalk = Mathf.Abs(p.x) < SidewalkHalfX && p.z > FrontZ + WallHalf && p.z < SidewalkMaxZ;
+            if (sidewalk) return true;
+            Vector3 h = p - HomeOrigin;
+            return h.x > HomeMinX && h.x < HomeMaxX && h.z > HomeFrontZ && h.z < HomeBackZ;
+        }
+
         /// <summary>점이 가게 벽 안쪽(벽 두께 제외)에 있는가</summary>
         public static bool InsideShop(Vector3 p, float margin = 0f) =>
             p.x > MinX + WallHalf + margin && p.x < MaxX - WallHalf - margin &&

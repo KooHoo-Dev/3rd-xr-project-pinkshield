@@ -151,6 +151,8 @@ namespace CardShop.EditorTools
                 // 바닥 기준 트래킹 + 시작 시 눈높이 보정 (지정 안 함이면 기기에 따라 시점이 낮아짐)
                 origin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.Floor;
                 rig.AddComponent<PlayerHeightCalibrator>().Configure(origin);
+                // 가게 · 인도 · 집 밖(도로 등)으로 못 나가게 + 혼잣말 (BUG-009)
+                rig.AddComponent<PlayAreaGuard>().Configure(origin, font);
             }
             else Debug.LogError($"[ShopSceneBuilder] XR Origin 프리팹 없음: {XrOriginPrefab} (XRI Starter Assets 샘플 임포트 필요)");
 
@@ -308,7 +310,8 @@ namespace CardShop.EditorTools
             var rt = (RectTransform)canvasGo.transform;
             rt.sizeDelta = new Vector2(500f, 1100f);
             rt.localScale = Vector3.one * 0.001f;               // 0.5m x 1.1m (1px = 1mm)
-            rt.position = new Vector3(0.95f, 1.3f, 1.0f);
+            // 패널 높이 1.1m. 중심 1.3이면 아래 끝(0.75)이 카운터(윗면 0.9) 속에 묻혀 마지막 버튼이 가려졌음 → 아래 끝 0.95
+            rt.position = new Vector3(0.95f, 1.5f, 1.0f);
             rt.rotation = Quaternion.Euler(0f, 35f, 0f);
 
             var bg = new GameObject("Background", typeof(RectTransform), typeof(Image));
