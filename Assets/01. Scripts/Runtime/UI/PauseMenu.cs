@@ -1,0 +1,150 @@
+using System.Collections;
+using CardShop.Core;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+
+namespace CardShop.UI
+{
+    /// <summary>
+    /// 일시정지 메뉴 (시연 피드백 C1). 영업 중 헤드셋을 벗거나 왼손 메뉴 버튼(에디터는 P 키)을 누르면
+    /// 플레이어 눈앞(월드 고정)에 메뉴가 뜹니다.
+    /// [이어서 하기] → 3·2·1 카운트다운 후 재개 / [처음부터 다시 시작] → 확인 후 새 판.
+    /// 일시정지 대상은 영업 타이머뿐이라 영업 중일 때만 뜹니다 (GameFlow.Pause).
+    /// 이 컴포넌트는 항상 켜져 있는 오브젝트에 두고, 메뉴 화면(root)만 켜고 끕니다.
+    /// </summary>
+    public sealed class PauseMenu : MonoBehaviour
+    {
+        [SerializeField] GameFlow flow;
+        [SerializeField] GameObject root;
+        [SerializeField] GameObject mainPanel;
+        [SerializeField] GameObject confirmPanel;
+        [SerializeField] TMP_Text countdownLabel;
+        [SerializeField] Button resumeButton;
+        [SerializeField] Button restartButton;
+        [SerializeField] Button confirmYesButton;
+        [SerializeField] Button confirmNoButton;
+        [Tooltip("플레이어 앞 거리 (m)")]
+        [SerializeField] float distance = 1.0f;
+        [SerializeField] int countdownSeconds = 3;
+
+        GameContext subscribed;
+        InputAction pauseAction;
+        Coroutine countdown;
+
+        void OnEnable()
+        {
+            resumeButton.onClick.AddListener(OnResume);
+            restartButton.onClick.AddListener(ShowConfirm);
+            confirmYesButton.onClick.AddListener(OnRestartConfirmed);
+            confirmNoButton.onClick.AddListener(ShowMain);
+
+            subscribed = GameContext.Instance;
+            if (subscribed != null) subscribed.Events.PausedChanged += OnPausedChanged;
+
+            // 왼손 메뉴 버튼(Quest) / P 키(에디터 시뮬레이터)
+            pauseAction = new InputAction("Pause", InputActionType.Button);
+            pauseAction.AddBinding("<XRController>{LeftHand}/{Menu}");
+            pauseAction.AddBinding("<Keyboard>/p");
+            pauseAction.performed += OnPausePressed;
+            pauseAction.Enable();
+
+            root.SetActive(false);
+        }
+
+        void OnDisable()
+        {
+            resumeButton.onClick.RemoveListener(OnResume);
+            restartButton.onClick.RemoveListener(ShowConfirm);
+            confirmYesButton.onClick.RemoveListener(OnRestartConfirmed);
+            confirmNoButton.onClick.RemoveListener(ShowMain);
+            if (subscribed != null) subscribed.Events.PausedChanged -= OnPausedChanged;
+            subscribed = null;
+            if (pauseAction != null)
+            {
+                pauseAction.performed -= OnPausePressed;
+                pauseAction.Dispose();
+                pauseAction = null;
+            }
+        }
+
+        void OnPausePressed(InputAction.CallbackContext _) => flow.Pause();
+
+        void OnPausedChanged(bool paused)
+        {
+            if (paused) Show();
+            else Hide();
+        }
+
+        void Show()
+        {
+            ShowMain();
+            Place();
+            root.SetActive(true);
+        }
+
+        void Hide()
+        {
+            if (countdown != null) { StopCoroutine(countdown); countdown = null; }
+            root.SetActive(false);
+        }
+
+        // 헤드셋을 다시 쓰면 머리 위치가 바뀌어 있으므로 메뉴를 다시 눈앞에 놓습니다.
+        void OnApplicationPause(bool pause)
+        {
+            if (!pause && root != null && root.activeSelf) Place();
+        }
+
+        void OnApplicationFocus(bool focus)
+        {
+            if (focus && root != null && root.activeSelf) Place();
+        }
+
+        // 월드 고정: 시선의 수평 정면 distance, 눈높이보다 약간 아래. 머리에 붙이지 않습니다(멀미).
+        void Place()
+        {
+            Camera cam = Camera.main;
+            if (cam == null) return;
+            Vector3 forward = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up);
+            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
+            forward.Normalize();
+            Vector3 pos = cam.transform.position + forward * distance + Vector3.down * 0.1f;
+            root.transform.SetPositionAndRotation(pos, Quaternion.LookRotation(forward, Vector3.up));
+        }
+
+        void ShowMain()
+        {
+            mainPanel.SetActive(true);
+            confirmPanel.SetActive(false);
+            countdownLabel.gameObject.SetActive(false);
+        }
+
+        void ShowConfirm()
+        {
+            mainPanel.SetActive(false);
+            confirmPanel.SetActive(true);
+        }
+
+        void OnResume()
+        {
+            if (countdown == null) countdown = StartCoroutine(CountdownThenResume());
+        }
+
+        // 바로 재개하면 준비할 틈 없이 시간이 흐르므로 카운트다운을 둡니다.
+        IEnumerator CountdownThenResume()
+        {
+            mainPanel.SetActive(false);
+            countdownLabel.gameObject.SetActive(true);
+            for (int n = countdownSeconds; n > 0; n--)
+            {
+                countdownLabel.text = n.ToString();
+                yield return new WaitForSecondsRealtime(1f);
+            }
+            countdown = null;
+            flow.Resume(); // PausedChanged(false) → Hide
+        }
+
+        void OnRestartConfirmed() => flow.RestartGame();
+    }
+}

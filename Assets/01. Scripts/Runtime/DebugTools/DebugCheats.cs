@@ -46,6 +46,12 @@ namespace CardShop.DebugTools
             Ctx.Events.RaiseNotice($"[치트] {flow.CurrentPhase}");
         }
 
+        public void PauseNow()
+        {
+            flow.Pause();
+            Ctx.Events.RaiseNotice(flow.IsPaused ? "[치트] 일시정지" : "[치트] 영업 중에만 일시정지돼요");
+        }
+
         public void CalibrateHeight()
         {
             var calibrator = FindAnyObjectByType<CardShop.Interaction.PlayerHeightCalibrator>();
@@ -71,6 +77,7 @@ namespace CardShop.DebugTools
         public void AddMoney100() { }
         public void SkipToAfterHours() { }
         public void CalibrateHeight() { }
+        public void PauseNow() { }
 #endif
     }
 }
