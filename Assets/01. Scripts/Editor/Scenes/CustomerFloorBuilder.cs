@@ -131,7 +131,7 @@ namespace CardShop.EditorTools
         }
 
         // 가게 재고 품목 (계산시스템_확장_설계 5-1). SO는 손으로 고친 값을 지키고, 빈 프리팹 칸과 없는 품목만 채웁니다.
-        // 가격 · 가중치 · 처음 나오는 일차는 잠정값 (상자 = EconomyConfig.boxPrice)
+        // 가격 · 가중치 · 처음 나오는 일차는 확정값 (2026-11-18) (상자 = EconomyConfig.boxPrice)
         static void FillShopItems(ShopItemConfig shopItems)
         {
             if (shopItems == null) return;
