@@ -306,6 +306,8 @@ namespace CardShop.Cards.EditorTools
 
             var grab = root.AddComponent<XRGrabInteractable>();
             grab.useDynamicAttach = true;
+            // 손(Default)으로 잡히고, Card 층만 받는 바인더 표지 소켓에도 꽂히도록
+            grab.interactionLayers = CardShop.Interaction.CardInteractionLayers.DefaultAndCard;
 
             // 메시와 글자는 "Visual" 아래에 둡니다. 공개 연출이 Visual만 뒤집어 앞/뒤를 바꿉니다 (CardRevealView).
             var visual = new GameObject("Visual").transform;
