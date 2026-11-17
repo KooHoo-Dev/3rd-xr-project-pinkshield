@@ -86,10 +86,87 @@ namespace CardShop.Tests
             SalesRules sales = f.Sales(new ScriptedRandom());
             Assert.IsFalse(sales.TryDisplay(s, "F-SR"), "보유하지 않은 카드");
 
-            for (int i = 0; i < 5; i++) s.Collection.Add("F-N1");
-            for (int i = 0; i < f.Economy.salesDisplaySlots; i++) Assert.IsTrue(sales.TryDisplay(s, "F-N1"));
-            Assert.IsFalse(sales.TryDisplay(s, "F-N1"), "진열대 4칸이 다 참");
-            Assert.AreEqual(1, s.Collection.CountOf("F-N1"), "실패하면 보유 목록에서 빠지지 않음");
+            for (int i = 0; i < 5; i++) s.Collection.Add("F-SR");
+            for (int i = 0; i < f.Economy.salesDisplaySlots; i++) Assert.IsTrue(sales.TryDisplay(s, "F-SR"));
+            Assert.AreEqual(DisplayResult.DisplayFull, sales.Display(s, "F-SR"), "진열대 4칸이 다 참");
+            Assert.AreEqual(1, s.Collection.CountOf("F-SR"), "실패하면 보유 목록에서 빠지지 않음");
+        }
+
+        [Test]
+        public void Display_RejectsBelowSuperRare_AllowsSuperRareAndAbove()
+        {
+            SalesRules sales = f.Sales(new ScriptedRandom());
+            foreach (string id in new[] { "F-N1", "W-R1", "F-SR", "F-U", "SN-L" }) s.Collection.Add(id);
+
+            Assert.AreEqual(DisplayResult.RarityTooLow, sales.Display(s, "F-N1"));
+            Assert.AreEqual(DisplayResult.RarityTooLow, sales.Display(s, "W-R1"));
+            Assert.AreEqual(1, s.Collection.CountOf("F-N1"), "거부되면 보유 목록 그대로");
+            Assert.AreEqual(DisplayResult.Ok, sales.Display(s, "F-SR"));
+            Assert.AreEqual(DisplayResult.Ok, sales.Display(s, "F-U"));
+            Assert.AreEqual(DisplayResult.Ok, sales.Display(s, "SN-L"));
+            Assert.AreEqual(DisplayResult.NotOwned, sales.Display(s, "F-SR"), "이미 진열해 0장");
+
+            f.Economy.minDisplayRarity = CardRarity.Rare; // 데이터로 바꾸면 규칙이 따라감
+            Assert.IsTrue(sales.CanDisplay(f.Db.Get("W-R1")));
+            Assert.IsFalse(sales.CanDisplay(f.Db.Get("F-N1")));
+        }
+
+        [TestCase("F-N1", 1)]   // 1 × 0.6 = 0.6 → 내림 0 → 최소 1
+        [TestCase("W-R1", 3)]   // 5 × 0.6 = 3
+        [TestCase("F-SR", 12)]  // 20 × 0.6
+        [TestCase("F-U", 60)]
+        [TestCase("SN-L", 300)]
+        public void InstantPrice_IsBasePriceTimesRate_NoCommissionNoPopularBonus(string id, int expected)
+        {
+            Assert.AreEqual(expected, f.Sales(new ScriptedRandom()).InstantPrice(f.Db.Get(id)));
+        }
+
+        [Test]
+        public void SellInstantly_PaysWallet_RemovesOneCard_KeepsDexEntry_NoLedger()
+        {
+            s.Collection.Add("F-N1");
+            s.Collection.Add("F-N1");
+            SalesRules sales = f.Sales(new ScriptedRandom());
+
+            Assert.IsTrue(sales.TrySellInstantly(s, "F-N1", out int price), "노말도 즉시 판매 가능");
+            Assert.AreEqual(1, price);
+            Assert.AreEqual(1, s.Wallet.Money);
+            Assert.AreEqual(1, s.Collection.CountOf("F-N1"), "1장만 빠짐");
+            Assert.AreEqual(0, s.Ledger.sales.Count, "정산에 합산하지 않음");
+
+            s.Collection.Add("SN-L");
+            Assert.IsTrue(sales.TrySellInstantly(s, "SN-L", out price));
+            Assert.AreEqual(300, price);
+            Assert.AreEqual(301, s.Wallet.Money);
+            Assert.AreEqual(0, s.Collection.CountOf("SN-L"));
+            Assert.IsTrue(s.Collection.IsDiscovered("SN-L"), "팔아도 도감 유지");
+        }
+
+        [Test]
+        public void SellInstantly_RejectsUnownedAndUnknownCard()
+        {
+            SalesRules sales = f.Sales(new ScriptedRandom());
+            Assert.IsFalse(sales.TrySellInstantly(s, "F-SR", out int price), "보유하지 않은 카드");
+            Assert.AreEqual(0, price);
+            Assert.IsFalse(sales.TrySellInstantly(s, "NOPE", out _), "없는 카드");
+            Assert.AreEqual(0, s.Wallet.Money);
+        }
+
+        // 퇴근(Home)에서 집에서 등록한 카드가 DayEnd에서 지워지면 안 됨. 마지막 날에만 돌려놓음 (DayEndPhase가 이 함수를 씀)
+        [Test]
+        public void ReturnUnsoldOnFinalDay_KeepsDisplayBeforeFinalDay_ReturnsOnFinalDay()
+        {
+            s.Collection.Add("F-SR");
+            SalesRules sales = f.Sales(new ScriptedRandom());
+            sales.TryDisplay(s, "F-SR");
+
+            Assert.AreEqual(0, sales.ReturnUnsoldOnFinalDay(s, 7), "1일차 끝: 진열 유지");
+            CollectionAssert.AreEqual(new[] { "F-SR" }, s.SalesDisplay);
+
+            for (int i = 0; i < 6; i++) s.AdvanceDay(); // 7일차
+            Assert.AreEqual(1, sales.ReturnUnsoldOnFinalDay(s, 7), "마지막 날 끝: 보유로 복귀");
+            Assert.AreEqual(0, s.SalesDisplay.Count);
+            Assert.AreEqual(1, s.Collection.CountOf("F-SR"));
         }
 
         [Test]
@@ -133,16 +210,16 @@ namespace CardShop.Tests
         [Test]
         public void ReturnUnsold_PutsCardsBack()
         {
-            s.Collection.Add("F-N1");
-            s.Collection.Add("W-R1");
+            s.Collection.Add("F-SR");
+            s.Collection.Add("F-U");
             SalesRules sales = f.Sales(new ScriptedRandom());
-            sales.TryDisplay(s, "F-N1");
-            sales.TryDisplay(s, "W-R1");
+            sales.TryDisplay(s, "F-SR");
+            sales.TryDisplay(s, "F-U");
 
             Assert.AreEqual(2, sales.ReturnUnsold(s));
             Assert.AreEqual(0, s.SalesDisplay.Count);
-            Assert.AreEqual(1, s.Collection.CountOf("F-N1"));
-            Assert.AreEqual(1, s.Collection.CountOf("W-R1"));
+            Assert.AreEqual(1, s.Collection.CountOf("F-SR"));
+            Assert.AreEqual(1, s.Collection.CountOf("F-U"));
         }
 
         [Test]

@@ -21,6 +21,10 @@ namespace CardShop.Cards
         [Range(0, 1)] public float commissionRate = 0.10f;
         public int minSellPrice = 1;
         public int salesDisplaySlots = 4;
+        [Tooltip("가게 진열대에 올릴 수 있는 최소 등급 (이 등급 이상만 진열 가능)")]
+        public CardRarity minDisplayRarity = CardRarity.SuperRare;
+        [Tooltip("즉시 판매가 = 기준가 × 이 비율 (소수점 내림, 최소 1). 수수료·인기 속성 배율 없음")]
+        [Range(0, 1)] public float instantSellRate = 0.6f;
 
         [Header("인기 속성")]
         public bool popularElementEnabled = true;
