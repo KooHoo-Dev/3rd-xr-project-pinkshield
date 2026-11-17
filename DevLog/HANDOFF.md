@@ -52,6 +52,13 @@
 - [ ] 누끼 결과 중 남은 흠: E-SR 돌 뒤 작은 밝은 조각과 바닥 점 1개, F-L 몸 아래 주황빛(불빛 반사로 보고 남김)
 
 ## 5. 다음 작업 (설계 문서 기준 순서)
+**시연 피드백 반영** — 분석·설계·구현 현황은 [`시연피드백_분석과_설계.md`](../Assets/98.%20Doc/시연피드백_분석과_설계.md) (7장까지, 구현 현황은 "구현 현황" 목록).
+- 구현함(Unity 확인 전 포함): NEW 배지(BUG-004·006) · 접힘(얇은 호일 팩 + 윗띠 모서리 9mm) · 카드·팩 크기/거리 · UI 간격·호버(BUG-005) · 일시정지 메뉴 · **집 페이즈**(페이드 1.3초+암전 0.8초, 집 구역, 침대, 조명) · 아침 대사(전날 카드팩 결과별 `MorningLines` + `MorningLineSet` SO)
+- **먼저 할 일**: `Build Pack Prefab` → `Build Shop Scene` 다시 실행 → 테스트(EditMode) 통과 확인 → Quest 빌드로 확인(페이드 · 말풍선 겹침 해소 · 메뉴 버튼 바인딩 · NEW 배지 · 접힘 모서리). 버그 카드 BUG-004 · 005 · 006은 "열림" 상태(원인·해결만 기록) — 확인 후 결과 · after 사진 추가
+- **아침 대사 문장**은 Opus로 생성: [`아침대사_생성_가이드.md`](../Assets/98.%20Doc/아침대사_생성_가이드.md) → `MorningLineSet.asset`의 Lines 칸에 `기분|문장` 줄로 붙여 넣기
+- 다음 구현 순서(문서 7-6): ~~② 바인더(보관함 = 바인더)~~ ✅ 코드 완료(2026-11-17, `Build Shop Scene` 다시 실행 · Unity 확인 전) → ~~③ 판매 등록(진열 수퍼레어 이상 / 즉시 판매 전 등급·기준가 60%)~~ ✅ 코드 완료(2026-11-17, `SalesRules` + `SalesPanel`, `Build Shop Scene` 다시 실행 · 테스트 · Unity 확인 전) → ④ 커뮤니티(오늘·내일 인기 속성 예보) **[완료: 코드 작성, Unity 컴파일·실기기 확인 전. `CommunityBoard` + `CommunityScreen`]** → ~~개봉 맛(윗부분 뜯김·카드 더미·결과함)~~ ✅ 코드 완료(2026-11-17, `PackTearEffect` · `CardPileLayout` · `PackResultPanel` · `ICardStash`, `Build Pack Prefab` 다시 실행 권장 · 테스트 · Unity 확인 전. 바인더 연결은 `CardRevealer.Stash`에 넣기만 하면 됨) → ~~상자 일괄 연출(한 장씩 + 스킵, 유니크·레전더리 강제 공개, 갓팩 별도 연출)~~ ✅ 코드 완료(2026-11-17, `CardRevealer.PackSequence` 단일·상자 통일 + `RevealQueue` · `HoldToSkipTimer` · `BoxOpenEffect` · `SkipHoldGauge` · `RevealBurst`, `BoxRevealTests` 추가. 빌드 메뉴 재실행 불필요(실행 중 생성) · 테스트 · Unity 컴파일 · 실기기 확인 전). 선생님 제안(개봉대·입체 배치·홀로그램 셰이더)은 설계만 끝, 구현 여부는 사용자 결정 대기
+- 접힘 발견 보상(사장님 혼잣말 "영업비밀을 알아채버렸군…")은 사장님 대사 시스템이 생길 때 구현
+
 개봉 연출 남은 것 (`Assets/98. Doc/카드팩_개봉연출_설계.md` 6장)
 1. 등급별 효과음 클립 구해서 `Assets/02. Data/Configs/RarityRevealProfile.asset`의 `sound` 칸에 넣기 (코드는 연결됨)
 2. 5번째 카드 빛샘, 특수 팩(갓팩·확정팩) 예고
