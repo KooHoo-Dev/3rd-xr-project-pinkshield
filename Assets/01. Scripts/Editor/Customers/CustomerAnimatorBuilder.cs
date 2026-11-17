@@ -19,7 +19,7 @@ namespace CardShop.EditorTools
         public const string ControllerPath = OutDir + "/Customer.controller";
         public const string FemaleOverridePath = OutDir + "/Customer_Female.overrideController";
 
-        const string KevinRoot = "Assets/Kevin Iglesias/Human Animations";
+        const string KevinRoot = "Assets/99. External Assets/Kevin Iglesias/Human Animations";
         const string UpperBodyMaskPath = KevinRoot + "/Models/Avatar Masks/Human Body Upper Mask.mask";
 
         // (파라미터/상태 이름, Male·Female 폴더 아래 상대 경로의 클립 이름)
