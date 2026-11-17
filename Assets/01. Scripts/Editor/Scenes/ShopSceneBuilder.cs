@@ -437,8 +437,10 @@ namespace CardShop.EditorTools
             WorldUi.AddText(canvasGo.transform, "Title", "일시정지", new Vector2(0f, 0.7f), new Vector2(1f, 0.95f), 44f, Color.white, font);
 
             GameObject main = CreatePanel(canvasGo.transform, "MainPanel");
-            Button resume = WorldUi.AddButton(main.transform, "이어서 하기", new Vector2(0.08f, 0.44f), new Vector2(0.92f, 0.54f), font);
-            Button restart = WorldUi.AddButton(main.transform, "처음부터 다시 시작", new Vector2(0.08f, 0.28f), new Vector2(0.92f, 0.38f), font);
+            // 버튼 높이 56mm, 간격 34mm (시연 피드백 C2: 위아래로 붙어 있어 잘못 눌림)
+            Button resume = WorldUi.AddButton(main.transform, "이어서 하기", new Vector2(0.08f, 0.52f), new Vector2(0.92f, 0.62f), font);
+            Button recalibrate = WorldUi.AddButton(main.transform, "눈높이 다시 맞추기", new Vector2(0.08f, 0.36f), new Vector2(0.92f, 0.46f), font);
+            Button restart = WorldUi.AddButton(main.transform, "처음부터 다시 시작", new Vector2(0.08f, 0.20f), new Vector2(0.92f, 0.30f), font);
 
             GameObject confirm = CreatePanel(canvasGo.transform, "ConfirmPanel");
             WorldUi.AddText(confirm.transform, "Message", "정말 처음부터 다시 시작할까요?\n진행 상황이 사라져요.", new Vector2(0.05f, 0.45f), new Vector2(0.95f, 0.7f), 28f, Color.white, font);
@@ -456,6 +458,7 @@ namespace CardShop.EditorTools
             so.FindProperty("countdownLabel").objectReferenceValue = countdown;
             so.FindProperty("resumeButton").objectReferenceValue = resume;
             so.FindProperty("restartButton").objectReferenceValue = restart;
+            so.FindProperty("recalibrateButton").objectReferenceValue = recalibrate;
             so.FindProperty("confirmYesButton").objectReferenceValue = yes;
             so.FindProperty("confirmNoButton").objectReferenceValue = no;
             so.ApplyModifiedPropertiesWithoutUndo();

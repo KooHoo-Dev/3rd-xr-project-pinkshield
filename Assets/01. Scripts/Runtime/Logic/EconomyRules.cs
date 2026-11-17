@@ -37,6 +37,14 @@ namespace CardShop.Logic
         public int CleanupTotal(DayLedger ledger) =>
             ledger.cleanupsDone * config.cleanupBonus - ledger.cleanupsMissed * config.cleanupPenalty;
 
+        /// <summary>계산 평가: 빠른 계산 보너스 − 떠난 손님 감점 (계산시스템_확장_설계 3장).</summary>
+        public int CheckoutTotal(DayLedger ledger) =>
+            ledger.checkoutsFast * config.checkoutBonus - ledger.customersLost * config.checkoutPenalty;
+
+        /// <summary>물건을 올린 뒤 결제까지 걸린 시간이 기준 안인가. 기준 = 기본 + (물건 수 − 1) × 추가 시간.</summary>
+        public bool IsFastCheckout(float seconds, int itemCount) =>
+            seconds <= config.checkoutFastSeconds + config.checkoutFastPerExtraItemSeconds * Mathf.Max(0, itemCount - 1);
+
         public int SalesTotal(DayLedger ledger)
         {
             int sum = 0;
@@ -44,8 +52,8 @@ namespace CardShop.Logic
             return sum;
         }
 
-        /// <summary>기본급 + 청소 보너스 − 감점 + 판매 수익. 음수가 되지 않습니다.</summary>
+        /// <summary>기본급 + 청소 보너스 − 감점 + 계산 평가 + 판매 수익. 음수가 되지 않습니다.</summary>
         public int SettlementTotal(DayLedger ledger) =>
-            Mathf.Max(0, ledger.basePay + CleanupTotal(ledger) + SalesTotal(ledger));
+            Mathf.Max(0, ledger.basePay + CleanupTotal(ledger) + CheckoutTotal(ledger) + SalesTotal(ledger));
     }
 }

@@ -103,6 +103,35 @@ namespace CardShop.Tests
             ledger.sales.Add(new DayLedger.Sale { cardId = "F-SR", gross = 20, net = 18 });
             Assert.AreEqual(40 + 20 - 3 + 18, rules.SettlementTotal(ledger));
         }
+
+        [Test]
+        public void Settlement_AddsCheckoutBonusMinusLostCustomers()
+        {
+            economy.checkoutBonus = 2;
+            economy.checkoutPenalty = 1;
+            var ledger = new DayLedger { basePay = 40, checkoutsFast = 5, customersLost = 3 };
+            Assert.AreEqual(5 * 2 - 3 * 1, rules.CheckoutTotal(ledger));
+            Assert.AreEqual(40 + 7, rules.SettlementTotal(ledger));
+        }
+
+        [Test]
+        public void Settlement_LostCustomersHaveNoPenaltyByDefault()
+        {
+            var ledger = new DayLedger { basePay = 40, customersLost = 4 };
+            Assert.AreEqual(0, rules.CheckoutTotal(ledger));
+            Assert.AreEqual(40, rules.SettlementTotal(ledger));
+        }
+
+        [Test]
+        public void FastCheckout_LimitGrowsFromSecondItem()
+        {
+            economy.checkoutFastSeconds = 20f;
+            economy.checkoutFastPerExtraItemSeconds = 8f;
+            Assert.IsTrue(rules.IsFastCheckout(20f, 1));
+            Assert.IsFalse(rules.IsFastCheckout(20.5f, 1));
+            Assert.IsTrue(rules.IsFastCheckout(36f, 3));   // 20 + 8 × 2
+            Assert.IsFalse(rules.IsFastCheckout(36.5f, 3));
+        }
     }
 
     public class SessionTests

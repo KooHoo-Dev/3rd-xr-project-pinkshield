@@ -277,6 +277,7 @@ namespace CardShop.Customers
             if (agent == checkoutAgent) CancelCheckout(); // 물건을 두고 가지 않음, 판매도 없음
             queue.Remove(agent);
             ShiftQueue();
+            context.Session.Ledger.customersLost++;
             agent.State = CustomerState.Leave;
             agent.Gesture(CustomerAnim.Angry);
             context.Events.RaiseNotice("손님이 기다리다 그냥 나갔어요.");

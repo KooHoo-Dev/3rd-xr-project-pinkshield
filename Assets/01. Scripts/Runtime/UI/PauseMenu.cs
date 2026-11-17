@@ -10,7 +10,8 @@ namespace CardShop.UI
     /// <summary>
     /// 일시정지 메뉴 (시연 피드백 C1). 영업 중 헤드셋을 벗거나 왼손 메뉴 버튼(에디터는 P 키)을 누르면
     /// 플레이어 눈앞(월드 고정)에 메뉴가 뜹니다.
-    /// [이어서 하기] → 3·2·1 카운트다운 후 재개 / [처음부터 다시 시작] → 확인 후 새 판.
+    /// [이어서 하기] → 3·2·1 카운트다운 후 재개 / [눈높이 다시 맞추기] → 지금 자세로 1.6m 맞춤 /
+    /// [처음부터 다시 시작] → 확인 후 새 판. 출시 빌드에는 디버그 패널이 없어서 눈높이 버튼을 여기에 둡니다.
     /// 일시정지 대상은 영업 타이머뿐이라 영업 중일 때만 뜹니다 (GameFlow.Pause).
     /// 이 컴포넌트는 항상 켜져 있는 오브젝트에 두고, 메뉴 화면(root)만 켜고 끕니다.
     /// </summary>
@@ -23,6 +24,10 @@ namespace CardShop.UI
         [SerializeField] TMP_Text countdownLabel;
         [SerializeField] Button resumeButton;
         [SerializeField] Button restartButton;
+        [Tooltip("눈높이 다시 맞추기 버튼. 비우면 버튼 없이 동작")]
+        [SerializeField] Button recalibrateButton;
+        [Tooltip("비우면 누를 때 씬에서 찾음 (플레이어 리그에 붙어 있음)")]
+        [SerializeField] CardShop.Interaction.PlayerHeightCalibrator heightCalibrator;
         [SerializeField] Button confirmYesButton;
         [SerializeField] Button confirmNoButton;
         [Tooltip("플레이어 앞 거리 (m)")]
@@ -37,6 +42,7 @@ namespace CardShop.UI
         {
             resumeButton.onClick.AddListener(OnResume);
             restartButton.onClick.AddListener(ShowConfirm);
+            if (recalibrateButton != null) recalibrateButton.onClick.AddListener(OnRecalibrate);
             confirmYesButton.onClick.AddListener(OnRestartConfirmed);
             confirmNoButton.onClick.AddListener(ShowMain);
 
@@ -57,6 +63,7 @@ namespace CardShop.UI
         {
             resumeButton.onClick.RemoveListener(OnResume);
             restartButton.onClick.RemoveListener(ShowConfirm);
+            if (recalibrateButton != null) recalibrateButton.onClick.RemoveListener(OnRecalibrate);
             confirmYesButton.onClick.RemoveListener(OnRestartConfirmed);
             confirmNoButton.onClick.RemoveListener(ShowMain);
             if (subscribed != null) subscribed.Events.PausedChanged -= OnPausedChanged;
@@ -143,5 +150,15 @@ namespace CardShop.UI
         }
 
         void OnRestartConfirmed() => flow.RestartGame();
+
+        // 지금 자세 그대로 바로 맞춥니다(메뉴를 보고 있으니 고개는 대체로 수평). 눈높이가 바뀌었으니 메뉴도 다시 눈앞에 놓습니다.
+        void OnRecalibrate()
+        {
+            if (heightCalibrator == null) heightCalibrator = FindAnyObjectByType<CardShop.Interaction.PlayerHeightCalibrator>();
+            if (heightCalibrator == null) return;
+            heightCalibrator.Calibrate();
+            Place();
+            if (subscribed != null) subscribed.Events.RaiseNotice($"눈높이를 {heightCalibrator.TargetEyeHeight:0.0#}m로 맞췄어요.");
+        }
     }
 }

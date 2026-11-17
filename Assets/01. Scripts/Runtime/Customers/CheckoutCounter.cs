@@ -28,6 +28,7 @@ namespace CardShop.Customers
         GameContext context;
         Basket basket;
         PaidHandler onPaid;
+        float checkoutSeconds; // 물건을 올린 뒤 흐른 시간 (일시정지 제외), 계산 평가용
         readonly List<ScannableItem> spawned = new List<ScannableItem>();
 
         /// <summary>지금 계산 중인 손님이 있는가</summary>
@@ -57,6 +58,7 @@ namespace CardShop.Customers
             int count = shopItems != null ? BasketRules.RollCount(shopItems.countWeights, shopItems.MaxCount(s.Day), ctx.Random) : 1;
             basket = BasketRules.Build(card, cardPrice, count, options, s.Day, ctx.Random);
             onPaid = paid;
+            checkoutSeconds = 0f;
 
             for (int i = 0; i < basket.Count; i++)
             {
@@ -68,6 +70,11 @@ namespace CardShop.Customers
                 item.Scanned += _ => OnScanned(index);
             }
             if (pos != null) pos.Show(basket);
+        }
+
+        void Update()
+        {
+            if (basket != null && flow != null && !flow.IsPaused) checkoutSeconds += Time.deltaTime;
         }
 
         ScannableItem Spawn(BasketLine line, int i)
@@ -116,6 +123,7 @@ namespace CardShop.Customers
             CardData card = basket.Card;
             int count = basket.Count;
             PaidHandler paid = onPaid;
+            if (ctx.EconomyRules.IsFastCheckout(checkoutSeconds, count)) ctx.Session.Ledger.checkoutsFast++;
             // 진열 카드면 진열대에서 빼서 장부에 기록. 그새 진열대에서 사라졌으면 가게 재고를 산 것으로 봄 (SalesRules)
             CardData bought = ctx.Sales.CompleteSale(ctx.Session, card, ctx.PopularToday, out int net) ? card : null;
             Clear(); // 손님이 물건을 가져감

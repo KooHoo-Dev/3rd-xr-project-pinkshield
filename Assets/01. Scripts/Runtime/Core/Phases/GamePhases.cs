@@ -111,7 +111,7 @@ namespace CardShop.Core.Phases
             ledger.basePay = Context.Economy.dailyBasePay;
             LastTotal = Context.EconomyRules.SettlementTotal(ledger);
             Context.Session.Wallet.Add(LastTotal);
-            Log($"정산 +{LastTotal} → 보유 {Context.Session.Wallet.Money}");
+            Log($"정산 +{LastTotal} (빠른 계산 {ledger.checkoutsFast}건 · 떠난 손님 {ledger.customersLost}명) → 보유 {Context.Session.Wallet.Money}");
         }
 
         public override void OnAdvanceRequested() => Flow.GoTo(GamePhaseId.AfterHours);
