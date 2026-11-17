@@ -264,6 +264,8 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 - **빛 번짐**: 후광 효과의 빛 번짐을 허용합니다. 누끼 처리는 0장의 "누끼 주의점"을 따릅니다.
 - **그림자**: 작은 그림자 대신 넓고 진한 그림자를 허용합니다.
 
+> **N-L 원초의 슬라임만 예외입니다 (11/17 결정).** N-L은 캐릭터와 배경을 나누지 않은 **한 장짜리 완성 일러스트**(`BG/N_L_bg.png`, 약 2:3)를 배경 칸에만 넣고, 캐릭터 칸은 비웁니다(`cards.csv`의 char 열이 빈칸). 몸도 돔형이 아니라 세로로 긴 형태라 1. BODY 규칙의 예외입니다. 카드 셰이더가 이미지를 풀아트 영역에 빈틈없이 맞추므로 위아래가 약 4% 잘립니다. 다른 레전더리는 지금처럼 캐릭터 + 배경 2단 구성을 따릅니다.
+
 ### 1-3-3. 유니크 참고 이미지 (W-U 심해 여왕 슬라임)
 
 ![W-U 유니크 참고](images/ref_W-U_unique.webp)
@@ -366,7 +368,7 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 | N-R2 | 레어 | 무지갯빛 슬라임 | `Character: round cream slime with a soft iridescent rainbow sheen across its glossy body, delighted face, a few sparkles around. Rare tier. Background: plain solid white.` |
 | N-SR | 수퍼레어 | 분열 슬라임 | `Character: peach slime with the same round soft dome-shaped jelly body as always, bouncing up as two smaller copies of itself pop out beside it, all three with the same dome shape, a bright warm glowing core shining through each body, thin glowing jelly strands of light connecting them, a double spiral of glossy jelly droplets wrapping around the group, big round glossy eyes with a mischievous confident glint, small open mouths shouting, sparkles bursting outward, slightly low camera angle, the group fills about 70% of the frame. The droplets stay around the bodies and never change their shape. The droplets have crisp clean edges, no glow haze on the background. Super rare tier. Background: plain solid white.` |
 | N-U | 유니크 | 프리즘 현자 슬라임 | `Character: majestic large pastel slime with a glowing prism crystal core inside, two floating ornate rune rings orbiting around it, small wise glasses, calm regal expression. Unique tier. Background: plain solid white.` |
-| N-L | 레전더리 | 원초의 슬라임 | `Character: colossal mythic primordial slime whose body contains a swirling galaxy with tiny stars, a soft halo of light behind it, pastel cosmic colors, gentle all-knowing eyes, low camera angle looking up, epic scale. Legendary tier. Background: plain solid white.` |
+| N-L | 레전더리 | 원초의 슬라임 | `Character: colossal mythic primordial slime, the origin of all slimes, with the same round soft dome-shaped jelly body as always, wide and heavy, its soft base spreading slightly on the ground. Soft matte milky pearl-white jelly with a velvety satin surface like ancient moonstone, no glossy specular highlights and no wet shine on the surface (this overrides the usual top-left highlights), still semi-translucent and glowing from within, so the only bright light comes from inside: a blinding pearly white core of first light in the center, and five thin swirling wisps of pastel color (warm orange, aqua blue, olive green, pale sky blue, soft pink) spiraling out of the core like elements being born, asymmetric and never forming a face or smile shape, with tiny starlight specks drifting inside. Behind the body like a halo, a vast radiant burst of pearly light rays crossed by five great arcs of pastel elemental light, like the first dawn of creation. Two eyes that are not separate eyeballs but shapes formed in the jelly surface itself: each is a slightly recessed round hollow with three or four engraved concentric ripple rings and a small round center, like a ripple frozen in the jelly, the same pearl-white material and color as the body, matte, no glossy eyeball, no iris color, no highlights, no eyelids, no brows, no wrinkles or ridges around them, set high and wide on the upper body, the rings centered so the slime stares straight down at the viewer from above with a calm, heavy, overwhelming gaze, no slanted sockets that look angry or sad, no mouth. Slight three-quarter view: the body is turned a little toward the viewer's left and gently tilted, so the eye on the viewer's right looks slightly larger and higher. The halo stays behind the body and never changes the body shape. Wide heavy contact shadow, low camera angle looking up, epic scale. Legendary tier. Background: plain solid dark gray #333333.` |
 
 ---
 
@@ -409,7 +411,7 @@ F-L 줄로 뽑은 결과 가운데 기준으로 삼을 만큼 좋은 이미지�
 | A-U-BG | `Background: a floating sky castle among white clouds with silver banners in the wind, bright soft light, simpler lower third. Portrait 2:3.` |
 | A-L-BG | `Background: a vast night-to-dawn sky filled with aurora ribbons above a sea of clouds, epic scale, simpler lower third. Portrait 2:3.` |
 | N-U-BG | `Background: a quiet mystical library tower with floating books and soft prism light beams, pastel tones, simpler lower third. Portrait 2:3.` |
-| N-L-BG | `Background: deep space with a colorful pastel nebula, swirling galaxies and soft starlight, epic scale, simpler lower third. Portrait 2:3.` |
+| N-L-BG | `Background: deep space with a colorful pastel nebula, swirling galaxies and soft starlight, a large soft pastel rainbow halo arc glowing in the upper center, faint drifting cosmic dust, epic scale, simpler lower third. Portrait 2:3.` |
 
 ---
 

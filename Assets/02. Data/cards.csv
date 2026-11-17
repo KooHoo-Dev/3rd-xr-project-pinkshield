@@ -38,7 +38,7 @@ N-R1,Slime,Neutral,Rare,리본 슬라임,,N_R1_char,BG_N_W,
 N-R2,Slime,Neutral,Rare,무지갯빛 슬라임,,N_R2_char,BG_N_W,
 N-SR,Slime,Neutral,SuperRare,분열 슬라임,,N_SR_char,N_SR_bg,
 N-U,Slime,Neutral,Unique,프리즘 현자 슬라임,,N_U_char,N_U_bg,
-N-L,Slime,Neutral,Legendary,원초의 슬라임,,N_L_char,N_L_bg,
+N-L,Slime,Neutral,Legendary,원초의 슬라임,,,N_L_bg,
 FD-N,Field,None,Normal,슬라임 들판,,,FD_N_bg,
 FD-R,Field,None,Rare,이슬 숲,,,FD_R_bg,
 FD-SR,Field,None,SuperRare,반딧불 버섯 동굴,,,FD_SR_bg,FD_SR_fg
