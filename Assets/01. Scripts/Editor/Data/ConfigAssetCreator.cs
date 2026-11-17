@@ -20,6 +20,7 @@ namespace CardShop.Cards.EditorTools
             Ensure<CampaignConfig>(DataPaths.Campaign);
             Ensure<ScoreConfig>(DataPaths.Score);
             Ensure<RarityRevealProfile>(DataPaths.RevealProfile);
+            Ensure<MorningLineSet>(DataPaths.MorningLines);
             AssetDatabase.SaveAssets();
         }
 

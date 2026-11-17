@@ -113,10 +113,34 @@ namespace CardShop.Core.Phases
             Log("퇴근 전 시간 (퇴근 버튼 = Advance)");
         }
 
-        public override void OnAdvanceRequested() => Flow.GoTo(GamePhaseId.DayEnd);
+        // 퇴근: 마지막 날은 집을 건너뛰고 바로 최종 정산(DayEnd → Final), 아니면 집으로.
+        public override void OnAdvanceRequested()
+        {
+            bool lastDay = Context.Session.Day >= Context.Campaign.DayCount;
+            Flow.GoToFaded(lastDay ? GamePhaseId.DayEnd : GamePhaseId.Home);
+        }
     }
 
-    /// <summary>하루 마무리: 미판매 진열 카드 반환(기획서 5-4). 선반 재배치는 DayStarted를 받은 선반이 합니다. 마지막 날이면 최종 정산.</summary>
+    /// <summary>
+    /// 퇴근 후 집 (시연 피드백). 안 팔린 진열 카드는 집으로 가져옵니다(반환 시점을 DayEnd에서 옮김:
+    /// 집에서 내일 팔 카드를 다시 등록해도 DayEnd가 지우지 않도록). 책상(바인더) · 컴퓨터(커뮤니티)는 이후 단계에서 연결.
+    /// 침대 버튼 = Advance → 다음 날 아침.
+    /// </summary>
+    public sealed class HomePhase : GamePhase
+    {
+        public HomePhase(GameFlow f, GameContext c) : base(f, c) { }
+        public override GamePhaseId Id => GamePhaseId.Home;
+
+        public override void Enter()
+        {
+            int returned = Context.Sales.ReturnUnsold(Context.Session);
+            Log(returned > 0 ? $"안 팔린 진열 카드 {returned}장을 집으로 가져옴" : "집에 도착");
+        }
+
+        public override void OnAdvanceRequested() => Flow.GoToFaded(GamePhaseId.DayEnd);
+    }
+
+    /// <summary>하루 마무리. 미판매 진열 카드는 HomePhase가 이미 돌려놨고, 여기서는 마지막 날에만 돌려놓습니다. 선반 재배치는 DayStarted를 받은 선반이 합니다. 마지막 날이면 최종 정산.</summary>
     public sealed class DayEndPhase : GamePhase
     {
         public DayEndPhase(GameFlow f, GameContext c) : base(f, c) { }
@@ -124,8 +148,9 @@ namespace CardShop.Core.Phases
 
         public override void Enter()
         {
-            int returned = Context.Sales.ReturnUnsold(Context.Session);
-            if (returned > 0) Log($"안 팔린 진열 카드 {returned}장 반환");
+            // 평소의 반환은 HomePhase가 합니다. 여기서 또 하면 집에서 등록한 카드가 사라지므로 마지막 날만(최종 점수용).
+            int returned = Context.Sales.ReturnUnsoldOnFinalDay(Context.Session, Context.Campaign.DayCount);
+            if (returned > 0) Log($"안 팔린 진열 카드 {returned}장 반환 (마지막 날)");
 
             if (Context.Session.Day >= Context.Campaign.DayCount)
             {

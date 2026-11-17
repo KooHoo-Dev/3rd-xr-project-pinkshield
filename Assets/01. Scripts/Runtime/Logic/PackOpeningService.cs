@@ -76,6 +76,13 @@ namespace CardShop.Logic
                     s.Stats.bestCard = card;
             }
 
+            DayLedger day = s.Ledger;
+            day.packsOpened++;
+            foreach (bool isNew in result.IsNew) if (isNew) day.newCards++;
+            foreach (CardData card in result.Cards) if ((int)card.rarity > day.bestRarity) day.bestRarity = (int)card.rarity;
+            if (result.Special == SpecialPackType.GodPack) day.godPack = true;
+            if (result.Special == SpecialPackType.LegendaryPack) day.legendaryPack = true;
+
             s.Stats.packsOpened++;
             if (result.Special == SpecialPackType.GodPack) s.Stats.godPacks++;
             if (result.Special == SpecialPackType.LegendaryPack) s.Stats.legendaryPacks++;

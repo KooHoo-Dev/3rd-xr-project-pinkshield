@@ -15,6 +15,8 @@ namespace CardShop.Logic
         public Collection Collection { get; } = new Collection();
         public List<string> SalesDisplay { get; } = new List<string>();
         public DayLedger Ledger { get; private set; } = new DayLedger();
+        /// <summary>어제의 장부 (아침 혼잣말이 어제 카드팩 결과를 보고 달라지도록). 1일차에는 null.</summary>
+        public DayLedger Previous { get; private set; }
         public SessionStats Stats { get; } = new SessionStats();
         public int FreePacksLeft { get; set; }
 
@@ -24,6 +26,7 @@ namespace CardShop.Logic
         public void AdvanceDay()
         {
             Day++;
+            Previous = Ledger;
             Ledger = new DayLedger();
         }
     }
@@ -72,6 +75,9 @@ namespace CardShop.Logic
         public int DiscoveredCount => discovered.Count;
         public IReadOnlyDictionary<string, int> Owned => owned;
 
+        /// <summary>장수가 바뀔 때마다 (바뀐 카드 ID). 바인더 같은 뷰가 다시 그리는 신호입니다.</summary>
+        public event Action<string> Changed;
+
         public int CountOf(string id) => owned.TryGetValue(id, out int n) ? n : 0;
         public bool IsDiscovered(string id) => discovered.Contains(id);
 
@@ -79,7 +85,9 @@ namespace CardShop.Logic
         public bool Add(string id)
         {
             owned[id] = CountOf(id) + 1;
-            return discovered.Add(id);
+            bool isNew = discovered.Add(id);
+            Changed?.Invoke(id);
+            return isNew;
         }
 
         public bool Remove(string id)
@@ -87,6 +95,7 @@ namespace CardShop.Logic
             int n = CountOf(id);
             if (n == 0) return false;
             if (n == 1) owned.Remove(id); else owned[id] = n - 1;
+            Changed?.Invoke(id);
             return true;
         }
 
@@ -111,6 +120,12 @@ namespace CardShop.Logic
         public int cleanupsDone;
         public int cleanupsMissed;
         public int customersServed;
+        // 아침 혼잣말용 하루 요약 (PackOpeningService가 개봉할 때마다 채움)
+        public int packsOpened;
+        public int newCards;
+        public int bestRarity = -1;   // CardRarity 숫자, 아직 안 열었으면 -1
+        public bool godPack;
+        public bool legendaryPack;
         public readonly List<Sale> sales = new List<Sale>();
     }
 

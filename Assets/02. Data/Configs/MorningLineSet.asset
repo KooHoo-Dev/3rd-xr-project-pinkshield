@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8616f4564ea50c84793f1559e19a4f0c, type: 3}
+  m_Name: MorningLineSet
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.MorningLineSet
+  lines: "# \uC608) Legendary|\uC5B4\uC81C \uB808\uC804\uB354\uB9AC\uB77C\uB2C8\u2026
+    \uC624\uB298\uB3C4 {day}\uC77C\uCC28, \uD798\uB0B4\uC790!\n"
