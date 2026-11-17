@@ -9,7 +9,7 @@ namespace CardShop.Cards
     {
         Slime = 0,  // 슬라임
         Field = 1,  // 환경 필드
-        Snack = 2,  // 간식(아이템)
+        Snack = 2,  // 슬라임 알 (예전 간식. 이름·ID 접두 SN은 직렬화·테스트 호환을 위해 유지)
     }
 
     /// <summary>슬라임 속성. 필드·간식 카드는 None. 무속성 슬라임은 Neutral.</summary>
