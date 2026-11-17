@@ -71,6 +71,10 @@ namespace CardShop.EditorTools
             CreateShelf(env, opener);
             CreateCounterButtons(flow, opener);
             CreateDebugPanel(flow);
+            CreatePauseMenu(flow);
+            CreateHome(flow);
+            BinderBuilder.Create();
+            SalesPanelBuilder.Create();
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
@@ -225,7 +229,7 @@ namespace CardShop.EditorTools
             UnityEventTools.AddPersistentListener(box.pressed, opener.TryOpenBox);
 
             PokeButton clockOut = CreatePokeButton("Button_ClockOut", new Vector3(0.55f, CounterTop, 0.5f), "퇴근", new Color(0.45f, 0.8f, 1f));
-            UnityEventTools.AddPersistentListener(clockOut.pressed, flow.ClockOut);
+            UnityEventTools.AddPersistentListener(clockOut.pressed, opener.TryClockOut);
         }
 
         // 카운터 위에 놓인 누름 버튼: 받침 + 위로 튀어나온 버튼 + 글자
@@ -273,14 +277,18 @@ namespace CardShop.EditorTools
 
         // ------------------------------------------------------------------ 디버그 패널
 
+        // 월드 UI 버튼 규격 (캔버스 높이 대비 비율, 1000px = 1m)
+        const float ButtonHeight = 56f / 1100f;
+        const float ButtonStep = 76f / 1100f;
+
         static void CreateDebugPanel(GameFlow flow)
         {
             var canvasGo = new GameObject("PhaseDebugPanel", typeof(RectTransform), typeof(Canvas), typeof(TrackedDeviceGraphicRaycaster));
             canvasGo.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
             var rt = (RectTransform)canvasGo.transform;
-            rt.sizeDelta = new Vector2(500f, 760f);
-            rt.localScale = Vector3.one * 0.001f;               // 0.5m x 0.76m
-            rt.position = new Vector3(0.95f, 1.35f, 1.0f);
+            rt.sizeDelta = new Vector2(500f, 1100f);
+            rt.localScale = Vector3.one * 0.001f;               // 0.5m x 1.1m (1px = 1mm)
+            rt.position = new Vector3(0.95f, 1.3f, 1.0f);
             rt.rotation = Quaternion.Euler(0f, 35f, 0f);
 
             var bg = new GameObject("Background", typeof(RectTransform), typeof(Image));
@@ -291,7 +299,7 @@ namespace CardShop.EditorTools
             var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(canvasGo.transform, false);
             var labelRt = (RectTransform)labelGo.transform;
-            Stretch(labelRt, new Vector2(0f, 0.52f), Vector2.one);
+            Stretch(labelRt, new Vector2(0f, 0.636f), Vector2.one);
             labelRt.offsetMin = new Vector2(24f, 0f);
             labelRt.offsetMax = new Vector2(-24f, -20f);
             var label = labelGo.GetComponent<TextMeshProUGUI>();
@@ -303,14 +311,14 @@ namespace CardShop.EditorTools
             var cheats = canvasGo.AddComponent<DebugCheats>();
             cheats.Configure(flow, new GameObject[0]);
 
-            // 버튼: 위에서부터 한 줄씩
-            string[] names = { "다음 (Advance)", "퇴근 전으로 건너뛰기", "재화 +100", "다음 팩: 갓팩", "다음 팩: 레전더리 확정", "다음 팩: 유니크 히트", "눈높이 맞추기 (1.6m)" };
-            UnityAction[] actions = { null, cheats.SkipToAfterHours, cheats.AddMoney100, cheats.ForceGodPack, cheats.ForceLegendaryPack, cheats.ForceUniqueHit, cheats.CalibrateHeight };
+            // 버튼: 위에서부터 한 줄씩. 높이 56mm, 간격 20mm (시연 피드백 C2: 6mm였을 때 옆 버튼이 눌림)
+            string[] names = { "다음 (Advance)", "퇴근 전으로 건너뛰기", "재화 +100", "다음 팩: 갓팩", "다음 팩: 레전더리 확정", "다음 팩: 유니크 히트", "눈높이 맞추기 (1.6m)", "일시정지 (테스트)" };
+            UnityAction[] actions = { null, cheats.SkipToAfterHours, cheats.AddMoney100, cheats.ForceGodPack, cheats.ForceLegendaryPack, cheats.ForceUniqueHit, cheats.CalibrateHeight, cheats.PauseNow };
             Button advance = null;
             for (int i = 0; i < names.Length; i++)
             {
-                float top = 0.52f - i * 0.072f;
-                Button b = CreateUiButton(canvasGo.transform, names[i], new Vector2(0.08f, top - 0.064f), new Vector2(0.92f, top));
+                float top = 0.62f - i * ButtonStep;
+                Button b = CreateUiButton(canvasGo.transform, names[i], new Vector2(0.08f, top - ButtonHeight), new Vector2(0.92f, top));
                 if (actions[i] != null) UnityEventTools.AddPersistentListener(b.onClick, actions[i]);
                 else advance = b;
             }
@@ -323,6 +331,173 @@ namespace CardShop.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        // ------------------------------------------------------------------ 집 구역 (시연 피드백: 퇴근 후 쉬는 느낌)
+
+        // 가게에서 멀리 떨어진 같은 씬의 다른 구역. 임시 블록아웃이며 모델은 나중에 교체.
+        static readonly Vector3 HomeOrigin = new Vector3(30f, 0f, 0f);
+
+        static void CreateHome(GameFlow flow)
+        {
+            var root = new GameObject("Home (Blockout)").transform;
+            root.position = HomeOrigin;
+
+            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            floor.name = "Floor";
+            floor.transform.SetParent(root, false);
+            floor.transform.localScale = new Vector3(0.5f, 1f, 0.5f); // 5m x 5m
+            floor.GetComponent<MeshRenderer>().sharedMaterial = TintedMaterial(new Color(0.55f, 0.42f, 0.32f));
+
+            Color wall = new Color(0.85f, 0.78f, 0.68f);
+            HomeCube(root, "Wall_Back", new Vector3(0f, 1.25f, 2.5f), new Vector3(5f, 2.5f, 0.1f), wall);
+            HomeCube(root, "Wall_Left", new Vector3(-2.5f, 1.25f, 0f), new Vector3(0.1f, 2.5f, 5f), wall);
+            HomeCube(root, "Wall_Right", new Vector3(2.5f, 1.25f, 0f), new Vector3(0.1f, 2.5f, 5f), wall);
+
+            // 책상(바인더 자리), 컴퓨터(커뮤니티 자리), 침대 + 잠자기 버튼
+            HomeCube(root, "Desk", new Vector3(-1.2f, 0.4f, 1.6f), new Vector3(1.2f, 0.8f, 0.6f), new Color(0.6f, 0.45f, 0.3f));
+            HomeLabel(root, "책상\n(바인더 · 준비 중)", new Vector3(-1.2f, 1.15f, 1.6f));
+            HomeCube(root, "ComputerDesk", new Vector3(1.2f, 0.4f, 1.6f), new Vector3(1.0f, 0.8f, 0.6f), new Color(0.35f, 0.35f, 0.4f));
+            HomeCube(root, "Monitor", new Vector3(1.2f, 1.05f, 1.8f), new Vector3(0.7f, 0.4f, 0.04f), new Color(0.1f, 0.15f, 0.25f));
+            CommunityScreenBuilder.Create(root, font); // 카드 커뮤니티 화면 (모니터 확대 + 월드 텍스트)
+            HomeCube(root, "Bed", new Vector3(0f, 0.25f, 2.0f), new Vector3(0.9f, 0.5f, 1.0f), new Color(0.75f, 0.85f, 1f));
+            HomeCube(root, "BedTable", new Vector3(0.9f, 0.4f, 0.8f), new Vector3(0.4f, 0.8f, 0.4f), new Color(0.6f, 0.45f, 0.3f));
+            PokeButton sleep = CreatePokeButton("Button_Sleep", HomeOrigin + new Vector3(0.9f, TableTop, 0.8f), "잠자기", new Color(0.55f, 0.6f, 1f));
+            sleep.transform.SetParent(root, true);
+            UnityEventTools.AddPersistentListener(sleep.pressed, flow.Sleep);
+
+            // 집에서만 켜지는 따뜻한 조명
+            var lightGo = new GameObject("HomeLight");
+            lightGo.transform.SetParent(root, false);
+            lightGo.transform.localPosition = new Vector3(0f, 2.2f, 0.8f);
+            var light = lightGo.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = new Color(1f, 0.82f, 0.6f);
+            light.intensity = 3f;
+            light.range = 7f;
+            lightGo.SetActive(false);
+
+            var spawn = new GameObject("HomeSpawn").transform;
+            spawn.SetParent(root, false);
+            spawn.localPosition = new Vector3(0f, 0f, -0.8f);
+
+            // 페이드 · 이동
+            XROrigin origin = Object.FindFirstObjectByType<XROrigin>();
+            var transitionGo = new GameObject("DayTransition");
+            var transition = transitionGo.AddComponent<DayTransition>();
+            var so = new SerializedObject(transition);
+            so.FindProperty("flow").objectReferenceValue = flow;
+            so.FindProperty("origin").objectReferenceValue = origin;
+            so.FindProperty("homeSpawn").objectReferenceValue = spawn;
+            so.FindProperty("font").objectReferenceValue = font;
+            so.FindProperty("morningLines").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MorningLineSet>(DataPaths.MorningLines);
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            // 페이즈별 조명 분위기
+            var lighting = transitionGo.AddComponent<PhaseLighting>();
+            var lso = new SerializedObject(lighting);
+            lso.FindProperty("sun").objectReferenceValue = Object.FindFirstObjectByType<Light>();
+            lso.FindProperty("homeLight").objectReferenceValue = lightGo;
+            lso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static Material TintedMaterial(Color color)
+        {
+            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit")) { color = color };
+            return mat;
+        }
+
+        static void HomeCube(Transform parent, string name, Vector3 localPos, Vector3 size, Color color)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            go.transform.localScale = size;
+            go.GetComponent<MeshRenderer>().sharedMaterial = TintedMaterial(color);
+        }
+
+        static void HomeLabel(Transform parent, string text, Vector3 localPos)
+        {
+            var go = new GameObject("Label", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            var tmp = go.AddComponent<TextMeshPro>();
+            if (font != null) tmp.font = font;
+            tmp.text = text;
+            tmp.fontSize = 0.6f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            ((RectTransform)go.transform).sizeDelta = new Vector2(1.2f, 0.4f);
+        }
+
+        // ------------------------------------------------------------------ 일시정지 메뉴 (시연 피드백 C1)
+
+        static void CreatePauseMenu(GameFlow flow)
+        {
+            var system = new GameObject("PauseSystem");
+
+            var canvasGo = new GameObject("PauseMenuCanvas", typeof(RectTransform), typeof(Canvas), typeof(TrackedDeviceGraphicRaycaster));
+            canvasGo.transform.SetParent(system.transform, false);
+            canvasGo.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
+            var rt = (RectTransform)canvasGo.transform;
+            rt.sizeDelta = new Vector2(500f, 560f);           // 1px = 1mm
+            rt.localScale = Vector3.one * 0.001f;
+            rt.position = new Vector3(0f, 1.4f, 1.0f);        // 실제 위치는 PauseMenu가 눈앞으로 옮김
+
+            var bg = new GameObject("Background", typeof(RectTransform), typeof(Image));
+            bg.transform.SetParent(canvasGo.transform, false);
+            Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one);
+            bg.GetComponent<Image>().color = new Color(0.1f, 0.08f, 0.14f, 0.92f);
+
+            CreateLabel(canvasGo.transform, "Title", "일시정지", new Vector2(0f, 0.7f), new Vector2(1f, 0.95f), 44f);
+
+            GameObject main = CreatePanel(canvasGo.transform, "MainPanel");
+            Button resume = CreateUiButton(main.transform, "이어서 하기", new Vector2(0.08f, 0.44f), new Vector2(0.92f, 0.54f));
+            Button restart = CreateUiButton(main.transform, "처음부터 다시 시작", new Vector2(0.08f, 0.28f), new Vector2(0.92f, 0.38f));
+
+            GameObject confirm = CreatePanel(canvasGo.transform, "ConfirmPanel");
+            CreateLabel(confirm.transform, "Message", "정말 처음부터 다시 시작할까요?\n진행 상황이 사라져요.", new Vector2(0.05f, 0.45f), new Vector2(0.95f, 0.7f), 28f);
+            Button yes = CreateUiButton(confirm.transform, "예, 처음부터", new Vector2(0.08f, 0.27f), new Vector2(0.92f, 0.37f));
+            Button no = CreateUiButton(confirm.transform, "아니요", new Vector2(0.08f, 0.12f), new Vector2(0.92f, 0.22f));
+
+            TMP_Text countdown = CreateLabel(canvasGo.transform, "Countdown", "3", new Vector2(0f, 0.2f), new Vector2(1f, 0.7f), 160f);
+
+            var menu = system.AddComponent<PauseMenu>();
+            var so = new SerializedObject(menu);
+            so.FindProperty("flow").objectReferenceValue = flow;
+            so.FindProperty("root").objectReferenceValue = canvasGo;
+            so.FindProperty("mainPanel").objectReferenceValue = main;
+            so.FindProperty("confirmPanel").objectReferenceValue = confirm;
+            so.FindProperty("countdownLabel").objectReferenceValue = countdown;
+            so.FindProperty("resumeButton").objectReferenceValue = resume;
+            so.FindProperty("restartButton").objectReferenceValue = restart;
+            so.FindProperty("confirmYesButton").objectReferenceValue = yes;
+            so.FindProperty("confirmNoButton").objectReferenceValue = no;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            canvasGo.SetActive(false);
+        }
+
+        static GameObject CreatePanel(Transform parent, string name)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            Stretch((RectTransform)go.transform, Vector2.zero, Vector2.one);
+            return go;
+        }
+
+        static TMP_Text CreateLabel(Transform parent, string name, string text, Vector2 min, Vector2 max, float size)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
+            go.transform.SetParent(parent, false);
+            Stretch((RectTransform)go.transform, min, max);
+            var label = go.GetComponent<TextMeshProUGUI>();
+            label.text = text;
+            label.fontSize = size;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = Color.white;
+            if (font != null) label.font = font;
+            return label;
+        }
+
         static Button CreateUiButton(Transform parent, string text, Vector2 anchorMin, Vector2 anchorMax)
         {
             GameObject go = TMP_DefaultControls.CreateButton(new TMP_DefaultControls.Resources());
@@ -332,8 +507,25 @@ namespace CardShop.EditorTools
             var label = go.GetComponentInChildren<TMP_Text>();
             label.text = text;
             label.fontSize = 28f;
+            label.color = Color.white;
             if (font != null) label.font = font;
-            return go.GetComponent<Button>();
+
+            // 레이가 닿으면 색이 확 바뀌게 (시연 피드백 C3: 기본 하이라이트는 거의 흰색이라 안 보였음)
+            var button = go.GetComponent<Button>();
+            button.targetGraphic.color = Color.white;
+            button.transition = Selectable.Transition.ColorTint;
+            button.colors = new ColorBlock
+            {
+                normalColor = new Color(0.28f, 0.22f, 0.42f, 1f),
+                highlightedColor = new Color(0.95f, 0.55f, 0.15f, 1f),
+                pressedColor = new Color(0.65f, 0.28f, 0.05f, 1f),
+                selectedColor = new Color(0.28f, 0.22f, 0.42f, 1f),
+                disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f),
+                colorMultiplier = 1f,
+                fadeDuration = 0.05f,
+            };
+            go.AddComponent<UiHoverFeedback>();
+            return button;
         }
 
         static void Stretch(RectTransform rt, Vector2 min, Vector2 max)
