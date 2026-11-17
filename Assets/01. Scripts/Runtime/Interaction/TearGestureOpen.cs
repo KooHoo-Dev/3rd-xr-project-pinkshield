@@ -19,8 +19,11 @@ namespace CardShop.Interaction
     public sealed class TearGestureOpen : MonoBehaviour, IPackOpenMethod
     {
         [Header("눈앞 고정")]
-        [SerializeField] float presentDistance = 0.35f;
+        [Tooltip("너무 가까우면(35cm) 눈이 피로해 45cm로 늘리고, 대신 크기를 키움 (시연 피드백 A1)")]
+        [SerializeField] float presentDistance = 0.45f;
         [SerializeField] float presentDrop = 0.08f;
+        [Tooltip("눈앞에 떠 있는 동안의 팩 크기 배율. 자르기 판정은 팩 로컬 좌표라 함께 커짐")]
+        [SerializeField] float presentScale = 1.5f;
 
         [Header("자르기")]
         [Tooltip("팩 너비 중 이만큼 자르면 개봉")]
@@ -45,6 +48,7 @@ namespace CardShop.Interaction
         RigidbodyInterpolation interpolationBeforePresent;
         float width, cutY;
         bool presented;
+        Vector3 scaleBeforePresent = Vector3.one;
         XRBaseInputInteractor cutter;
         float cutMin, cutMax;
         int lastTick;
@@ -105,6 +109,8 @@ namespace CardShop.Interaction
             Vector3 pos = head.position + forward * presentDistance + Vector3.down * presentDrop;
             Quaternion rot = Quaternion.LookRotation(forward, Vector3.up);
             transform.SetPositionAndRotation(pos, rot);
+            scaleBeforePresent = transform.localScale;
+            transform.localScale = scaleBeforePresent * presentScale;
             if (body != null)
             {
                 // Transform만 옮기면 Rigidbody 보간이 손 위치로 되돌려 놓을 수 있습니다 (BUG-003과 같은 원인).
@@ -123,6 +129,7 @@ namespace CardShop.Interaction
         void EndPresent()
         {
             presented = false;
+            transform.localScale = scaleBeforePresent;
             grab.trackPosition = true;
             grab.trackRotation = true;
             if (body != null) body.interpolation = interpolationBeforePresent;

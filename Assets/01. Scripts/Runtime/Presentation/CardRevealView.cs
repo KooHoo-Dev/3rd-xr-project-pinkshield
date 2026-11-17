@@ -16,6 +16,9 @@ namespace CardShop.Presentation
     public sealed class CardRevealView : MonoBehaviour
     {
         const float FlipSeconds = 0.25f;
+        // NEW 배지: TMP 3D 글자 크기는 1당 약 10cm라 0.2면 글자 높이 2cm(카드 폭의 거의 전부)였음.
+        // 0.35 → 0.2 → 0.045 (BUG-004: 현재의 20%)
+        const float NewBadgeFontSize = 0.045f;
 
         CardView view;
         XRGrabInteractable grab;
@@ -23,6 +26,7 @@ namespace CardShop.Presentation
         Transform visual;
         TextMeshPro newBadge;
         bool faceDown;
+        Coroutine flyRoutine;
 
         public CardData Card => view.Data;
         public bool IsNew { get; private set; }
@@ -46,9 +50,10 @@ namespace CardShop.Presentation
         }
 
         /// <param name="announce">앞면으로 놓을 때 바로 공개 이벤트를 낼지. 묶음 뒤쪽 카드는 맨 앞에 올 때 <see cref="Announce"/>로 냅니다.</param>
-        public void Show(CardData card, bool isNew, Vector3 position, Quaternion rotation, bool startFaceDown, bool announce = true)
+        public void Show(CardData card, bool isNew, Vector3 position, Quaternion rotation, bool startFaceDown, bool announce = true, float scale = 1f)
         {
             gameObject.SetActive(true);
+            transform.localScale = Vector3.one * scale;
             view.Bind(card);
             IsNew = isNew;
             SetNewBadge(isNew);
@@ -58,13 +63,46 @@ namespace CardShop.Presentation
                 body.useGravity = false;
             }
             Teleport(position, rotation);
+            if (visual != null) visual.localPosition = Vector3.zero; // 흔들림 도중에 풀로 돌아간 경우
             faceDown = startFaceDown;
             if (visual != null) visual.localRotation = faceDown ? Quaternion.Euler(0f, 180f, 0f) : Quaternion.identity;
             grab.enabled = true;
             if (!faceDown && announce) Revealed?.Invoke(this);
         }
 
-        public void Announce() => Revealed?.Invoke(this);
+        /// <summary>뒷면이 보이는 카드를 앞면으로 뒤집습니다 (이미 앞면이면 아무 일 없음).</summary>
+        public void Reveal()
+        {
+            if (!faceDown) return;
+            faceDown = false;
+            if (visual != null) StartCoroutine(Flip());
+        }
+
+        /// <summary>맨 앞에 와서 공개: 뒷면이면 뒤집고 공개 이벤트를 냅니다.</summary>
+        public void Announce()
+        {
+            Reveal();
+            Revealed?.Invoke(this);
+        }
+
+        /// <summary>카드를 부르르 떨게 함 (레전더리 연출. 카메라 셰이크 대신 — VR 멀미 방지). Visual만 움직여 물리와 무관.</summary>
+        public void Shake(float amplitude, float seconds)
+        {
+            if (visual != null) StartCoroutine(ShakeRoutine(amplitude, Mathf.Max(0.05f, seconds)));
+        }
+
+        IEnumerator ShakeRoutine(float amplitude, float seconds)
+        {
+            for (float t = 0f; t < 1f; t += Time.deltaTime / seconds)
+            {
+                float fade = 1f - t;
+                float x = Mathf.Sin(t * 95f) * amplitude * fade;
+                float y = Mathf.Sin(t * 123f + 1.7f) * amplitude * 0.6f * fade;
+                visual.localPosition = new Vector3(x, y, 0f);
+                yield return null;
+            }
+            visual.localPosition = Vector3.zero;
+        }
 
         // 처음 얻은 카드에 "NEW" 스티커 (개봉연출 설계 5장 #8). Visual 아래라 카드와 함께 뒤집힙니다.
         void SetNewBadge(bool on)
@@ -87,43 +125,58 @@ namespace CardShop.Presentation
             TMP_Text cardText = GetComponentInChildren<TMP_Text>(true);
             if (cardText != null && cardText != text) text.font = cardText.font;
             text.text = "<mark=#1F9D55E6><b> NEW </b></mark>";
-            text.fontSize = 0.35f;
+            text.fontSize = NewBadgeFontSize;
             text.color = Color.white;
             text.alignment = TextAlignmentOptions.Center;
             text.textWrappingMode = TextWrappingModes.NoWrap;
-            text.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+            var badgeRenderer = text.GetComponent<MeshRenderer>();
+            badgeRenderer.shadowCastingMode = ShadowCastingMode.Off;
 
             var rt = (RectTransform)go.transform;
-            rt.sizeDelta = new Vector2(0.03f, 0.01f);
-            // 오른쪽 위 모서리에 살짝 걸치게, 앞면(-Z) 바로 앞
-            rt.localPosition = new Vector3(b.max.x - 0.008f, b.max.y + 0.002f, b.min.z - 0.0008f);
-            rt.localRotation = Quaternion.Euler(0f, 0f, -12f);
+            rt.sizeDelta = new Vector2(0.016f, 0.006f);
+            // BUG-004·006: 카드 앞면 위 3D 조각으로 띄우면 보는 각도·정렬에 따라 카드 뒤로 숨음.
+            // 카드 글자(이름·등급)와 똑같은 z(앞면 바로 앞 0.3mm)에, 글자들과 겹치지 않는 그림 영역 오른쪽 위에 둡니다.
+            rt.localPosition = new Vector3(b.min.x + b.size.x * 0.84f, b.min.y + b.size.y * 0.835f, b.min.z - 0.0003f);
+            rt.localRotation = Quaternion.identity;
             return text;
         }
 
         /// <summary>묶음에 있는 동안은 잡히지 않게(넘기기 순서가 꼬이지 않도록).</summary>
         public void SetGrabbable(bool on) => grab.enabled = on;
 
-        /// <summary>살짝 위로 포물선을 그리며 날아가 놓이고, 도착하면 잡을 수 있게 됩니다.</summary>
-        public void FlyTo(Vector3 position, Quaternion rotation, float seconds)
+        /// <summary>
+        /// 살짝 위로 포물선을 그리며 날아가 놓입니다. 이미 날아가는 중이면 그 비행을 멈추고 지금 자리에서 새로 출발합니다.
+        /// </summary>
+        /// <param name="arcHeight">포물선 꼭대기 높이(m). 0이면 곧게 이동</param>
+        /// <param name="grabbableOnArrive">도착하면 잡을 수 있게 할지. 카드 더미는 순서가 꼬이지 않게 false</param>
+        /// <param name="delay">출발 전 기다리는 시간(초)</param>
+        public void FlyTo(Vector3 position, Quaternion rotation, float seconds, float toScale = 1f,
+            float arcHeight = 0.06f, bool grabbableOnArrive = true, float delay = 0f)
         {
             SetGrabbable(false);
-            StartCoroutine(Fly(position, rotation, seconds));
+            if (flyRoutine != null) StopCoroutine(flyRoutine);
+            flyRoutine = StartCoroutine(Fly(position, rotation, seconds, toScale, arcHeight, grabbableOnArrive, delay));
         }
 
-        IEnumerator Fly(Vector3 toPos, Quaternion toRot, float seconds)
+        IEnumerator Fly(Vector3 toPos, Quaternion toRot, float seconds, float toScale, float arcHeight, bool grabbableOnArrive, float delay)
         {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+            Vector3 fromScale = transform.localScale;
+            Vector3 toScaleV = Vector3.one * toScale;
             Vector3 fromPos = transform.position;
             Quaternion fromRot = transform.rotation;
-            for (float t = 0f; t < 1f; t += Time.deltaTime / seconds)
+            for (float t = 0f; t < 1f; t += Time.deltaTime / Mathf.Max(0.01f, seconds))
             {
                 float e = Mathf.SmoothStep(0f, 1f, t);
-                Vector3 arc = Vector3.up * (Mathf.Sin(t * Mathf.PI) * 0.06f);
+                Vector3 arc = Vector3.up * (Mathf.Sin(t * Mathf.PI) * arcHeight);
                 Teleport(Vector3.Lerp(fromPos, toPos, e) + arc, Quaternion.Slerp(fromRot, toRot, e));
+                transform.localScale = Vector3.Lerp(fromScale, toScaleV, e);
                 yield return null;
             }
+            transform.localScale = toScaleV;
             Teleport(toPos, toRot);
-            SetGrabbable(true);
+            flyRoutine = null;
+            if (grabbableOnArrive) SetGrabbable(true);
         }
 
         // Transform과 Rigidbody를 함께 옮겨, 다음 물리 스텝에서 옛 위치로 되돌아가지 않게 합니다.
@@ -142,6 +195,7 @@ namespace CardShop.Presentation
             if (grab.isSelected && grab.interactionManager != null)
                 grab.interactionManager.CancelInteractableSelection((IXRSelectInteractable)grab);
             StopAllCoroutines();
+            flyRoutine = null;
             gameObject.SetActive(false);
         }
 

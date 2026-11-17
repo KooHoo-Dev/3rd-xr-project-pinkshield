@@ -34,7 +34,7 @@ namespace CardShop.Interaction
             bool allowed = flow.CurrentPhase == GamePhaseId.AfterHours ||
                            (pack.IsGift && flow.CurrentPhase == GamePhaseId.Intro);
             if (!allowed) { Deny("팩은 영업이 끝난 뒤에 열 수 있어요.", toastPos, hand); return; }
-            if (revealer.IsBusy) { Deny("상자를 여는 중이에요.", toastPos, hand); return; }
+            if (revealer.IsBusy) { Deny("아직 카드를 여는 중이에요.", toastPos, hand); return; }
 
             int cost = pack.IsGift ? 0 : ctx.PackOpening.NextSinglePackCost;
             if (!ctx.PackOpening.TryOpenSingle(pack.Clue, pack.IsGift, out PackResult result, out OpenFailReason fail))
@@ -46,10 +46,30 @@ namespace CardShop.Interaction
 
             if (hand != null) hand.SendHapticImpulse(0.6f, 0.1f); // 개봉 손맛
             var stackPose = new Pose(pack.transform.position, pack.transform.rotation); // 팩이 있던 자리(눈앞)에 카드 묶음
-            pack.Consume();
+
+            // 판정은 위에서 끝났습니다. 팩은 바로 지우지 않고 그 자리에 멈춰 뜯김 연출을 한 뒤 스스로 사라집니다 (A4).
+            pack.DetachForReveal();
+            var tear = pack.GetComponent<PackTearEffect>();
+            if (tear == null) tear = pack.gameObject.AddComponent<PackTearEffect>(); // 프리팹을 다시 만들기 전이면 기본값으로
+
             ctx.Events.RaiseNotice(cost == 0 ? "무료 팩 개봉!" : $"팩 개봉 (-{cost})");
             ctx.Events.RaisePacksOpened(new[] { result });
-            revealer.RevealPack(result, stackPose);
+            revealer.RevealPack(result, stackPose, tear); // 이전 카드 더미는 여기서 자동으로 보관함에
+        }
+
+        /// <summary>
+        /// 퇴근 버튼(Poke). 팩을 뜯거나 카드를 넘기는 중에는 퇴근할 수 없습니다(연출이 가게에 남지 않게).
+        /// 결과함만 떠 있는(넘기기를 끝낸) 더미는 자동으로 보관함에 넣고 퇴근합니다.
+        /// </summary>
+        public void TryClockOut()
+        {
+            if (revealer.IsBusy)
+            {
+                Deny("카드를 다 확인한 뒤에 퇴근할 수 있어요.", revealer.AnchorPosition + Vector3.up * 0.1f, null);
+                return;
+            }
+            if (revealer.HasPile) revealer.StashPile();
+            flow.ClockOut();
         }
 
         /// <summary>상자 개봉 버튼(Poke).</summary>
