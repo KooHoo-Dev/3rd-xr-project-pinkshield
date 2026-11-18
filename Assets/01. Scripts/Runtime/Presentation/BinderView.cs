@@ -8,20 +8,17 @@ using CardShop.Logic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit;
-using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace CardShop.Presentation
 {
     /// <summary>
     /// 바인더(보관함 겸 도감). 새 저장 시스템이 아니라 GameSession.Collection을 그리는 뷰입니다.
-    /// - 칸 배치: BinderLayout (CardDatabase 순서, 한 페이지 = slots 수)
-    /// - 속성 탭(BinderTabs): 전체 · 불 · 물 · 땅 · 공기 · 무 · 기타. 탭을 고르면 그 속성 카드만 모아 보여 줌
-    ///   (커뮤니티에서 본 인기 속성을 바로 찾기). 오늘 인기 속성 탭에는 ★. 칸 번호는 탭과 상관없이 도감 번호
-    /// - 칸 오브젝트는 한 페이지 분량만 두고 페이지를 넘길 때 다시 그립니다 (Quest 성능: 50장을 만들지 않음)
-    /// - 표지 소켓에 카드를 꽂으면 그 카드가 자기 칸으로 날아가 사라집니다. 카드는 개봉할 때 이미
-    ///   Collection에 들어가 있으므로 데이터는 바꾸지 않습니다(정리 연출).
-    /// - 판매 등록 등 다음 기능은 CardSelected 이벤트와 SelectedCard로 연결합니다.
+    /// 이 클래스는 칸 그리기 · 선택 · 집 도착 반짝임 · 이벤트 연결만 맡고, 일은 부품이 합니다 (AI-005 · 큰_클래스_나누기_제안 3장):
+    ///   <see cref="BinderCursor"/> 탭 · 쪽 · 카드 찾아가기(순수, 테스트) · <see cref="StashedCards"/> 반짝일 카드(순수) ·
+    ///   <see cref="BinderTabBar"/> 탭 버튼 · <see cref="BinderSocketStore"/> 표지 소켓에 꽂은 카드 날려 넣기.
+    /// - 속성 탭: 전체 · 불 · 물 · 땅 · 공기 · 무 · 기타 (오늘 인기 속성 탭에 ★). 칸 번호는 탭과 상관없이 도감 번호
+    /// - 칸 오브젝트는 한 쪽 분량만 두고 쪽을 넘길 때 다시 그립니다 (Quest 성능: 50장을 만들지 않음)
+    /// - 판매 등록 등은 CardSelected 이벤트와 SelectedCard로 연결합니다 (DEC-023: 레이 클릭 방식).
     /// </summary>
     public sealed class BinderView : MonoBehaviour
     {
@@ -44,15 +41,12 @@ namespace CardShop.Presentation
 
         GameContext context;
         Collection collection;
-        BinderLayout layout;     // 지금 탭에 보이는 카드만
-        BinderLayout fullLayout; // 전체 카드 (도감 번호용)
-        BinderTab tab = BinderTab.All;
-        int page;
-        bool dirty = true;
-        int storing; // 날아가는 중인 카드 수 (그동안 표지 소켓을 잠금)
+        BinderCursor cursor;
+        BinderTabBar tabBar;
+        BinderSocketStore socketStore;
         CardRevealer revealer;
-        readonly HashSet<string> pendingStored = new HashSet<string>();
-        readonly List<string> pendingOrder = new List<string>();
+        readonly StashedCards stashed = new StashedCards();
+        bool dirty = true;
         bool atHome;
         bool flashScheduled;
 
@@ -62,27 +56,18 @@ namespace CardShop.Presentation
         /// <summary>지금 골라 둔 카드. 없으면 null. 보유 장수는 GameSession.Collection.CountOf로 확인하세요(판매로 0장일 수 있음).</summary>
         public CardData SelectedCard { get; private set; }
 
-        public int Page => page;
-        public int PageCount => Layout != null ? Layout.PageCount : 1;
-        public BinderTab Tab => tab;
+        public int Page => cursor != null ? cursor.Page : 0;
+        public int PageCount => cursor != null ? cursor.PageCount : 1;
+        public BinderTab Tab => cursor != null ? cursor.Tab : BinderTab.All;
 
-        BinderLayout Layout
+        // 카드 DB가 준비된 뒤 처음 쓸 때 만듦
+        BinderCursor Cursor
         {
             get
             {
-                if (layout == null && context != null && context.Cards != null && slots != null && slots.Length > 0)
-                    layout = new BinderLayout(BinderTabs.FilterIds(context.Cards.cards, tab), slots.Length);
-                return layout;
-            }
-        }
-
-        BinderLayout FullLayout
-        {
-            get
-            {
-                if (fullLayout == null && context != null && context.Cards != null && slots != null && slots.Length > 0)
-                    fullLayout = new BinderLayout(BinderTabs.FilterIds(context.Cards.cards, BinderTab.All), slots.Length);
-                return fullLayout;
+                if (cursor == null && context != null && context.Cards != null && slots != null && slots.Length > 0)
+                    cursor = new BinderCursor(context.Cards.cards, slots.Length);
+                return cursor;
             }
         }
 
@@ -93,20 +78,15 @@ namespace CardShop.Presentation
                 int index = i; // 람다가 반복 변수 대신 이 칸 번호를 기억하도록
                 slots[i].Button.onClick.AddListener(() => OnSlotClicked(index));
             }
-            if (tabButtons != null)
-                for (int i = 0; i < tabButtons.Length && i < BinderTabs.Order.Length; i++)
-                {
-                    if (tabButtons[i] == null) continue;
-                    BinderTab t = BinderTabs.Order[i];
-                    tabButtons[i].onClick.AddListener(() => ShowTab(t));
-                }
+            tabBar = new BinderTabBar(tabButtons, tabSelectedText, ShowTab);
+            socketStore = new BinderSocketStore(this, coverSocket, SlotFor, () => flySeconds);
         }
 
         void OnEnable()
         {
             prevButton.onClick.AddListener(PreviousPage);
             nextButton.onClick.AddListener(NextPage);
-            if (coverSocket != null) coverSocket.selectEntered.AddListener(OnCardSocketed);
+            socketStore.Enable();
 
             context = GameContext.Instance;
             if (context != null)
@@ -126,7 +106,7 @@ namespace CardShop.Presentation
         {
             prevButton.onClick.RemoveListener(PreviousPage);
             nextButton.onClick.RemoveListener(NextPage);
-            if (coverSocket != null) coverSocket.selectEntered.RemoveListener(OnCardSocketed);
+            socketStore.Disable();
             if (context != null)
             {
                 context.Events.SessionStarted -= OnSessionStarted;
@@ -136,25 +116,22 @@ namespace CardShop.Presentation
             revealer = null;
             Bind(null);
             context = null;
-            storing = 0;
-            if (coverSocket != null) coverSocket.socketActive = true;
         }
 
         // 새 게임이면 새 Collection을 다시 구독하고 첫 페이지로
         void OnSessionStarted(GameSession session)
         {
             Bind(session);
-            tab = BinderTab.All;
-            layout = null;
-            page = 0;
+            Cursor?.Reset();
             ClearSelection();
-            pendingStored.Clear();
-            pendingOrder.Clear();
+            stashed.Clear();
             flashScheduled = false;
         }
 
+        // ------------------------------------------------------------------ 집 도착: 보관함에 들어온 카드 반짝임
+
         /// <summary>
-        /// 결과함에서 "보관함에 넣기"로 보낸 카드들 (CardRevealer.PileStashed). 가게에서는 더미가 사라지는 연출만 하고,
+        /// 퇴근 때 보관함으로 보낸 카드들 (CardRevealer.PileStashed). 가게에서는 더미가 사라지는 연출만 하고,
         /// 집에 도착하면 이 카드들의 칸을 보여 주며 반짝입니다.
         /// </summary>
         void OnPileStashed(IReadOnlyList<CardData> cards)
@@ -166,8 +143,7 @@ namespace CardShop.Presentation
 
         public void MarkStored(IEnumerable<string> cardIds)
         {
-            foreach (string id in cardIds)
-                if (pendingStored.Add(id)) pendingOrder.Add(id);
+            stashed.Add(cardIds);
             // 집 도착 때 자동 보관되는 경우(CardRevealer가 먼저 반응)에도 놓치지 않도록
             if (atHome) ScheduleArrival();
         }
@@ -176,30 +152,28 @@ namespace CardShop.Presentation
         {
             atHome = to == GamePhaseId.Home;
             dirty = true; // 날이 바뀌면 오늘 인기 속성(★)도 바뀜
-            if (atHome && pendingOrder.Count > 0) ScheduleArrival();
+            if (atHome && stashed.Count > 0) ScheduleArrival();
         }
 
         void ScheduleArrival()
         {
-            if (flashScheduled || pendingOrder.Count == 0) return;
+            if (flashScheduled || stashed.Count == 0) return;
             flashScheduled = true;
             // 가장 최근에 넣은 카드가 있는 페이지를 펼쳐 둠 (장면 전환 중이라 플레이어는 못 봄)
-            ShowCard(pendingOrder[pendingOrder.Count - 1]);
+            ShowCard(stashed.Last);
             StartCoroutine(FlashStoredLater());
         }
 
         IEnumerator FlashStoredLater()
         {
             yield return new WaitForSeconds(arrivalFlashDelay);
-            BinderLayout l = Layout;
-            if (l != null)
+            if (Cursor != null)
                 for (int i = 0; i < slots.Length; i++)
                 {
-                    string id = l.IdAt(page, i);
-                    if (id != null && pendingStored.Contains(id)) slots[i].Flash();
+                    string id = Cursor.IdAt(i);
+                    if (id != null && stashed.Contains(id)) slots[i].Flash();
                 }
-            pendingStored.Clear();
-            pendingOrder.Clear();
+            stashed.Clear();
             flashScheduled = false;
         }
 
@@ -219,92 +193,65 @@ namespace CardShop.Presentation
             if (dirty) Refresh();
         }
 
-        // ------------------------------------------------------------------ 페이지
+        // ------------------------------------------------------------------ 쪽 · 탭
 
-        public void NextPage() => ShowPage(page + 1);
-        public void PreviousPage() => ShowPage(page - 1);
+        public void NextPage() => ShowPage(Page + 1);
+        public void PreviousPage() => ShowPage(Page - 1);
 
         public void ShowPage(int index)
         {
-            page = Layout != null ? Layout.ClampPage(index) : 0;
+            Cursor?.ShowPage(index);
             Refresh();
         }
 
         /// <summary>속성 탭을 바꾸고 그 탭의 첫 페이지를 보여 줍니다.</summary>
         public void ShowTab(BinderTab next)
         {
-            if (next != tab)
-            {
-                tab = next;
-                layout = null; // 다음 접근 때 이 탭의 카드로 다시 만듦
-            }
-            ShowPage(0);
+            Cursor?.ShowTab(next);
+            Refresh();
         }
 
-        /// <summary>
-        /// 그 카드가 있는 페이지로 넘깁니다. 지금 탭에 없는 카드면 그 카드의 속성 탭으로 바꿉니다.
-        /// 바인더에 없는 카드면 false.
-        /// </summary>
+        /// <summary>그 카드가 있는 페이지로 넘깁니다. 지금 탭에 없는 카드면 그 카드의 속성 탭으로 바꿉니다. 바인더에 없는 카드면 false.</summary>
         public bool ShowCard(string cardId)
         {
-            if (Layout == null) return false;
-            if (!Layout.TryGetSlot(cardId, out int p, out _))
-            {
-                CardData card = context.Cards.Get(cardId);
-                if (card == null || FullLayout.IndexOf(cardId) < 0) return false;
-                tab = BinderTabs.ForElement(card.element);
-                layout = null;
-                if (!Layout.TryGetSlot(cardId, out p, out _)) return false;
-            }
-            ShowPage(p);
+            if (Cursor == null || cardId == null || !Cursor.ShowCard(context.Cards.Get(cardId))) return false;
+            Refresh();
             return true;
+        }
+
+        // 표지 소켓에 꽂은 카드: 그 카드 쪽을 펼치고 칸을 돌려줌
+        BinderSlotView SlotFor(CardData card)
+        {
+            if (card == null || !ShowCard(card.id)) return null;
+            int slot = Cursor.SlotOf(card.id);
+            return slot >= 0 && slot < slots.Length ? slots[slot] : null;
         }
 
         void Refresh()
         {
             dirty = false;
-            BinderLayout l = Layout;
-            BinderLayout all = FullLayout;
+            BinderCursor c = Cursor;
             for (int i = 0; i < slots.Length; i++)
             {
-                string id = l?.IdAt(page, i);
+                string id = c?.IdAt(i);
                 CardData card = id != null ? context.Cards.Get(id) : null;
                 bool discovered = card != null && collection != null && collection.IsDiscovered(id);
                 int count = card != null && collection != null ? collection.CountOf(id) : 0;
                 int listed = card != null && context.Session != null ? context.Session.SalesDisplay.FindAll(x => x == id).Count : 0;
-                int number = all != null ? all.IndexOf(id) + 1 : 0; // 탭과 상관없이 도감 번호
+                int number = c != null && id != null ? c.NumberOf(id) : 0; // 탭과 상관없이 도감 번호
                 slots[i].Show(card, number, discovered, count, listed, styles);
                 slots[i].SetSelected(card != null && card == SelectedCard);
             }
 
-            prevButton.interactable = l != null && l.HasPrevious(page);
-            nextButton.interactable = l != null && l.HasNext(page);
-            RefreshTabs();
+            prevButton.interactable = c != null && c.HasPrevious;
+            nextButton.interactable = c != null && c.HasNext;
+            tabBar.Redraw(Tab, PopularToday());
             if (pageLabel != null)
             {
-                int total = all != null ? all.CardCount : 0;
+                int total = c != null ? c.FullLayout.CardCount : 0;
                 int found = collection != null ? collection.DiscoveredCount : 0;
-                string tabName = tab == BinderTab.All ? "" : $"{BinderTabs.Label(tab)}   ·   ";
-                pageLabel.text = $"{tabName}{page + 1} / {PageCount} 쪽   ·   도감 {found} / {total}";
-            }
-        }
-
-        // 고른 탭은 노란 굵은 글씨 + 밑줄, 오늘 인기 속성 탭에는 ★
-        void RefreshTabs()
-        {
-            if (tabButtons == null) return;
-            CardElement popular = PopularToday();
-            for (int i = 0; i < tabButtons.Length && i < BinderTabs.Order.Length; i++)
-            {
-                if (tabButtons[i] == null) continue;
-                TMP_Text label = tabButtons[i].GetComponentInChildren<TMP_Text>(true);
-                if (label == null) continue;
-                BinderTab t = BinderTabs.Order[i];
-                bool on = t == tab;
-                bool hot = popular != CardElement.None && BinderTabs.ToElement(t) == popular;
-                label.text = hot ? $"★{BinderTabs.Label(t)}" : BinderTabs.Label(t);
-                label.color = on ? tabSelectedText : Color.white;
-                label.fontStyle = on ? FontStyles.Bold | FontStyles.Underline : FontStyles.Normal;
+                string tabName = Tab == BinderTab.All ? "" : $"{BinderTabs.Label(Tab)}   ·   ";
+                pageLabel.text = $"{tabName}{Page + 1} / {PageCount} 쪽   ·   도감 {found} / {total}";
             }
         }
 
@@ -318,7 +265,7 @@ namespace CardShop.Presentation
 
         void OnSlotClicked(int slotIndex)
         {
-            string id = Layout?.IdAt(page, slotIndex);
+            string id = Cursor?.IdAt(slotIndex);
             if (id == null || collection == null || !collection.IsDiscovered(id)) return;
             Select(context.Cards.Get(id));
         }
@@ -336,63 +283,6 @@ namespace CardShop.Presentation
         {
             SelectedCard = null;
             dirty = true;
-        }
-
-        // ------------------------------------------------------------------ 표지 소켓 → 칸으로 넣기
-
-        void OnCardSocketed(SelectEnterEventArgs args)
-        {
-            var card = args.interactableObject.transform.GetComponent<CardRevealView>();
-            if (card != null) StartCoroutine(StoreFromSocket(card));
-        }
-
-        IEnumerator StoreFromSocket(CardRevealView card)
-        {
-            // 선택 이벤트 처리 도중에 선택을 풀면 XRI 내부 순서가 꼬일 수 있어 한 프레임 뒤에 풉니다.
-            storing++;
-            coverSocket.socketActive = false; // 날아가는 동안 같은 카드가 다시 꽂히지 않게
-            yield return null;
-            if (coverSocket.hasSelection && coverSocket.interactionManager != null)
-                coverSocket.interactionManager.CancelInteractorSelection((IXRSelectInteractor)coverSocket);
-
-            yield return Store(card);
-
-            storing--;
-            if (storing <= 0)
-            {
-                storing = 0;
-                coverSocket.socketActive = true;
-            }
-        }
-
-        // 물리 카드를 자기 칸으로 날려 보내고 사라지게 합니다(데이터는 그대로). 표지 소켓이 씀
-        IEnumerator Store(CardRevealView card)
-        {
-            CardData data = card.Card;
-            card.SetGrabbable(false);
-            if (data == null || !ShowCard(data.id))
-            {
-                card.Hide(); // 바인더에 칸이 없는 카드(데이터 오류)는 그냥 정리
-                yield break;
-            }
-            Layout.TryGetSlot(data.id, out _, out int slotIndex);
-            BinderSlotView slot = slots[slotIndex];
-
-            var body = card.GetComponent<Rigidbody>();
-            if (body != null)
-            {
-                body.isKinematic = true;
-                body.useGravity = false;
-            }
-
-            // 칸(UI)과 카드 모두 앞면이 -Z. 날기는 CardRevealView.FlyTo (Transform · Rigidbody를 함께 옮김, BUG-003)
-            Vector3 fromScale = card.transform.localScale;
-            card.FlyTo(slot.transform.position, slot.transform.rotation, flySeconds, fromScale.x * 0.6f, arcHeight: 0.08f, grabbableOnArrive: false);
-            yield return new WaitForSeconds(flySeconds);
-
-            card.Hide(); // 풀(CardRevealer)로 돌아갈 카드라 지우지 않고 끕니다
-            card.transform.localScale = fromScale;
-            slot.Flash();
         }
     }
 }
