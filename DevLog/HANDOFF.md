@@ -1,6 +1,6 @@
 # 인계 노트 — 다른 PC에서 이어서 작업하기
 
-> 마지막 갱신: 2026-11-20 새벽 (사용자 수면 중 Claude) · 브랜치 `main` · EditMode **235/235** · 씬 다시 빌드됨 · Quest APK `Builds/Quest/CardKkangVR.apk`
+> 마지막 갱신: 2026-11-20 새벽 (튜토리얼, Claude) · 브랜치 `main` · EditMode **262/262** · 씬 다시 빌드됨 · Quest APK `Builds/Quest/CardKkangVR.apk`
 > 하루 한 일은 [일일 노트 11-18](daily/2026-11-18.md) (전날: [11-17](daily/2026-11-17.md)), 설계는 [시스템 설계 한눈에 보기](../Assets/98.%20Doc/시스템설계_한눈에_보기.md)를 봅니다.
 
 ## 0. 다음에 바로 할 일
@@ -8,6 +8,16 @@
 **지금 상태**: 11-18 작업이 모두 `main`에 있고, 배치 모드로 `Rebuild Street Blocks Prefab` → `Build Shop Scene`까지 실행해 커밋함(`730494d`). EditMode **180/180 통과**. 에디터 Play · 실기기 확인은 전부 아직.
 - 다시 빌드할 때 배치 모드 진입점: `CardShop.EditorTools.Interior.InteriorBuilder.RebuildBlocksAndSceneFromCommandLine` (거리 보강 프리팹 + 씬 한 번에). 씬만이면 `CardShop.EditorTools.ShopSceneBuilder.Build`
 - 배치 모드 실행 뒤 `Assets/XR/Settings/OpenXRPackageSettings.asset`이 fileID 순서만 바뀌어 수정됨으로 뜸 → 되돌리면 됨(커밋 안 함)
+
+### 0-6) 튜토리얼 (11-19 밤 ~ 11-20 새벽, 다른 세션 · 최신)
+- 설계: [튜토리얼_설계](../Assets/98.%20Doc/튜토리얼_설계.md) (12장 = 구현 현황) · 결정: [DEC-026](decisions/DEC-026-튜토리얼은-처음-생길-때-안내하고-정지는-2번만.md)
+- 커밋: 설계 `11f26b1` → 구현 1·2묶음 `3e12cb6` → main 병합 · push `b69df88`
+- **씬을 다시 빌드하지 않아도 됨**: `TutorialDirector.Install`(`RuntimeInitializeOnLoadMethod`)이 씬이 열리면 스스로 생김. 하이라이트 이름표 · 카운터 메모 · 일시정지 메뉴 [안내 다시 보기 / 건너뛰기] · 타이틀 [안내 켬/끔]도 실행 중에 붙음
+- 흐름: Intro 사장님 선물 팩(잡기 · 자르기 · 넘기기) → 영업. **게임 정지는 2번**: 1일차 첫 계산(물건 1개), 3일차 첫 도둑. 정지는 `GameFlow.IsHeld`(시간만 멈춤, 메뉴 안 뜸). 기다림 · 정지 단계는 120초 안전 시간
+- 데이터: `CampaignConfig.asset` 1일차 청소 = 쓰레기만
+- **Play 확인 전**: 설계서 11장 목록. 특히 ① 첫 계산 정지 중 메뉴가 안 뜨고 찍기 · 봉투가 되는지 ② Intro 뒤 계산대 카드 더미가 치워지는지 ③ 일시정지 메뉴 버튼 6개가 겹치지 않는지
+- 300줄 규칙: `CardRevealer`(420줄)에 알림 2줄만 추가, 나누기는 안 함
+- DEC-026 "이유" 칸은 사용자
 
 ### 0-5) 11-19 밤 · 사용자 수면 중 작업 (사용자가 고른 8개 + 추가)
 아침에 먼저 볼 것: [확인 목록](리팩토링_Play_확인목록.md) **H 절** (H1~H8), 그다음 G 절 남은 칸.
