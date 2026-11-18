@@ -37,6 +37,15 @@ namespace CardShop.Core
         void DismissAll();
     }
 
+    /// <summary>영업 중 청소 구역. 구현은 Cleanup의 CleanupDirector. 없으면 청소 없이 손님만 기다립니다.</summary>
+    public interface ICleanupFloor
+    {
+        /// <summary>아직 치우지 않은 청소 구역 수</summary>
+        int PendingCount { get; }
+        /// <summary>영업 끝: 남은 청소 구역을 모두 걷어 내고, 치우지 못한 수를 돌려줍니다(감점용).</summary>
+        int EndDay();
+    }
+
     public interface IGamePhase
     {
         GamePhaseId Id { get; }
@@ -68,6 +77,9 @@ namespace CardShop.Core
 
         /// <summary>매장 손님. CustomerDirector가 Awake에서 등록합니다.</summary>
         public ICustomerFloor Customers { get; set; }
+
+        /// <summary>청소 구역. CleanupDirector가 OnEnable에서 등록합니다.</summary>
+        public ICleanupFloor Cleanup { get; set; }
 
         /// <summary>전환 연출 중에는 버튼 입력을 받지 않습니다.</summary>
         public bool IsTransitioning => isTransitioning;

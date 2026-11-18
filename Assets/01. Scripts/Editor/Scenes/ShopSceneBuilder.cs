@@ -76,6 +76,7 @@ namespace CardShop.EditorTools
             CreateShelf(env, opener);
             CreateCounterButtons(flow, opener);
             CustomerFloorBuilder.Create(flow, font);
+            CleanupBuilder.Create(flow, font);
             CreateDebugPanel(flow);
             CreatePauseMenu(flow);
             CreateHome(flow, sun);

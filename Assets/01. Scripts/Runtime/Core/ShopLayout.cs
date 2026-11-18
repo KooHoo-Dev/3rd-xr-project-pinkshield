@@ -56,6 +56,13 @@ namespace CardShop.Core
         public static readonly Vector3 StandPos = new Vector3(-1.9f, 0f, 2.4f);
         public static readonly Vector3 StandSize = new Vector3(1.54f, 0.77f, 0.52f);
 
+        // ---------------------------------------------------------------- 청소 (기획서 5-1, 인테리어 설계 S5. 창문 얼룩 S6은 DEC-014로 제외)
+        /// <summary>쓰레기통 바닥 가운데 (카운터 오른쪽 옆, 플레이어 자리에서 한 걸음)</summary>
+        public static readonly Vector3 TrashBinPos = new Vector3(1.6f, 0f, 0.55f);
+        /// <summary>판매 진열대 위 팩 꽂이 칸 수 · 칸 간격 (흐트러진 팩 청소)</summary>
+        public const int PackRackSlots = 4;
+        public const float PackRackSpacing = 0.3f;
+
         // ---------------------------------------------------------------- 집 (가게에서 30m 떨어진 같은 씬 구역)
         public static readonly Vector3 HomeOrigin = new Vector3(30f, 0f, 0f);
         // 집 로컬 좌표의 벽 중심선 (2.5m 모듈 2 × 2). 책상(z 1.6)이 뒷벽에 붙도록 뒷벽을 z 2.0에 둠.

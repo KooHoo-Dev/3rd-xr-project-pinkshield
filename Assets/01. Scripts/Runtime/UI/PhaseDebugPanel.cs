@@ -43,7 +43,13 @@ namespace CardShop.UI
 
             string text = $"{flow.CurrentPhase}\n{ctx.Session.Day}일차 / {ctx.Campaign.DayCount}일\n재화 {ctx.Session.Wallet.Money}";
             if (flow.Current is BusinessPhase business)
-                text += $"\n남은 시간 {Mathf.CeilToInt(business.TimeLeft)}초";
+            {
+                text += business.IsCleaningUp
+                    ? $"\n마감 정리 {Mathf.CeilToInt(business.CleanupTimeLeft)}초"
+                    : $"\n남은 시간 {Mathf.CeilToInt(business.TimeLeft)}초";
+                int pending = flow.Cleanup?.PendingCount ?? 0;
+                if (pending > 0) text += $" · 청소 {pending}곳";
+            }
             if (flow.CurrentPhase == GamePhaseId.AfterHours)
                 text += $"\n다음 팩 {ctx.PackOpening.NextSinglePackCost} · 도감 {ctx.Session.Collection.DiscoveredCount}/{ctx.Cards.Count}";
             if (flow.IsPaused)

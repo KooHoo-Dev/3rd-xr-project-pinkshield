@@ -16,31 +16,31 @@ MonoBehaviour:
   - businessSeconds: 90
     customerMin: 3
     customerMax: 4
-    cleanupKinds: 7
+    cleanupKinds: 5
   - businessSeconds: 90
     customerMin: 3
     customerMax: 4
-    cleanupKinds: 7
+    cleanupKinds: 5
   - businessSeconds: 90
     customerMin: 4
     customerMax: 5
-    cleanupKinds: 7
+    cleanupKinds: 5
   - businessSeconds: 90
     customerMin: 4
     customerMax: 5
-    cleanupKinds: 7
+    cleanupKinds: 5
   - businessSeconds: 90
     customerMin: 5
     customerMax: 6
-    cleanupKinds: 7
+    cleanupKinds: 5
   - businessSeconds: 90
     customerMin: 5
     customerMax: 6
-    cleanupKinds: 7
+    cleanupKinds: 5
   - businessSeconds: 90
     customerMin: 5
     customerMax: 6
-    cleanupKinds: 7
+    cleanupKinds: 5
   spawnWindowRatio: 0.7
   closingCleanupSeconds: 30
   customerPatienceSeconds: 30

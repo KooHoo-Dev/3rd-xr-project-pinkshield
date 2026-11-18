@@ -171,6 +171,43 @@ namespace CardShop.Tests
             Assert.Greater(pay.GetComponent<CardShop.Interaction.PokeButton>().pressed.GetPersistentEventCount(), 0, "결제 버튼에 연결된 동작 없음");
         }
 
+        // 청소 2종 (기획서 5-1, DEC-014): 쓰레기 원본 · 팩 꽂이가 연결되고, 잡는 물건은 잡기 + 물리 없는 Rigidbody
+        [Test]
+        public void ShopScene_HasCleanupDirectorWithTrashAndPackRack()
+        {
+            Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+
+            var director = Object.FindAnyObjectByType<CardShop.Cleanup.CleanupDirector>();
+            Assert.IsNotNull(director, "CleanupDirector 없음 (Build Shop Scene 다시 실행)");
+            var so = new SerializedObject(director);
+
+            SerializedProperty trash = so.FindProperty("trashTemplates");
+            Assert.Greater(trash.arraySize, 0, "쓰레기 원본 없음");
+            for (int i = 0; i < trash.arraySize; i++)
+            {
+                var t = (CardShop.Cleanup.TrashSpot)trash.GetArrayElementAtIndex(i).objectReferenceValue;
+                Assert.IsFalse(t.gameObject.activeSelf, $"{t.name}: 원본은 꺼 둬야 함 (켜 두면 영업 전부터 바닥에 보임)");
+                AssertGrabbable(t.gameObject);
+            }
+
+            var rack = (CardShop.Cleanup.PackRack)so.FindProperty("rack").objectReferenceValue;
+            var rackSo = new SerializedObject(rack);
+            Assert.AreEqual(ShopLayout.PackRackSlots, rackSo.FindProperty("slots").arraySize, "팩 꽂이 칸 수");
+            Assert.AreEqual(rackSo.FindProperty("slots").arraySize, rackSo.FindProperty("packs").arraySize, "칸마다 팩 하나");
+            for (int i = 0; i < rackSo.FindProperty("packs").arraySize; i++)
+                AssertGrabbable(((Component)rackSo.FindProperty("packs").GetArrayElementAtIndex(i).objectReferenceValue).gameObject);
+        }
+
+        static void AssertGrabbable(GameObject go)
+        {
+            Assert.IsNotNull(go.GetComponent<CardShop.Cleanup.HeldItem>(), $"{go.name}: HeldItem 없음");
+            Assert.IsNotNull(go.GetComponent("XRGrabInteractable"), $"{go.name}: 잡기 없음");
+            var rb = go.GetComponent<Rigidbody>();
+            Assert.IsTrue(rb != null && rb.isKinematic && !rb.useGravity, $"{go.name}: 물리 없는(키네마틱) Rigidbody여야 함");
+            Assert.IsNotNull(go.GetComponent<Collider>(), $"{go.name}: 잡기 판정 콜라이더 없음");
+        }
+
         // 바인더: 칸 · 페이지 버튼 · 등급 색 · 표지 소켓이 연결돼 있고, 표지 소켓과 카드가 같은 Interaction Layer(Card)를 써야 카드가 꽂힘
         [Test]
         public void ShopScene_HasBinderWithSlotsButtonsAndCoverSocket()

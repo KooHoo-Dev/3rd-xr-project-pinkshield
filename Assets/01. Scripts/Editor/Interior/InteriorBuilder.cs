@@ -126,7 +126,7 @@ namespace CardShop.EditorTools.Interior
             FillTop(display, dresser, 90f, 3);
 
             // 장식
-            Placer.Place(decor, ExternalArt.LowPoly("Bathroom/Trash_01"), new Vector3(1.6f, 0f, 0.55f), Placer.Bottom, col: Placer.Col.Box, name: "TrashCan"); // S5 (청소 소켓 자리)
+            Placer.Place(decor, ExternalArt.LowPoly("Bathroom/Trash_01"), L.TrashBinPos, Placer.Bottom, col: Placer.Col.Box, name: "TrashCan"); // S5 (청소 소켓 자리)
             Placer.Place(decor, ExternalArt.LowPoly("Room/Catpet_05"), new Vector3(L.DoorX, 0.002f, L.FrontZ - 0.65f), Placer.Bottom, scale: 2f, name: "DoorMat");
             Placer.Place(decor, ExternalArt.LowPoly("Flowers/Flower_04"), new Vector3(L.MinX + 0.45f, 0f, L.FrontZ - 0.45f), Placer.Bottom, name: "Plant_FrontLeft");
             Placer.Place(decor, ExternalArt.LowPoly("Flowers/Flower_03"), new Vector3(L.MaxX - 0.5f, 0f, -0.9f), Placer.Bottom, name: "Plant_BackRight");
