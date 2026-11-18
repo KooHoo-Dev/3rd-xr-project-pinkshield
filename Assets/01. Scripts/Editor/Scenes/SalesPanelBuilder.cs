@@ -60,7 +60,10 @@ namespace CardShop.EditorTools
             float top = 0.728f;
             Button display = WorldUi.AddButton(content.transform, "판매 등록", new Vector2(0.06f, top - ButtonH), new Vector2(0.94f, top), font);
             top -= ButtonH + Gap;
-            Button sell = WorldUi.AddButton(content.transform, "즉시 판매", new Vector2(0.06f, top - ButtonH), new Vector2(0.94f, top), font);
+            // 즉시 판매 | 레어 이하 모두 팔기 (11-19 피드백 H) 한 줄에 반씩
+            Button sell = WorldUi.AddButton(content.transform, "즉시 판매", new Vector2(0.06f, top - ButtonH), new Vector2(0.49f, top), font);
+            Button sellAll = WorldUi.AddButton(content.transform, "레어 이하 모두 팔기", new Vector2(0.51f, top - ButtonH), new Vector2(0.94f, top), font);
+            sellAll.GetComponentInChildren<TMP_Text>().fontSize = 22f;
 
             TMP_Text status = WorldUi.AddText(content.transform, "Status", "", new Vector2(0.04f, 0.50f), new Vector2(0.96f, 0.555f), 20f, new Color(0.35f, 0.32f, 0.4f), font);
             TMP_Text message = WorldUi.AddText(content.transform, "Message", "", new Vector2(0.04f, 0.44f), new Vector2(0.96f, 0.495f), 22f, new Color(0.75f, 0.25f, 0.1f), font);
@@ -88,6 +91,7 @@ namespace CardShop.EditorTools
             so.FindProperty("messageLabel").objectReferenceValue = message;
             so.FindProperty("displayButton").objectReferenceValue = display;
             so.FindProperty("sellButton").objectReferenceValue = sell;
+            so.FindProperty("sellAllButton").objectReferenceValue = sellAll;
             SerializedProperty list = so.FindProperty("displayedButtons");
             list.arraySize = listButtons.Length;
             for (int i = 0; i < listButtons.Length; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = listButtons[i];

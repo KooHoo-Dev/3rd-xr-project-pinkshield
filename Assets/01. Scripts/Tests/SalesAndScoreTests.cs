@@ -188,6 +188,36 @@ namespace CardShop.Tests
             Assert.AreEqual(0, s.Wallet.Money);
         }
 
+        // 11-19 피드백 H: 레어 이하 모두 팔기 (견적은 아무것도 바꾸지 않고, 팔면 수퍼레어 이상 · 진열 카드는 그대로)
+        [Test]
+        public void SellAllUpToRare_SellsEveryCopy_KeepsHigherAndDisplayed()
+        {
+            s.Collection.Add("F-N1");
+            s.Collection.Add("F-N1");
+            s.Collection.Add("W-R1");
+            s.Collection.Add("F-SR");
+            s.SalesDisplay.Add("SN-L");
+            SalesRules sales = f.Sales(new ScriptedRandom());
+            int expected = 2 * sales.InstantPrice(f.Db.Get("F-N1")) + sales.InstantPrice(f.Db.Get("W-R1"));
+
+            Assert.AreEqual(3, sales.QuoteSellAllUpTo(s, CardRarity.Rare, out int quote));
+            Assert.AreEqual(expected, quote);
+            Assert.AreEqual(0, s.Wallet.Money, "견적은 팔지 않음");
+            Assert.AreEqual(2, s.Collection.CountOf("F-N1"));
+
+            Assert.AreEqual(3, sales.SellAllUpTo(s, CardRarity.Rare, out int total));
+            Assert.AreEqual(expected, total);
+            Assert.AreEqual(expected, s.Wallet.Money);
+            Assert.AreEqual(0, s.Collection.CountOf("F-N1"));
+            Assert.AreEqual(0, s.Collection.CountOf("W-R1"));
+            Assert.AreEqual(1, s.Collection.CountOf("F-SR"), "수퍼레어는 남음");
+            Assert.AreEqual(1, s.SalesDisplay.Count, "판매 등록 카드는 건드리지 않음");
+            Assert.IsTrue(s.Collection.IsDiscovered("W-R1"), "팔아도 도감 유지");
+
+            Assert.AreEqual(0, sales.SellAllUpTo(s, CardRarity.Rare, out total), "두 번째는 팔 것 없음");
+            Assert.AreEqual(0, total);
+        }
+
         // 퇴근(Home)에서 집에서 등록한 카드가 DayEnd에서 지워지면 안 됨. 마지막 날에만 돌려놓음 (DayEndPhase가 이 함수를 씀)
         [Test]
         public void ReturnUnsoldOnFinalDay_KeepsDisplayBeforeFinalDay_ReturnsOnFinalDay()
