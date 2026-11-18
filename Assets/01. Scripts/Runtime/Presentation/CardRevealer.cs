@@ -17,7 +17,7 @@ namespace CardShop.Presentation
     /// 파이프라인: [개봉 연출] → [공개 대기열] → [결과].
     /// - 개봉 연출: 단일 팩은 뜯김(PackTearEffect) 후 카드 묶음이 솟아오름. 상자는 눈앞 아치에서 10팩이 0.12초 간격으로 뜯김(BoxOpenEffect).
     /// - 공개 대기열(RevealQueue): 오른손 트리거 1번 = 1장. 갓팩도 같은 한 장씩. 묶음은 뒷면이 보이다가 맨 앞에서 뒤집혀 공개 (등급 색 미리 노출 X).
-    ///   트리거를 3초(fastForwardHoldSeconds) 꾹 누르면 전 등급 건너뛰기 (DEC-004): 남은 카드는 모두 더미로.
+    ///   트리거를 1.5초(fastForwardHoldSeconds) 꾹 누르면 전 등급 건너뛰기 (DEC-004): 남은 카드는 모두 더미로.
     ///   단 갓팩은 건너뛸 수 없음 (DEC-008): 갓팩 카드는 특수 효과와 함께 한 장씩 열고, 건너뛰면 마지막에 열어 봄.
     /// - 결과: 단일 팩은 카운터 더미 위 결과함(PackResultPanel). 개봉한 카드는 퇴근 전까지 카운터에 계속 쌓아 두고(잡아서 볼 수 있음),
     ///   퇴근하면 한꺼번에 보관함(ICardStash)으로 갑니다. 오래된 카드는 옆면 덩어리로 줄여 Quest 성능을 지킵니다 (pileVisibleCards).
@@ -67,9 +67,9 @@ namespace CardShop.Presentation
         [Tooltip("레전더리 확정 팩의 레전더리 카드는 평소보다 이만큼 더 멈춤 (초) + 진동 1번 더")]
         [SerializeField] float legendaryPackExtraPause = 0.6f;
 
-        [Header("빠르게 넘기기 (3초 꾹)")]
+        [Header("빠르게 넘기기 (1.5초 꾹)")]
         [Tooltip("오른손 트리거를 이 시간 이상 누르고 있으면 건너뛰기 (초). 실기기에서 조정")]
-        [SerializeField] float fastForwardHoldSeconds = 3f;
+        [SerializeField] float fastForwardHoldSeconds = 1.5f;
         [Tooltip("이보다 짧은 눌림(넘기기 탭)에는 게이지를 보이지 않음 (초)")]
         [SerializeField] float holdGaugeGrace = 0.25f;
         [Tooltip("꾹 누르는 동안 진동 세기: 처음 → 끝")]
@@ -262,7 +262,7 @@ namespace CardShop.Presentation
             packRoutine = StartCoroutine(PackSequence(new List<PackResult> { pack }, stackPose, tear));
         }
 
-        /// <summary>상자 10팩: 일괄 개봉 연출 → 50장 한 장씩(3초 꾹 = 건너뛰기) → 결과판 + 하이라이트.</summary>
+        /// <summary>상자 10팩: 일괄 개봉 연출 → 50장 한 장씩(1.5초 꾹 = 건너뛰기) → 결과판 + 하이라이트.</summary>
         public void RevealBox(PackResult[] packs)
         {
             if (packs == null || packs.Length == 0) return;
@@ -340,7 +340,7 @@ namespace CardShop.Presentation
                 yield return new WaitForSeconds(popInSeconds);
             }
 
-            // ② 공개 대기열: 트리거 1번 = 1칸, 3초 꾹 = 건너뛰기
+            // ② 공개 대기열: 트리거 1번 = 1칸, 1.5초 꾹 = 건너뛰기
             stage = PackStage.Flipping;
             context?.Events.RaiseNotice(isBox
                 ? $"오른손 트리거로 한 장씩 넘기세요 ({queue.Count}칸) · {fastForwardHoldSeconds:0.#}초 꾹: 건너뛰기"
@@ -457,7 +457,7 @@ namespace CardShop.Presentation
             UpdatePileBlock();
         }
 
-        // 트리거를 새로 누르면 다음(Next), 3초 꾹이면 건너뛰기(Skip). 결과는 advance 필드에.
+        // 트리거를 새로 누르면 다음(Next), 1.5초 꾹이면 건너뛰기(Skip). 결과는 advance 필드에.
         // pause 동안은 넘기지 않음(실수로 두 장을 넘기지 않게). 손을 못 찾으면 pause + 1초 뒤 자동으로 다음.
         IEnumerator WaitForAdvance(XRBaseInputInteractor hand, float pause, bool allowSkip, Pose gaugePose)
         {

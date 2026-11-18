@@ -9203,7 +9203,7 @@ MonoBehaviour:
   legendaryShakeAmount: 0.004
   legendaryShakeSeconds: 0.9
   legendaryPackExtraPause: 0.6
-  fastForwardHoldSeconds: 3
+  fastForwardHoldSeconds: 1.5
   holdGaugeGrace: 0.25
   holdHapticMin: 0.05
   holdHapticMax: 0.5

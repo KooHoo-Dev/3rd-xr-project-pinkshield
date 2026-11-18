@@ -16,6 +16,8 @@ namespace CardShop.Presentation
     /// <summary>
     /// 바인더(보관함 겸 도감). 새 저장 시스템이 아니라 GameSession.Collection을 그리는 뷰입니다.
     /// - 칸 배치: BinderLayout (CardDatabase 순서, 한 페이지 = slots 수)
+    /// - 속성 탭(BinderTabs): 전체 · 불 · 물 · 땅 · 공기 · 무 · 기타. 탭을 고르면 그 속성 카드만 모아 보여 줌
+    ///   (커뮤니티에서 본 인기 속성을 바로 찾기). 오늘 인기 속성 탭에는 ★. 칸 번호는 탭과 상관없이 도감 번호
     /// - 칸 오브젝트는 한 페이지 분량만 두고 페이지를 넘길 때 다시 그립니다 (Quest 성능: 50장을 만들지 않음)
     /// - 표지 소켓에 카드를 꽂으면 그 카드가 자기 칸으로 날아가 사라집니다. 카드는 개봉할 때 이미
     ///   Collection에 들어가 있으므로 데이터는 바꾸지 않습니다(정리 연출).
@@ -27,6 +29,10 @@ namespace CardShop.Presentation
         [SerializeField] Button prevButton;
         [SerializeField] Button nextButton;
         [SerializeField] TMP_Text pageLabel;
+        [Tooltip("속성 탭 버튼. 순서는 BinderTabs.Order (전체 · 불 · 물 · 땅 · 공기 · 무 · 기타). 비워 두면 탭 없음")]
+        [SerializeField] Button[] tabButtons;
+        [Tooltip("고른 탭의 글자 색")]
+        [SerializeField] Color tabSelectedText = new Color(1f, 0.85f, 0.3f);
         [SerializeField] CardRarityStyles styles;
         public CardRarityStyles Styles => styles;
         [Tooltip("표지 소켓 (카드를 꽂는 곳). 비워 두면 보기 전용")]
@@ -38,7 +44,9 @@ namespace CardShop.Presentation
 
         GameContext context;
         Collection collection;
-        BinderLayout layout;
+        BinderLayout layout;     // 지금 탭에 보이는 카드만
+        BinderLayout fullLayout; // 전체 카드 (도감 번호용)
+        BinderTab tab = BinderTab.All;
         int page;
         bool dirty = true;
         int storing; // 날아가는 중인 카드 수 (그동안 표지 소켓을 잠금)
@@ -57,18 +65,25 @@ namespace CardShop.Presentation
 
         public int Page => page;
         public int PageCount => Layout != null ? Layout.PageCount : 1;
+        public BinderTab Tab => tab;
 
         BinderLayout Layout
         {
             get
             {
                 if (layout == null && context != null && context.Cards != null && slots != null && slots.Length > 0)
-                {
-                    var ids = new List<string>();
-                    foreach (CardData c in context.Cards.cards) ids.Add(c != null ? c.id : null);
-                    layout = new BinderLayout(ids, slots.Length);
-                }
+                    layout = new BinderLayout(BinderTabs.FilterIds(context.Cards.cards, tab), slots.Length);
                 return layout;
+            }
+        }
+
+        BinderLayout FullLayout
+        {
+            get
+            {
+                if (fullLayout == null && context != null && context.Cards != null && slots != null && slots.Length > 0)
+                    fullLayout = new BinderLayout(BinderTabs.FilterIds(context.Cards.cards, BinderTab.All), slots.Length);
+                return fullLayout;
             }
         }
 
@@ -79,6 +94,13 @@ namespace CardShop.Presentation
                 int index = i; // 람다가 반복 변수 대신 이 칸 번호를 기억하도록
                 slots[i].Button.onClick.AddListener(() => OnSlotClicked(index));
             }
+            if (tabButtons != null)
+                for (int i = 0; i < tabButtons.Length && i < BinderTabs.Order.Length; i++)
+                {
+                    if (tabButtons[i] == null) continue;
+                    BinderTab t = BinderTabs.Order[i];
+                    tabButtons[i].onClick.AddListener(() => ShowTab(t));
+                }
         }
 
         void OnEnable()
@@ -131,6 +153,8 @@ namespace CardShop.Presentation
         void OnSessionStarted(GameSession session)
         {
             Bind(session);
+            tab = BinderTab.All;
+            layout = null;
             page = 0;
             ClearSelection();
             pendingStored.Clear();
@@ -160,6 +184,7 @@ namespace CardShop.Presentation
         void OnPhaseChanged(GamePhaseId from, GamePhaseId to)
         {
             atHome = to == GamePhaseId.Home;
+            dirty = true; // 날이 바뀌면 오늘 인기 속성(★)도 바뀜
             if (atHome && pendingOrder.Count > 0) ScheduleArrival();
         }
 
@@ -214,10 +239,32 @@ namespace CardShop.Presentation
             Refresh();
         }
 
-        /// <summary>그 카드가 있는 페이지로 넘깁니다. 바인더에 없는 카드면 false.</summary>
+        /// <summary>속성 탭을 바꾸고 그 탭의 첫 페이지를 보여 줍니다.</summary>
+        public void ShowTab(BinderTab next)
+        {
+            if (next != tab)
+            {
+                tab = next;
+                layout = null; // 다음 접근 때 이 탭의 카드로 다시 만듦
+            }
+            ShowPage(0);
+        }
+
+        /// <summary>
+        /// 그 카드가 있는 페이지로 넘깁니다. 지금 탭에 없는 카드면 그 카드의 속성 탭으로 바꿉니다.
+        /// 바인더에 없는 카드면 false.
+        /// </summary>
         public bool ShowCard(string cardId)
         {
-            if (Layout == null || !Layout.TryGetSlot(cardId, out int p, out _)) return false;
+            if (Layout == null) return false;
+            if (!Layout.TryGetSlot(cardId, out int p, out _))
+            {
+                CardData card = context.Cards.Get(cardId);
+                if (card == null || FullLayout.IndexOf(cardId) < 0) return false;
+                tab = BinderTabs.ForElement(card.element);
+                layout = null;
+                if (!Layout.TryGetSlot(cardId, out p, out _)) return false;
+            }
             ShowPage(p);
             return true;
         }
@@ -226,24 +273,53 @@ namespace CardShop.Presentation
         {
             dirty = false;
             BinderLayout l = Layout;
+            BinderLayout all = FullLayout;
             for (int i = 0; i < slots.Length; i++)
             {
                 string id = l?.IdAt(page, i);
                 CardData card = id != null ? context.Cards.Get(id) : null;
                 bool discovered = card != null && collection != null && collection.IsDiscovered(id);
                 int count = card != null && collection != null ? collection.CountOf(id) : 0;
-                slots[i].Show(card, page * slots.Length + i + 1, discovered, count, styles);
+                int number = all != null ? all.IndexOf(id) + 1 : 0; // 탭과 상관없이 도감 번호
+                slots[i].Show(card, number, discovered, count, styles);
                 slots[i].SetSelected(card != null && card == SelectedCard);
             }
 
             prevButton.interactable = l != null && l.HasPrevious(page);
             nextButton.interactable = l != null && l.HasNext(page);
+            RefreshTabs();
             if (pageLabel != null)
             {
-                int total = l != null ? l.CardCount : 0;
+                int total = all != null ? all.CardCount : 0;
                 int found = collection != null ? collection.DiscoveredCount : 0;
-                pageLabel.text = $"{page + 1} / {PageCount} 쪽   ·   도감 {found} / {total}";
+                string tabName = tab == BinderTab.All ? "" : $"{BinderTabs.Label(tab)}   ·   ";
+                pageLabel.text = $"{tabName}{page + 1} / {PageCount} 쪽   ·   도감 {found} / {total}";
             }
+        }
+
+        // 고른 탭은 노란 굵은 글씨 + 밑줄, 오늘 인기 속성 탭에는 ★
+        void RefreshTabs()
+        {
+            if (tabButtons == null) return;
+            CardElement popular = PopularToday();
+            for (int i = 0; i < tabButtons.Length && i < BinderTabs.Order.Length; i++)
+            {
+                if (tabButtons[i] == null) continue;
+                TMP_Text label = tabButtons[i].GetComponentInChildren<TMP_Text>(true);
+                if (label == null) continue;
+                BinderTab t = BinderTabs.Order[i];
+                bool on = t == tab;
+                bool hot = popular != CardElement.None && BinderTabs.ToElement(t) == popular;
+                label.text = hot ? $"★{BinderTabs.Label(t)}" : BinderTabs.Label(t);
+                label.color = on ? tabSelectedText : Color.white;
+                label.fontStyle = on ? FontStyles.Bold | FontStyles.Underline : FontStyles.Normal;
+            }
+        }
+
+        CardElement PopularToday()
+        {
+            if (context == null || context.Session == null || context.PopularElements == null) return CardElement.None;
+            return context.PopularToday;
         }
 
         // ------------------------------------------------------------------ 선택 (판매 등록 연결 지점)

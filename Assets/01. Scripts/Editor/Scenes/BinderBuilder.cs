@@ -1,6 +1,7 @@
 using CardShop.Cards;
 using CardShop.Cards.EditorTools;
 using CardShop.Interaction;
+using CardShop.Logic;
 using CardShop.Presentation;
 using CardShop.UI;
 using TMPro;
@@ -99,9 +100,26 @@ namespace CardShop.EditorTools
 
             TMP_Text pageLabel = WorldUi.AddText(canvasGo.transform, "PageLabel", "1 / 1 쪽", new Vector2(0.04f, 0.92f), new Vector2(0.96f, 0.985f), 30f, new Color(0.16f, 0.12f, 0.2f), font);
 
+            // 속성 탭: 전체 · 불 · 물 · 땅 · 공기 · 무 · 기타 (BinderTabs.Order 순서. 글자는 BinderView가 채움)
+            var tabs = new Button[BinderTabs.Order.Length];
+            const float tabLeft = 0.04f, tabRight = 0.96f, tabBottom = 0.845f, tabTop = 0.91f, tabGap = 0.006f;
+            float tabW = (tabRight - tabLeft) / tabs.Length;
+            for (int i = 0; i < tabs.Length; i++)
+            {
+                string label = BinderTabs.Label(BinderTabs.Order[i]);
+                tabs[i] = WorldUi.AddButton(canvasGo.transform, label,
+                    new Vector2(tabLeft + i * tabW + tabGap, tabBottom), new Vector2(tabLeft + (i + 1) * tabW - tabGap, tabTop), font);
+                tabs[i].gameObject.name = "Tab_" + BinderTabs.Order[i];
+                TMP_Text tabText = tabs[i].GetComponentInChildren<TMP_Text>();
+                tabText.fontSize = 22f;
+                tabText.enableAutoSizing = true;
+                tabText.fontSizeMin = 12f;
+                tabText.fontSizeMax = 22f;
+            }
+
             // 칸: 위에서 아래, 왼쪽에서 오른쪽 순서 (BinderLayout의 칸 번호와 같음)
             var slots = new BinderSlotView[Columns * Rows];
-            const float left = 0.04f, right = 0.96f, bottom = 0.11f, top = 0.91f, pad = 0.012f;
+            const float left = 0.04f, right = 0.96f, bottom = 0.11f, top = 0.835f, pad = 0.012f;
             float cellW = (right - left) / Columns, cellH = (top - bottom) / Rows;
             for (int r = 0; r < Rows; r++)
                 for (int c = 0; c < Columns; c++)
@@ -123,6 +141,9 @@ namespace CardShop.EditorTools
             so.FindProperty("prevButton").objectReferenceValue = prev;
             so.FindProperty("nextButton").objectReferenceValue = next;
             so.FindProperty("pageLabel").objectReferenceValue = pageLabel;
+            SerializedProperty tabsProp = so.FindProperty("tabButtons");
+            tabsProp.arraySize = tabs.Length;
+            for (int i = 0; i < tabs.Length; i++) tabsProp.GetArrayElementAtIndex(i).objectReferenceValue = tabs[i];
             so.FindProperty("styles").objectReferenceValue = AssetDatabase.LoadAssetAtPath<CardRarityStyles>(StylesPath);
             so.ApplyModifiedPropertiesWithoutUndo();
             return view;
