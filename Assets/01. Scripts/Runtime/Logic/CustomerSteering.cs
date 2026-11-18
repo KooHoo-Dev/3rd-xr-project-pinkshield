@@ -45,8 +45,9 @@ namespace CardShop.Logic
             Vector3 steer = dir;
             float slow = 1f;
 
-            foreach (SteeringNeighbor o in others)
+            for (int i = 0; i < others.Count; i++) // foreach는 IReadOnlyList 열거자를 박싱해 손님마다 매 프레임 할당이 생김
             {
+                SteeringNeighbor o = others[i];
                 Vector3 d = Flat(o.Position - position);
                 float dist = d.magnitude;
                 if (dist < 1e-4f || dist > lookAhead) continue;

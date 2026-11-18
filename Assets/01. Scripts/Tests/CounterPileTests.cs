@@ -121,5 +121,18 @@ namespace CardShop.Tests
             Assert.AreEqual(0, pile.NextIndex);
             Assert.AreEqual(0, pile.BlockTop);
         }
+
+        // 보관해도 아직 장부에 남은 상자 카드는 버리지 않음 → 이어지는 ClearBox가 풀로 돌려보냄 (카드 누수 방지)
+        [Test]
+        public void TakeAll_LeavesBoxCardsForClearBox()
+        {
+            CounterPile<Card> pile = NewPile();
+            PlaceSingle(pile, 2);
+            pile.Place(new Card(), true, 0f);
+            pile.TakeAll(new List<Card>(), new List<CardData>());
+            var recycled = new List<Card>();
+            pile.ClearBox(recycled, keepBlock: false);
+            Assert.AreEqual(1, recycled.Count);
+        }
     }
 }

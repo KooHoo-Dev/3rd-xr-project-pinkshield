@@ -115,7 +115,12 @@ namespace CardShop.Presentation
                 batch.Add(item);
                 cards.Add(cardOf(item));
             }
-            Reset();
+            // 단일 팩 더미만 비움. 날아가는 중인 상자 카드(box)는 ClearBox가 풀로 돌려보내야 하므로 남겨 둠
+            pile.Clear();
+            tableCards.Clear();
+            TableNew = 0;
+            BlockTop = 0;
+            NextIndex = 0;
         }
 
         /// <summary>테이블 카드 전체(덩어리 포함)와 그중 새 카드 수 (더미 정보 표시용).</summary>
