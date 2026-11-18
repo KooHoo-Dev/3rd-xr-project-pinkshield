@@ -115,9 +115,16 @@ namespace CardShop.Customers
             }
         }
 
+        // 걷기 속도 파라미터도 매 프레임 다시 넣음: 집 페이즈에 ZoneVisibility가 이 오브젝트를 껐다 켜면
+        // Animator 파라미터가 0으로 초기화되어 행인이 다리를 멈춘 채 미끄러졌음 (11-19 플레이 피드백)
         void SetAnimatorSpeed(float s)
         {
-            foreach (Mover m in walkers) if (m.animator != null) m.animator.speed = s;
+            foreach (Mover m in walkers)
+            {
+                if (m.animator == null) continue;
+                m.animator.speed = s;
+                if (m.animator.runtimeAnimatorController != null) m.animator.SetFloat(CustomerAnim.Speed, m.speed);
+            }
         }
 
         // startX가 null이면 거리 끝에서 나타남
@@ -159,6 +166,7 @@ namespace CardShop.Customers
                 animator.applyRootMotion = false;
                 animator.runtimeAnimatorController = roster.ControllerFor(entry.gender);
                 animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+                animator.keepAnimatorStateOnDisable = true; // 거리를 껐다 켜도 걷던 동작 그대로
                 Vector2 h = roster.HeadHeightFor(entry.gender);
                 scale = HumanoidHeight.Fit(go, animator, Range(h));
             }

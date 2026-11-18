@@ -56,21 +56,38 @@ namespace CardShop.Tests
 
         static Vector3 Slot(int index) => CustomerRoutes.SlotPosition(ShopLayout.QueuePositions, Vector3.back, index);
 
+        /// <summary>구매 자리 대기 줄: 하루 최대 6명 중 2명은 구매 자리 → 대기는 최대 4칸(0~3번)</summary>
+        const int MaxWait = 4;
+        static Vector3 Wait(int index) => CustomerRoutes.SlotPosition(ShopLayout.BrowseWaitPositions, Vector3.left, index);
+
+        static Vector3[] Concat(Vector3[] a, Vector3[] b)
+        {
+            var all = new Vector3[a.Length + b.Length];
+            a.CopyTo(all, 0);
+            b.CopyTo(all, a.Length);
+            return all;
+        }
+
         // 손님이 걸을 수 있는 모든 길 (시작점 포함)
         static IEnumerable<(string name, Vector3[] path)> AllPaths()
         {
             CustomerRoutes r = Routes;
             foreach (Vector3 browse in ShopLayout.BrowsePositions)
             {
-                yield return ($"입장 → 구경 {browse}", Prepend(ShopLayout.OutsidePos, r.EnterToBrowse(browse)));
+                yield return ($"입장 → 구매 자리 {browse}", Prepend(ShopLayout.OutsidePos, Concat(r.EnterToDoor(), r.DoorToBrowse(browse))));
+                yield return ($"대기 맨 앞 → 구매 자리 {browse}", Prepend(Wait(0), r.WaitToBrowse(browse)));
                 for (int k = 0; k < MaxQueue; k++)
+                {
                     yield return ($"구경 {browse} → 줄 {k}번", Prepend(browse, r.BrowseToQueue(browse, Slot(k))));
+                    yield return ($"구경 {browse} → (대기 줄 없음) 오른쪽으로 줄 {k}번", Prepend(browse, r.BrowseToQueue(browse, Slot(k), shortcut: true)));
+                }
+                yield return ($"구경 {browse} → 빈 계산대 (왼쪽)", Prepend(browse, r.BrowseToQueue(browse, Slot(0), lineEmpty: true)));
+                yield return ($"구경 {browse} → 빈 계산대 (오른쪽)", Prepend(browse, r.BrowseToQueue(browse, Slot(0), shortcut: true, lineEmpty: true)));
             }
-            for (int k = 0; k < MaxQueue; k++)
-            {
-                yield return ($"입장 → 바로 줄 {k}번", Prepend(ShopLayout.OutsidePos, r.EnterToQueue(Slot(k))));
-                if (k > 0) yield return ($"줄 {k}번에서 떠남", Prepend(Slot(k), r.LeaveFromQueue(Slot(k), Slot(0))));
-            }
+            for (int k = 0; k < MaxWait; k++)
+                yield return ($"입장 → 대기 {k}번", Prepend(ShopLayout.OutsidePos, Concat(r.EnterToDoor(), r.DoorToWait(Wait(k)))));
+            for (int k = 1; k < MaxQueue; k++)
+                yield return ($"줄 {k}번에서 떠남", Prepend(Slot(k), r.LeaveFromQueue(Slot(k), Slot(0))));
             yield return ("결제 후 퇴장", Prepend(Slot(0), r.LeaveFromCounter()));
         }
 
@@ -143,7 +160,9 @@ namespace CardShop.Tests
                     foreach (Vector3 browse in ShopLayout.BrowsePositions)
                         Assert.GreaterOrEqual(DistanceToPath(Slot(ahead), Prepend(browse, r.BrowseToQueue(browse, Slot(k)))), BodyGap,
                             $"구경 → 줄 {k}번 길이 {ahead}번 손님을 지나감");
-                    Assert.GreaterOrEqual(DistanceToPath(Slot(ahead), r.EnterToQueue(Slot(k))), BodyGap, $"입장 → 줄 {k}번 길이 {ahead}번 손님을 지나감");
+                    foreach (Vector3 browse in ShopLayout.BrowsePositions)
+                        Assert.GreaterOrEqual(DistanceToPath(Slot(ahead), Prepend(browse, r.BrowseToQueue(browse, Slot(k), shortcut: true))), BodyGap,
+                            $"구경 → (오른쪽) 줄 {k}번 길이 {ahead}번 손님을 지나감");
                 }
         }
 
@@ -154,10 +173,55 @@ namespace CardShop.Tests
             for (int k = 0; k < MaxQueue; k++)
             {
                 foreach (Vector3 browse in ShopLayout.BrowsePositions)
-                    Assert.GreaterOrEqual(DistanceToPath(Slot(k), r.EnterToBrowse(browse)), BodyGap, $"입장 길이 줄 {k}번 손님을 지나감");
+                    Assert.GreaterOrEqual(DistanceToPath(Slot(k), Concat(r.EnterToDoor(), r.DoorToBrowse(browse))), BodyGap, $"입장 길이 줄 {k}번 손님을 지나감");
+                for (int w = 0; w < MaxWait; w++)
+                    Assert.GreaterOrEqual(DistanceToPath(Slot(k), Concat(r.EnterToDoor(), r.DoorToWait(Wait(w)))), BodyGap, $"대기 줄로 가는 길이 줄 {k}번 손님을 지나감");
                 if (k > 0)
                     Assert.GreaterOrEqual(DistanceToPath(Slot(k), Prepend(Slot(0), r.LeaveFromCounter())), BodyGap, $"결제 후 나가는 길이 줄 {k}번 손님을 지나감");
             }
+        }
+
+        // 11-19 손님 동선: 진열대 뒤 구매 자리 + 창을 따라 대기 줄
+        [Test]
+        public void BrowseWaitLine_StaysClearOfCheckoutLinePaths()
+        {
+            CustomerRoutes r = Routes;
+            for (int w = 0; w < MaxWait; w++)
+            {
+                Assert.IsTrue(ShopLayout.InsideShop(Wait(w), 0.3f), $"대기 {w}번 칸 {Wait(w)} 가 벽에 너무 붙음");
+                for (int j = w + 1; j < MaxWait; j++)
+                    Assert.GreaterOrEqual(Vector3.Distance(Wait(w), Wait(j)), 0.6f, $"대기 {w}번 · {j}번 칸이 너무 붙음");
+                for (int k = 0; k < MaxQueue; k++)
+                {
+                    Assert.GreaterOrEqual(Vector3.Distance(Wait(w), Slot(k)), 0.6f, $"대기 {w}번 칸이 계산대 줄 {k}번 칸과 겹침");
+                    foreach (Vector3 browse in ShopLayout.BrowsePositions)
+                        Assert.GreaterOrEqual(DistanceToPath(Wait(w), Prepend(browse, r.BrowseToQueue(browse, Slot(k)))), BodyGap,
+                            $"구경 → 줄 {k}번 길이 대기 {w}번 손님을 지나감");
+                    if (k > 0)
+                        Assert.GreaterOrEqual(DistanceToPath(Wait(w), Prepend(Slot(k), r.LeaveFromQueue(Slot(k), Slot(0)))), BodyGap,
+                            $"줄 {k}번에서 떠나는 길이 대기 {w}번 손님을 지나감");
+                }
+                // 새로 온 손님은 줄 끝(오른쪽, 문 쪽)으로 오므로 앞에 선 사람을 지나가지 않음
+                for (int ahead = 0; ahead < w; ahead++)
+                    Assert.GreaterOrEqual(DistanceToPath(Wait(ahead), Concat(r.EnterToDoor(), r.DoorToWait(Wait(w)))), BodyGap,
+                        $"대기 {w}번으로 가는 길이 {ahead}번 손님을 지나감");
+            }
+        }
+
+        [Test]
+        public void BrowsePaths_DoNotWalkThroughTheOtherBuyer()
+        {
+            CustomerRoutes r = Routes;
+            Vector3[] spots = ShopLayout.BrowsePositions;
+            for (int i = 0; i < spots.Length; i++)
+                for (int j = 0; j < spots.Length; j++)
+                {
+                    if (i == j) continue;
+                    Assert.GreaterOrEqual(DistanceToPath(spots[j], Prepend(spots[i], r.BrowseToQueue(spots[i], Slot(0)))), BodyGap, $"구매 {i} → 줄 길이 구매 {j} 손님을 지나감");
+                    Assert.GreaterOrEqual(DistanceToPath(spots[j], Prepend(spots[i], r.BrowseToQueue(spots[i], Slot(0), shortcut: true))), BodyGap, $"구매 {i} → (오른쪽) 줄 길이 구매 {j} 손님을 지나감");
+                    Assert.GreaterOrEqual(DistanceToPath(spots[j], Prepend(Wait(0), r.WaitToBrowse(spots[i]))), BodyGap, $"대기 → 구매 {i} 길이 구매 {j} 손님을 지나감");
+                    Assert.GreaterOrEqual(DistanceToPath(spots[j], Prepend(ShopLayout.DoorInsidePos, r.DoorToBrowse(spots[i]))), BodyGap, $"입장 → 구매 {i} 길이 구매 {j} 손님을 지나감");
+                }
         }
 
         [Test]

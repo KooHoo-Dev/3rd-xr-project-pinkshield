@@ -88,7 +88,7 @@ namespace CardShop.Customers
             }
         }
 
-        // 영업 중에만 보임 (퇴근 후에는 팩 고르기에서 무료로 깜)
+        // 지킬 팩은 영업 중에만 보임 (퇴근 후에는 FreePackOffer가 같은 자리에 열 수 있는 팩을 놓음)
         void Start() => holder?.Show(flow != null && flow.CurrentPhase == GamePhaseId.Business);
 
         void OnPhaseChanged(GamePhaseId from, GamePhaseId to)
@@ -253,6 +253,16 @@ namespace CardShop.Customers
         // ------------------------------------------------------------------ IThiefFloor
 
         public void StopSpawning() => clock.Stop();
+
+        /// <summary>무료 팩 받침 위 자리 (퇴근 후 FreePackOffer가 열 수 있는 팩을 놓는 곳). 무료 팩이 없는 씬이면 false.</summary>
+        public bool TryGetFreePackHome(out Pose pose)
+        {
+            pose = holder != null ? holder.HomePose : default;
+            return holder != null;
+        }
+
+        /// <summary>받침 · 안내 글자만 켜고 끔 (지킨 금색 팩은 숨김).</summary>
+        public void ShowFreePackStand(bool on) => holder?.ShowStandOnly(on);
 
         public void DismissAll()
         {

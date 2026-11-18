@@ -16,7 +16,8 @@ namespace CardShop.EditorTools
     ///
     /// 배치 (플레이어는 원점에서 +Z를 봄, 카운터 x -1.11~1.11 · z 0.385~1.015, 가게 9 × 6m — ShopLayout):
     ///   밖(5.6, 5.6: 문 오른쪽 벽 뒤, 계산대에서 안 보임) → 문 바깥(3.0, 5.0) → 문 안(3.0, 3.5)
-    ///   → 판매 진열대(왼쪽 안쪽) 앞 구경 → 카운터 건너편 줄(z 1.4부터 뒤로) → 문 안 → 문 바깥 → 밖
+    ///   → 판매 진열대(왼쪽 안쪽) 뒤 구매 자리 2칸 (차면 창을 따라 대기 줄) → 진열대 왼쪽을 돌아 카운터 건너편 줄(z 1.4부터 뒤로)
+    ///   → 문 안 → 문 바깥 → 밖 (11-19 손님 동선)
     /// 진열대 모델은 ShopInterior 프리팹(SalesStand). 등록 카드 표시는 판매 진열대 작업에서.
     /// </summary>
     public static class CustomerFloorBuilder
@@ -64,14 +65,17 @@ namespace CardShop.EditorTools
             // 진열대 모델은 인테리어 프리팹(SalesStand)에 있음
             Label(root, "판매 진열대", StandPos + new Vector3(0f, StandSize.y + 0.15f, -0.15f), font);
 
+            // 구매 자리: 진열대 뒤(창 쪽)에서 진열대 · 플레이어 쪽(−Z)을 봄 (11-19 손님 동선).
+            // 표식 키를 예전 진열대 앞 자리(Customers/Browse_i)와 다르게 해서, 예전에 손으로 옮긴 자리가 새 자리를 덮지 않게 함
             var browse = new Transform[BrowsePos.Length];
-            Vector3 standFront = StandPos + new Vector3(0f, 0f, -StandSize.z / 2f);
             for (int i = 0; i < BrowsePos.Length; i++)
-            {
-                Vector3 look = standFront - BrowsePos[i];
-                look.y = 0f;
-                browse[i] = Point(root, $"Browse_{i}", BrowsePos[i], Quaternion.LookRotation(look.normalized), $"Customers/Browse_{i}");
-            }
+                browse[i] = Point(root, $"Buy_{i}", BrowsePos[i], Quaternion.LookRotation(Vector3.back), $"Customers/Buy_{i}");
+
+            // 구매 자리 대기 줄: 창을 따라 오른쪽으로, 앞사람(왼쪽)을 봄
+            Vector3[] waitPos = ShopLayout.BrowseWaitPositions;
+            var wait = new Transform[waitPos.Length];
+            for (int i = 0; i < waitPos.Length; i++)
+                wait[i] = Point(root, $"BrowseWait_{i}", waitPos[i], Quaternion.LookRotation(Vector3.left), $"Customers/BrowseWait_{i}");
 
             var queue = new Transform[QueuePos.Length];
             for (int i = 0; i < QueuePos.Length; i++)
@@ -104,6 +108,7 @@ namespace CardShop.EditorTools
             so.FindProperty("lineSet").objectReferenceValue = AssetDatabase.LoadAssetAtPath<CustomerLineSet>(DataPaths.CustomerLines);
             so.FindProperty("bubbleFont").objectReferenceValue = font;
             SetArray(so.FindProperty("browseSpots"), browse);
+            SetArray(so.FindProperty("browseWaitSlots"), wait);
             SetArray(so.FindProperty("queueSlots"), queue);
             so.ApplyModifiedPropertiesWithoutUndo();
 

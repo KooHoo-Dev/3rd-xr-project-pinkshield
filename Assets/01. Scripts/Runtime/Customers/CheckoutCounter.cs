@@ -20,6 +20,8 @@ namespace CardShop.Customers
         [SerializeField] Transform[] itemSpots;
         [Tooltip("판매 등록 카드 (CardView 포함, 산 카드로 그림이 바뀜)")]
         [SerializeField] ScannableItem cardItemPrefab;
+        [Tooltip("판매 등록 카드가 계산대에 올라올 때 크기 배율 (11-19 피드백: 너무 작게 보임 → 1.2)")]
+        [SerializeField] float cardItemScale = 1.2f;
         [SerializeField] PosTerminal pos;
         [Tooltip("찍은 물건을 담는 종이봉투 (계산시스템_확장_설계 K2). 비우면 봉투 없이 다 찍기만 하면 결제(예전 방식)")]
         [SerializeField] PaperBag bag;
@@ -67,6 +69,7 @@ namespace CardShop.Customers
                 spawned.Add(item);
                 if (item == null) { basket.MarkScanned(i); basket.MarkBagged(i); continue; } // 프리팹이 없으면 찍을 수 없으니 담은 것으로 (멈춤 방지)
                 int index = i;
+                item.CanScan = () => !Paused;
                 item.Scanned += _ => OnScanned(index);
                 item.Released += released => OnReleased(index, released);
             }
@@ -80,9 +83,9 @@ namespace CardShop.Customers
 
         ScannableItem Spawn(BasketLine line, int i)
         {
-            ScannableItem prefab = line.Card != null ? cardItemPrefab
-                : shopItems != null && line.StockIndex >= 0 && line.StockIndex < shopItems.items.Count ? shopItems.items[line.StockIndex].prefab
-                : null;
+            bool stock = line.Card == null && shopItems != null && line.StockIndex >= 0 && line.StockIndex < shopItems.items.Count;
+            ScannableItem prefab = line.Card != null ? cardItemPrefab : stock ? shopItems.items[line.StockIndex].prefab : null;
+            float scale = line.Card != null ? cardItemScale : stock ? shopItems.items[line.StockIndex].counterScale : 1f;
             if (prefab == null || itemSpots == null || itemSpots.Length == 0) return null;
 
             // 자리 Transform의 위치 = 물건 바닥이 닿는 면. 씬에서 자리를 옮기면 물건도 그 자리 · 높이에 놓임.
@@ -92,6 +95,7 @@ namespace CardShop.Customers
             for (int k = i - itemSpots.Length; k >= 0; k -= itemSpots.Length)
                 if (spawned[k] != null) stack += spawned[k].Height + 0.002f;
             ScannableItem item = Instantiate(prefab, spot.position, spot.rotation, transform);
+            if (scale > 0f && !Mathf.Approximately(scale, 1f)) item.transform.localScale *= scale; // 놓기 · 쌓기 높이는 바뀐 크기로 계산
             item.PlaceOn(spot.position + spot.up * stack, spot.rotation);
             if (line.Card != null)
             {

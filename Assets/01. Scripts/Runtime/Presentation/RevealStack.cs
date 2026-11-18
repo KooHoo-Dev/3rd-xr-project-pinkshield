@@ -120,7 +120,7 @@ namespace CardShop.Presentation
 
         /// <summary>
         /// 건너뛰기 (DEC-004): queue[from..]의 남은 카드를 전 등급 건너뛰고, 끝까지 보여 줄 갓팩 카드만 담은 새 대기열을 돌려줍니다 (DEC-008).
-        /// 단일 팩은 남은 카드가 모두 더미로 날아가고(결과함에 5장이 다 있어야 하므로), 상자는 더미 높이로만 셉니다(오브젝트 없음).
+        /// 단일 팩은 남은 카드가 모두 더미로 날아가고(결과함에 5장이 다 있어야 하므로), 상자는 더미 덩어리 카드로만 셉니다(오브젝트 없음).
         /// </summary>
         public List<RevealItem> Skip(List<PackResult> packs, List<RevealItem> queue, int from, bool isBox)
         {
@@ -141,7 +141,8 @@ namespace CardShop.Presentation
                 if (isBox)
                 {
                     if (v != null) pool.Recycle(v);
-                    pile.CountSkipped(1);
+                    PackResult sp = packs[item.Pack];
+                    pile.CountSkipped(sp.Cards[item.Card], sp.IsNew[item.Card]);
                     continue;
                 }
                 if (v == null)

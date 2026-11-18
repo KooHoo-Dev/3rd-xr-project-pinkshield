@@ -6,6 +6,7 @@ namespace CardShop.Logic
     {
         None = 0,
         NotEnoughMoney = 1,
+        NoFreePack = 2,
     }
 
     /// <summary>
@@ -27,8 +28,6 @@ namespace CardShop.Logic
 
         public PackRoller Roller => roller;
 
-        /// <summary>다음 단일 팩 개봉 비용 (무료 팩이 남았으면 0).</summary>
-        public int NextSinglePackCost => session().FreePacksLeft > 0 ? 0 : economy.packPrice;
 
         /// <summary>단일 팩. isGift = 사장님이 준 팩(1일차, 무료이며 무료 팩 횟수를 쓰지 않음).</summary>
         public bool TryOpenSingle(PackClue clue, bool isGift, out PackResult result, out OpenFailReason fail)
@@ -37,13 +36,25 @@ namespace CardShop.Logic
             result = null;
             fail = OpenFailReason.None;
 
-            if (!isGift)
-            {
-                if (s.FreePacksLeft > 0) s.FreePacksLeft--;
-                else if (!s.Wallet.TrySpend(economy.packPrice)) { fail = OpenFailReason.NotEnoughMoney; return false; }
-            }
+            // 선반 팩은 늘 유료. 오늘 무료 팩은 계산대 위 그 팩(TryOpenFree)으로만 엽니다 (11-19 플레이 피드백:
+            // 예전에는 "다음에 사는 팩 1개가 0원"이라 계산대 무료 팩이 사라져 버그처럼 보였음)
+            if (!isGift && !s.Wallet.TrySpend(economy.packPrice)) { fail = OpenFailReason.NotEnoughMoney; return false; }
 
             result = roller.Roll(clue, false);
+            Register(s, result);
+            return true;
+        }
+
+        /// <summary>오늘 무료 팩 (계산대 위, 영업 중 도둑에게서 지킨 팩). 남은 무료 팩이 없으면 실패.</summary>
+        public bool TryOpenFree(out PackResult result, out OpenFailReason fail)
+        {
+            GameSession s = session();
+            result = null;
+            fail = OpenFailReason.None;
+            if (s.FreePacksLeft <= 0) { fail = OpenFailReason.NoFreePack; return false; }
+            s.FreePacksLeft--;
+
+            result = roller.Roll(PackClue.None, false);
             Register(s, result);
             return true;
         }

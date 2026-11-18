@@ -29,6 +29,8 @@ namespace CardShop.Presentation
             public float Spacing = 0.095f;
             [Tooltip("하이라이트 카드 크기 배율 (카운터 더미 카드와 같게)")]
             public float CardScale = 1.3f;
+            [Tooltip("하이라이트 카드가 한 장씩 놓이는 간격 (초). 낮은 등급부터, 가장 좋은 카드가 마지막 (11-19 피드백: 등급 연출을 단일 팩과 같게)")]
+            public float HighlightInterval = 0.4f;
         }
 
         readonly Transform parent;
@@ -51,7 +53,8 @@ namespace CardShop.Presentation
         }
 
         /// <summary>팩 줄을 하나씩 채우고(코루틴) 합계 · 하이라이트 카드를 놓습니다.</summary>
-        public IEnumerator Show(IReadOnlyList<PackResult> packs)
+        /// <param name="cardShown">하이라이트 카드 한 장이 놓일 때 (등급 연출: 폭죽 · 흔들림 · 진동은 단일 팩과 같은 RevealFx)</param>
+        public IEnumerator Show(IReadOnlyList<PackResult> packs, Action<CardRevealView, CardData> cardShown = null)
         {
             Settings s = settings;
             CardRarityStyles st = styles();
@@ -67,11 +70,15 @@ namespace CardShop.Presentation
             }
             text.text = RevealText.BoxSummary(packs, rows.ToString(), st);
 
+            // 가장 좋은 카드가 맨 앞(0번)이므로 뒤에서부터 놓아 마지막에 터지게 (폭죽은 하나라 앞 카드 폭죽은 다음 카드가 이어받음)
             List<(int pack, int card)> best = RevealQueue.PickHighlights(packs, s.HighlightCount);
-            for (int i = 0; i < best.Count; i++)
+            for (int i = best.Count - 1; i >= 0; i--)
             {
                 PackResult p = packs[best[i].pack];
-                pool.Show(p.Cards[best[i].card], p.IsNew[best[i].card], SlotPosition(i, best.Count, s.Spacing), anchor.rotation, s.CardScale);
+                CardData card = p.Cards[best[i].card];
+                CardRevealView v = pool.Show(card, p.IsNew[best[i].card], SlotPosition(i, best.Count, s.Spacing), anchor.rotation, s.CardScale);
+                cardShown?.Invoke(v, card);
+                if (i > 0) yield return new WaitForSeconds(s.HighlightInterval);
             }
         }
 

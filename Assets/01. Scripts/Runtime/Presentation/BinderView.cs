@@ -271,8 +271,9 @@ namespace CardShop.Presentation
                 CardData card = id != null ? context.Cards.Get(id) : null;
                 bool discovered = card != null && collection != null && collection.IsDiscovered(id);
                 int count = card != null && collection != null ? collection.CountOf(id) : 0;
+                int listed = card != null && context.Session != null ? context.Session.SalesDisplay.FindAll(x => x == id).Count : 0;
                 int number = all != null ? all.IndexOf(id) + 1 : 0; // 탭과 상관없이 도감 번호
-                slots[i].Show(card, number, discovered, count, styles);
+                slots[i].Show(card, number, discovered, count, listed, styles);
                 slots[i].SetSelected(card != null && card == SelectedCard);
             }
 

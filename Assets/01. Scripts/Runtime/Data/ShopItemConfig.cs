@@ -28,6 +28,8 @@ namespace CardShop.Cards
             public int maxPerCustomer = 0;
             [Tooltip("계산대에 올라오는 물건 (ScannableItem). CustomerFloorBuilder가 카드팩은 자동으로 채움")]
             public ScannableItem prefab;
+            [Tooltip("계산대에 올라올 때 크기 배율 (11-19 피드백: 카드팩이 작아 보임 → 1.2)")]
+            public float counterScale = 1f;
         }
 
         public List<Item> items = new List<Item>

@@ -7,10 +7,13 @@ namespace CardShop.Presentation
     /// 월드 공간 말풍선 하나. 지정한 자리에 짧은 안내를 띄우고 잠시 뒤 사라집니다.
     /// 디버그 패널 글자만으로는 "반응 없음"과 구분되지 않아서 만들었습니다 (개봉연출 설계 5장 #1).
     /// 위치는 월드 고정이고, 글자 방향만 머리 쪽으로 돌립니다.
+    /// 떠 있는 시간은 글자 수에 맞춥니다 (11-19 플레이 피드백: 긴 혼잣말을 다 읽기 전에 사라짐).
     /// </summary>
     public sealed class WorldToast : MonoBehaviour
     {
-        const float Duration = 1.8f;
+        const float MinSeconds = 2.2f;
+        const float MaxSeconds = 7f;
+        const float SecondsPerChar = 0.12f; // VR에서 한글 읽는 속도를 넉넉히 (초당 약 8자)
         const float FadeSeconds = 0.3f;
 
         TextMeshPro text;
@@ -34,11 +37,27 @@ namespace CardShop.Presentation
         public void Show(string message, Vector3 position)
         {
             transform.position = position;
-            text.text = $"<mark=#140F1ECC>{message}</mark>";
+            // 배경을 더 진하게 + 글자 둘레 여백 (11-19 피드백: 밝은 배경 앞에서 잘 안 보임)
+            text.text = $"<mark=#140F1EF0 padding=\"6,6,3,3\">{message}</mark>";
             text.alpha = 1f;
-            hideAt = Time.time + Duration;
+            hideAt = Time.time + SecondsFor(message);
             gameObject.SetActive(true);
             FaceCamera();
+        }
+
+        /// <summary>글자 수(태그 · 공백 제외)에 맞춘 표시 시간.</summary>
+        public static float SecondsFor(string message)
+        {
+            if (string.IsNullOrEmpty(message)) return MinSeconds;
+            int chars = 0;
+            bool inTag = false;
+            foreach (char c in message)
+            {
+                if (c == '<') inTag = true;
+                else if (c == '>') inTag = false;
+                else if (!inTag && !char.IsWhiteSpace(c)) chars++;
+            }
+            return Mathf.Clamp(1f + chars * SecondsPerChar, MinSeconds, MaxSeconds);
         }
 
         void LateUpdate()

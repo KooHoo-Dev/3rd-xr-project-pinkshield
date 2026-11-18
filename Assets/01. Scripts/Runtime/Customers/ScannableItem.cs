@@ -29,6 +29,11 @@ namespace CardShop.Customers
         public bool IsBagged { get; private set; }
         public Quaternion HomeRotation => homeRot;
         public event Action<ScannableItem> Scanned;
+        /// <summary>
+        /// 지금 찍을 수 있는지 (예: 일시정지 중이면 false). 받지 않을 때 IsScanned를 켜지 않아야
+        /// 일시정지를 풀고 다시 찍을 수 있습니다 (Play 확인 C1: 일시정지 중 찍은 물건이 영영 안 찍히던 것).
+        /// </summary>
+        public Func<bool> CanScan { get; set; }
         /// <summary>손에서 놓음. 받는 쪽이 이 안에서 PutInBag을 부르면 제자리로 돌아가지 않습니다.</summary>
         public event Action<ScannableItem> Released;
 
@@ -75,7 +80,7 @@ namespace CardShop.Customers
         /// <summary>바코드 스캐너가 호출. 처음 찍혔을 때만 true.</summary>
         public bool TryScan()
         {
-            if (IsScanned) return false;
+            if (IsScanned || (CanScan != null && !CanScan())) return false;
             IsScanned = true;
             Scanned?.Invoke(this);
             return true;

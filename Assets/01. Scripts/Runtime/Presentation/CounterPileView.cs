@@ -10,6 +10,8 @@ namespace CardShop.Presentation
     /// 카운터 카드 더미의 모양 (시연 피드백 B1). 장부(<see cref="CounterPile{T}"/>)가 정한 순번대로 카드를 날려 쌓고,
     /// 오래된 카드 · 상자 아래쪽 카드는 풀로 돌려보낸 뒤 카드 옆면 색 덩어리 하나로 보여 줍니다(Quest 성능).
     /// 퇴근 때는 더미를 보관함(<see cref="ICardStash"/>)으로 보내고, 연출이 끝나면 카드를 풀로 거둡니다.
+    /// 한 더미가 ColumnCards장(기본 50)이 되면 다음 팩부터 옆에 새 더미를 쌓습니다 (11-19 피드백: 가득 차도 사라지지 않게).
+    /// 다 찬 더미는 맨 위 카드 한 장 + 덩어리만 남겨 성능을 아낍니다.
     /// CardRevealer(개봉 진행)가 부르고, 이 클래스는 CardRevealer를 모릅니다.
     /// </summary>
     public sealed class CounterPileView
@@ -36,8 +38,13 @@ namespace CardShop.Presentation
             [Min(5)] public int PileVisibleCards = 15;
             [Tooltip("상자: 위쪽에 실제 카드로 남겨 두는 수. 그 아래는 덩어리로 표시")]
             [Min(1)] public int BoxPileVisible = 3;
-            [Tooltip("쌓아 둘 수 있는 카드 수(덩어리 포함). 넘으면 쌓인 카드를 보관함으로 옮기고 새로 쌓음")]
-            [Min(10)] public int MaxCards = 60;
+            [Header("더미 여러 개 (11-19 피드백: 가득 차면 옆에 새 더미)")]
+            [Tooltip("한 더미에 쌓는 카드 수. 이만큼 차면 다음 팩부터 옆에 새 더미 (상자 50장은 더미 하나)")]
+            [Min(10)] public int ColumnCards = 50;
+            [Tooltip("더미 사이 간격 (m). +면 플레이어 오른쪽(봉투 쪽)으로, −면 왼쪽으로 놓임")]
+            public float ColumnSpacing = 0.1f;
+            [Tooltip("더미 최대 개수. 다 차면 마지막 더미에 얇게 계속 쌓음")]
+            [Min(1)] public int MaxColumns = 4;
             [Header("보관함 연출 (더미가 위로 날아가 사라짐)")]
             public float StashRise = 0.5f;
             public float StashSeconds = 0.45f;
@@ -52,7 +59,17 @@ namespace CardShop.Presentation
         readonly List<CardRevealView> recycled = new List<CardRevealView>();
         readonly List<CardRevealView> stashing = new List<CardRevealView>(); // 보관함으로 날아가는 중
         Transform block;
-        float blockThickness = 0.002f;
+        // 다 찬 옆 더미들: 덩어리 + 맨 위 카드 + 카드 목록 (퇴근 때 함께 보관함으로)
+        sealed class Column
+        {
+            public Transform Block;
+            public readonly List<CardRevealView> Cards = new List<CardRevealView>();
+            public readonly List<CardData> All = new List<CardData>();
+        }
+        readonly List<Column> columns = new List<Column>();
+        Transform anchorRef;
+        // 이 순번 아래 카드는 상자 두께(얇게)로 쌓임. 상자를 넘기는 동안은 전부, 끝나면 상자 카드 수만큼 (그 위 단일 팩은 보통 두께)
+        int thinCount;
         ICardStash stash;
 
         /// <param name="edgeMaterial">덩어리에 입힐 카드 옆면 머티리얼 (없으면 기본)</param>
@@ -67,25 +84,66 @@ namespace CardShop.Presentation
 
         /// <summary>더미 맨 아래 카드 자리 (결과함 · 정보 판 위치 기준).</summary>
         public Pose BasePose { get; private set; }
-        public bool HasCards => ledger.HasCards;
-        /// <summary>더 쌓을 수 없을 만큼 찼음 (새 팩을 열기 전에 보관함으로 옮김).</summary>
-        public bool IsFull => ledger.CardCount >= settings.MaxCards;
+        public bool HasCards => ledger.HasCards || columns.Count > 0;
+        /// <summary>지금(맨 오른쪽) 더미에 카드가 있음.</summary>
+        public bool CurrentHasCards => ledger.HasCards;
+        /// <summary>지금 더미가 다 참 (다음 팩은 옆 새 더미로).</summary>
+        public bool ColumnFull => ledger.CardCount >= settings.ColumnCards;
+        /// <summary>옆에 새 더미를 놓을 자리가 남음.</summary>
+        public bool CanAddColumn => columns.Count + 1 < settings.MaxColumns;
         /// <summary>카드가 더미까지 날아가는 시간 (마지막 카드가 내려앉기를 기다릴 때).</summary>
         public float FlySeconds => settings.FlySeconds;
         public IReadOnlyList<CardRevealView> Cards => ledger.Pile;
-        public bool Contains(CardRevealView v) => ledger.Contains(v);
-        /// <summary>단일 팩 더미 index번째 카드 높이 (결과함 · 정보 판을 더미 위에 띄울 때).</summary>
-        public float HeightAt(int index) => CardPileLayout.Height(index, settings.PileThickness);
+        public bool Contains(CardRevealView v)
+        {
+            if (ledger.Contains(v)) return true;
+            foreach (Column c in columns) if (c.Cards.Contains(v)) return true;
+            return false;
+        }
+        /// <summary>더미 index번째 카드 높이 (아래쪽 상자 카드는 얇게, 그 위 단일 팩 카드는 보통 두께).</summary>
+        public float HeightAt(int index) =>
+            CardPileLayout.Height(index, thinCount, settings.BoxPileThickness, settings.PileThickness, settings.ColumnCards);
         /// <summary>다음 카드가 놓일 높이 순번.</summary>
         public int NextIndex => ledger.NextIndex;
         /// <summary>테이블 카드 전체(덩어리 포함)와 그중 새 카드 수.</summary>
-        public int CollectCards(List<CardData> cards) => ledger.CollectCards(cards);
+        public int CollectCards(List<CardData> cards)
+        {
+            foreach (Column c in columns) cards.AddRange(c.All);
+            return ledger.CollectCards(cards); // 새 카드 수는 지금 더미 것만 (옆 더미는 이미 지난 팩)
+        }
 
-        /// <summary>개봉을 시작할 때: 카운터 기준점에서 더미 자리를 정하고, 덩어리 두께(상자는 얇게)를 고름.</summary>
+        /// <summary>개봉을 시작할 때: 카운터 기준점에서 더미 자리를 정함. 상자는 빈 카운터에서 시작하고(RevealBox가 먼저 보관) 얇게 쌓음.</summary>
         public void Begin(Transform anchor, bool isBox)
         {
-            BasePose = new Pose(anchor.position + settings.Offset, CardPileLayout.FlatRotation(anchor.forward));
-            blockThickness = isBox ? settings.BoxPileThickness : settings.PileThickness;
+            anchorRef = anchor;
+            BasePose = ColumnPose(columns.Count);
+            if (isBox) thinCount = int.MaxValue;
+        }
+
+        // n번째 더미 바닥 자리: 기준점에서 카운터 가로 방향으로 ColumnSpacing씩
+        Pose ColumnPose(int n)
+        {
+            Vector3 side = Vector3.ProjectOnPlane(anchorRef.right, Vector3.up).normalized;
+            return new Pose(anchorRef.position + settings.Offset + side * (settings.ColumnSpacing * n), CardPileLayout.FlatRotation(anchorRef.forward));
+        }
+
+        /// <summary>
+        /// 지금 더미를 다 찬 더미로 굳히고, 다음 카드는 옆 새 더미에 쌓음. 굳힌 더미는 맨 위 카드 한 장 + 덩어리만 남김 (Quest 성능).
+        /// 손에 든 카드는 줄이지 않고 그대로 굳힌 더미에 남습니다.
+        /// </summary>
+        public void StartNewColumn()
+        {
+            if (!ledger.HasCards) return;
+            ledger.Compress(1, recycled);
+            RecycleBuffered();
+            UpdateBlock();
+
+            var col = new Column { Block = block };
+            block = null; // 새 더미는 새 덩어리
+            ledger.TakeAll(col.Cards, col.All);
+            columns.Add(col);
+            thinCount = 0;
+            if (anchorRef != null) BasePose = ColumnPose(columns.Count);
         }
 
         /// <summary>넘긴 카드를 더미 맨 위로 날려 보냄. 단일 팩은 모두 남기고, 상자는 위쪽 몇 장만 남기고 아래는 덩어리로.</summary>
@@ -93,7 +151,7 @@ namespace CardShop.Presentation
         {
             Settings s = settings;
             int index = ledger.Place(v, isBox, Time.time + delay + s.FlySeconds);
-            Pose p = CardPileLayout.GetPose(index, BasePose, isBox ? s.BoxPileThickness : s.PileThickness, s.JitterAngle, s.JitterOffset);
+            Pose p = CardPileLayout.GetPoseAt(index, BasePose, HeightAt(index), s.JitterAngle, s.JitterOffset);
             v.FlyTo(p.position, p.rotation, s.FlySeconds, s.CounterScale, grabbableOnArrive: false, delay: delay);
             if (!isBox) return;
             ledger.TrimBox(Time.time, s.BoxPileVisible, recycled);
@@ -101,11 +159,23 @@ namespace CardShop.Presentation
             UpdateBlock();
         }
 
-        /// <summary>건너뛴 상자 카드: 오브젝트 없이 덩어리 높이로만 셈.</summary>
-        public void CountSkipped(int count)
+        /// <summary>건너뛴 상자 카드: 오브젝트 없이 덩어리 카드로 셈.</summary>
+        public void CountSkipped(CardData card, bool isNew)
         {
-            ledger.CountSkipped(count);
+            ledger.CountSkipped(card, isNew);
             UpdateBlock();
+        }
+
+        /// <summary>
+        /// 상자를 다 넘김: 상자 더미를 단일 팩 더미처럼 카운터에 남김 (11-19 플레이 피드백 B3).
+        /// 위쪽 실제 카드는 잡을 수 있고, 이어서 여는 팩은 상자 더미 바로 위에(보통 두께로) 쌓이며, 퇴근 때 함께 보관함으로.
+        /// </summary>
+        public void SettleBox()
+        {
+            ledger.SettleBox();
+            thinCount = ledger.NextIndex;
+            UpdateBlock();
+            foreach (CardRevealView v in ledger.Pile) v.SetGrabbable(true);
         }
 
         /// <summary>단일 팩 결과 때: 실제 카드로 두는 수를 넘으면 오래된 카드부터 덩어리로 (손에 든 카드는 건드리지 않음).</summary>
@@ -125,7 +195,20 @@ namespace CardShop.Presentation
         }
 
         /// <summary>장부를 비움 (카드 오브젝트는 부르는 쪽이 이미 풀로 돌려보낸 뒤).</summary>
-        public void Reset() => ledger.Reset();
+        public void Reset()
+        {
+            ledger.Reset();
+            thinCount = 0;
+            ClearColumns(); // 카드 오브젝트는 부르는 쪽이 이미 풀로 돌려보냄
+        }
+
+        void ClearColumns()
+        {
+            foreach (Column c in columns)
+                if (c.Block != null) UnityEngine.Object.Destroy(c.Block.gameObject);
+            columns.Clear();
+            if (anchorRef != null) BasePose = ColumnPose(0);
+        }
 
         /// <summary>
         /// 더미를 보관함으로 보냄. 덩어리 카드까지 포함한 카드 목록(아래부터)을 돌려주고, 보낼 카드가 없으면 null.
@@ -134,10 +217,17 @@ namespace CardShop.Presentation
         public List<CardData> Stash()
         {
             stash ??= new FlyAwayCardStash(settings.StashRise, settings.StashSeconds, settings.StashStagger);
-            if (!ledger.HasCards) return null;
+            if (!HasCards) return null;
             var batch = new List<CardRevealView>();
             var cards = new List<CardData>();
+            foreach (Column c in columns) // 옆 더미부터 (먼저 연 카드)
+            {
+                batch.AddRange(c.Cards);
+                cards.AddRange(c.All);
+            }
+            ClearColumns();
             ledger.TakeAll(batch, cards);
+            thinCount = 0;
             HideBlock();
             foreach (CardRevealView v in batch)
             {
@@ -177,7 +267,7 @@ namespace CardShop.Presentation
             float scale = settings.CounterScale;
             Transform b = EnsureBlock();
             float cardT = CardView.Thickness * scale;
-            float h = CardPileLayout.Height(blockTop - 1, blockThickness) + cardT;
+            float h = HeightAt(blockTop - 1) + cardT;
             b.gameObject.SetActive(true);
             b.SetPositionAndRotation(BasePose.position + Vector3.up * (h * 0.5f - cardT * 0.5f), BasePose.rotation);
             // 눕힌 카드 기준: 로컬 X = 가로, Y = 세로, Z = 두께(아래쪽)

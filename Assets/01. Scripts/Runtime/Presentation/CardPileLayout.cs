@@ -25,6 +25,19 @@ namespace CardShop.Presentation
         public static float Height(int index, float thickness) => Mathf.Max(0, index) * thickness;
 
         /// <summary>
+        /// 아래 thinCount장은 thin 두께, 그 위는 thick 두께로 쌓였을 때 index번째 카드 높이
+        /// (상자 50장 더미 위에 단일 팩을 이어서 쌓을 때 공중에 뜨지 않게).
+        /// softCap장을 넘은 카드도 thin 두께로 쌓아, 카드가 계속 쌓여도 더미가 천천히 높아짐 (11-19 피드백: 가득 차도 사라지지 않게).
+        /// </summary>
+        public static float Height(int index, int thinCount, float thin, float thick, int softCap = int.MaxValue)
+        {
+            index = Mathf.Max(0, index);
+            int thickCount = Mathf.Max(0, Mathf.Min(index, softCap) - Mathf.Max(0, thinCount));
+            if (thinCount >= index) thickCount = 0;
+            return thickCount * thick + (index - thickCount) * thin;
+        }
+
+        /// <summary>
         /// 순번마다 정해진 -1~1 사이 값. 황금비 수열이라 이웃한 카드끼리 값이 고르게 흩어집니다.
         /// </summary>
         public static float Jitter(int index, float phase)
@@ -37,12 +50,16 @@ namespace CardShop.Presentation
         /// <param name="basePose">더미 맨 아래 카드 자리. 회전은 <see cref="FlatRotation"/>으로 만든 값</param>
         /// <param name="maxAngle">수직축 기준 최대 비뚤어짐(도)</param>
         /// <param name="maxOffset">수평 최대 어긋남(m)</param>
-        public static Pose GetPose(int index, Pose basePose, float thickness, float maxAngle, float maxOffset)
+        public static Pose GetPose(int index, Pose basePose, float thickness, float maxAngle, float maxOffset) =>
+            GetPoseAt(index, basePose, Height(index, thickness), maxAngle, maxOffset);
+
+        /// <param name="height">바닥에서 떠 있는 높이 (m)</param>
+        public static Pose GetPoseAt(int index, Pose basePose, float height, float maxAngle, float maxOffset)
         {
             float angle = Jitter(index, 0.13f) * maxAngle;
             // 카드 로컬 X(좌우)·Y(앞뒤)가 눕힌 상태에서 수평면이므로 그 평면 안에서만 어긋나게 합니다.
             var offset = new Vector3(Jitter(index, 0.47f), Jitter(index, 0.81f), 0f) * maxOffset;
-            Vector3 position = basePose.position + basePose.rotation * offset + Vector3.up * Height(index, thickness);
+            Vector3 position = basePose.position + basePose.rotation * offset + Vector3.up * height;
             Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up) * basePose.rotation;
             return new Pose(position, rotation);
         }

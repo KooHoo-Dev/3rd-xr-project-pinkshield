@@ -36,6 +36,8 @@ namespace CardShop.Interaction
 
         public PackClue Clue { get; private set; }
         public bool IsGift { get; private set; }
+        /// <summary>오늘 무료 팩 (퇴근 후 계산대 위, FreePackOffer가 만듦). 무료 팩 횟수를 씀.</summary>
+        public bool IsFree { get; private set; }
         public ShelfController Shelf { get; private set; }
         public ShelfSlotSocket HomeSlot { get; set; }
         public XRGrabInteractable Grab => grab;
@@ -56,10 +58,11 @@ namespace CardShop.Interaction
         void OnEnable() => grab.selectExited.AddListener(OnSelectExited);
         void OnDisable() => grab.selectExited.RemoveListener(OnSelectExited);
 
-        public void Init(PackClue clue, bool isGift, ShelfController shelf)
+        public void Init(PackClue clue, bool isGift, ShelfController shelf, bool isFree = false)
         {
             Clue = clue;
             IsGift = isGift;
+            IsFree = isFree;
             Shelf = shelf;
             if (foldHinge != null)
             {

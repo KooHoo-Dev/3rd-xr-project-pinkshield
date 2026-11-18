@@ -17,7 +17,8 @@ namespace CardShop.Presentation
     /// 파이프라인: ① 개봉 연출 → ② 공개 대기열 → ③ 결과.
     /// - ① 단일 팩은 뜯김(PackTearEffect) 후 카드 묶음이 솟아오름. 상자는 눈앞 한 줄에서 10팩이 차례로 뜯김(BoxOpenEffect).
     /// - ② 오른손 트리거 1번 = 1장, 꾹 누르면 전 등급 건너뛰기 (DEC-004). 갓팩은 건너뛸 수 없음 (DEC-008).
-    /// - ③ 단일 팩은 카운터 더미 위 결과함. 개봉한 카드는 퇴근 전까지 카운터에 쌓아 두고, 퇴근하면 보관함으로. 상자는 결과판 + 하이라이트.
+    /// - ③ 단일 팩은 카운터 더미 위 결과함. 개봉한 카드는 퇴근 전까지 카운터에 쌓아 두고, 퇴근하면 보관함으로. 상자는 결과판 + 하이라이트,
+    ///   상자 카드 더미도 단일 팩처럼 카운터에 남음 (11-19 플레이 피드백).
     /// 이 클래스는 순서 · 페이즈 반응 · 정리만 맡고, 일은 부품이 합니다 (AI-005: 거대 클래스 방지).
     ///   <see cref="RevealStack"/> 눈앞 묶음 · <see cref="RevealInput"/> 넘기기 입력 · <see cref="RevealFx"/> 등급 연출 ·
     ///   <see cref="CounterPileView"/> 카운터 더미 · <see cref="BoxResultBoard"/> 상자 결과판 · <see cref="PileInfoPopup"/> 더미 정보 판 ·
@@ -83,7 +84,7 @@ namespace CardShop.Presentation
         /// <summary>팩이 뜯기거나, 카드를 넘기는 중이거나, 상자 결과판이 채워지는 중. 결과함 UI만 떠 있는 동안은 바쁘지 않습니다(새 개봉 시 자동 보관).</summary>
         public bool IsBusy => stage == PackStage.Tearing || stage == PackStage.Flipping || stage == PackStage.Summary;
 
-        /// <summary>카운터에 아직 보관하지 않은 카드 더미가 있음 (단일 팩).</summary>
+        /// <summary>카운터에 아직 보관하지 않은 카드 더미가 있음 (단일 팩 · 다 넘긴 상자).</summary>
         public bool HasPile => Pile.HasCards;
 
         /// <summary>카운터 위 위치 (상자 안내 말풍선 자리).</summary>
@@ -136,13 +137,10 @@ namespace CardShop.Presentation
         /// <param name="tear">뜯김 연출을 할 팩. 없으면 카드 묶음이 바로 솟아오릅니다.</param>
         public void RevealPack(PackResult pack, Pose stackPose, PackTearEffect tear = null)
         {
-            // 이전 더미는 퇴근 전까지 테이블에 그대로 둠. 너무 많이 쌓였을 때만 보관함으로 옮김.
-            if (Pile.IsFull)
-            {
-                StashPile();
-                context?.Events.RaiseNotice("카드 더미가 가득 차서 보관함으로 옮겼어요");
-            }
+            // 이전 더미는 퇴근 전까지 테이블에 둠. 한 더미가 다 차면 옆에 새 더미를 쌓음 (11-19 피드백: 가득 차도 사라지지 않게).
+            // 자리가 다 차면 마지막 더미에 얇게 계속 쌓음
             ClearShown(keepPile: true);
+            if (Pile.ColumnFull && Pile.CanAddColumn) Pile.StartNewColumn();
             packRoutine = StartCoroutine(PackSequence(new List<PackResult> { pack }, stackPose, tear));
         }
 
@@ -150,8 +148,13 @@ namespace CardShop.Presentation
         public void RevealBox(PackResult[] packs)
         {
             if (packs == null || packs.Length == 0) return;
-            StashOrClear(); // 남은 단일 팩 더미는 보관함으로
-            ClearShown();
+            // 상자는 빈 더미에서 시작: 쌓인 카드가 있으면 옆에 새 더미로, 더 놓을 자리가 없으면 보관함으로
+            if (Pile.CurrentHasCards)
+            {
+                if (Pile.CanAddColumn) Pile.StartNewColumn();
+                else StashOrClear();
+            }
+            ClearShown(keepPile: true);
             packRoutine = StartCoroutine(PackSequence(new List<PackResult>(packs), BoxStackPose(), null));
         }
 
@@ -282,9 +285,11 @@ namespace CardShop.Presentation
         {
             stage = PackStage.Summary;
             yield return new WaitForSeconds(Pile.FlySeconds); // 마지막 카드가 더미에 내려앉는 것까지 보여 줌
-            RecycleRevealArea(); // 눈앞 묶음 · 상자 더미 정리 (카드는 모두 보유 목록에 있음). 이어서 여는 단일 팩은 카운터 바닥부터 쌓임
+            CardStack.Clear();
+            Pile.SettleBox(); // 상자 더미는 단일 팩처럼 카운터에 남김: 위 카드는 잡아 볼 수 있고, 이어서 여는 팩은 그 위에, 퇴근 때 보관함으로
 
-            yield return BoxBoard.Show(packs);
+            XRBaseInputInteractor hand = HandFinder.Find(InteractorHandedness.Right);
+            yield return BoxBoard.Show(packs, (v, card) => Fx.Announce(v, card, false, hand)); // 하이라이트 카드도 단일 팩과 같은 등급 연출
             int total = packs.Sum(p => p.Cards.Length);
             int newCount = packs.Sum(p => p.IsNew.Count(n => n));
             context?.Events.RaiseNotice($"상자 개봉: {packs.Count}팩 {total}장, 새 카드 {newCount}장");

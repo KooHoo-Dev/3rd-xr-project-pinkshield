@@ -8,7 +8,8 @@ namespace CardShop.Presentation
     /// 카운터 카드 더미의 장부 (순수 C#, EditMode 테스트). 카드 오브젝트를 움직이지 않고 "몇 번째 높이에 놓일지 · 어떤 카드를 풀로 돌릴지"만 셉니다.
     /// CardRevealer가 카드를 날리고 숨기는 일을 맡습니다. T = 카드 오브젝트 (게임에서는 CardRevealView).
     /// - 단일 팩: 넘긴 카드를 모두 <see cref="Pile"/>에 남기고, 오래된 카드는 <see cref="Compress"/>로 옆면 덩어리(<see cref="TableCards"/>)로 줄입니다.
-    /// - 상자: 위쪽 몇 장만 실제 카드로 두고(<see cref="TrimBox"/>), 아래는 덩어리 높이(<see cref="BlockTop"/>)로만 셉니다.
+    /// - 상자: 위쪽 몇 장만 실제 카드로 두고(<see cref="TrimBox"/>), 아래는 덩어리(<see cref="TableCards"/>)로 줄입니다.
+    ///   다 넘기면 <see cref="SettleBox"/>로 단일 팩 더미처럼 남깁니다 (11-19 플레이 피드백: 상자 카드도 카운터에 남기기).
     /// 지켜야 할 규칙: 단일 팩 카드만 있을 때 NextIndex = TableCards.Count + Pile.Count (다음 카드는 맨 위에 쌓임).
     /// </summary>
     public sealed class CounterPile<T> where T : class
@@ -58,10 +59,11 @@ namespace CardShop.Presentation
             return index;
         }
 
-        /// <summary>건너뛴 상자 카드: 오브젝트 없이 높이로만 셈 (덩어리가 그만큼 자람).</summary>
-        public void CountSkipped(int count)
+        /// <summary>건너뛴 상자 카드: 오브젝트 없이 덩어리 카드로 셈 (덩어리가 그만큼 자람).</summary>
+        public void CountSkipped(CardData card, bool isNew)
         {
-            NextIndex += count;
+            NextIndex++;
+            AddToTable(card, isNew);
             BlockTop = Math.Max(BlockTop, NextIndex);
         }
 
@@ -73,6 +75,7 @@ namespace CardShop.Presentation
                 BoxEntry e = box[0];
                 box.RemoveAt(0);
                 BlockTop = Math.Max(BlockTop, e.Index + 1);
+                AddToTable(cardOf(e.Item), isNewOf(e.Item));
                 recycled.Add(e.Item);
             }
         }
@@ -85,11 +88,26 @@ namespace CardShop.Presentation
                 T item = pile[0];
                 if (isHeld(item)) break;
                 pile.RemoveAt(0);
-                tableCards.Add(cardOf(item));
-                if (isNewOf(item)) TableNew++;
-                BlockTop = tableCards.Count;
+                AddToTable(cardOf(item), isNewOf(item));
+                BlockTop = Math.Max(BlockTop, tableCards.Count); // 상자 뒤에는 건너뛴 카드 덩어리가 더 높을 수 있음
                 recycled.Add(item);
             }
+        }
+
+        /// <summary>
+        /// 상자를 다 넘김: 남은 상자 카드(위쪽 몇 장)를 단일 팩 더미 카드로 옮겨, 이어서 여는 팩이 그 위에 쌓이고
+        /// 퇴근 때 함께 보관함으로 가게 합니다. 덩어리로 줄인 카드는 이미 TableCards에 있습니다.
+        /// </summary>
+        public void SettleBox()
+        {
+            foreach (BoxEntry e in box) pile.Add(e.Item);
+            box.Clear();
+        }
+
+        void AddToTable(CardData card, bool isNew)
+        {
+            tableCards.Add(card);
+            if (isNew) TableNew++;
         }
 
         /// <summary>
