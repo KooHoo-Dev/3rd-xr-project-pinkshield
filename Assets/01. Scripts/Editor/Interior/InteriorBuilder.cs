@@ -323,18 +323,24 @@ namespace CardShop.EditorTools.Interior
 
         // ------------------------------------------------------------------ 거리 보강 (M2)
 
-        /// <summary>거리 끝: 이 x 너머는 건물로 막음. 지나가는 차 · 행인은 이 건물 안에서 나타나고 사라짐(StreetLife.endX)</summary>
-        public const float StreetEndX = 49.5f;
+        /// <summary>
+        /// 건물이 이어지는 끝 (x ±). 4차 기기 피드백: 예전에는 x ±49.5에서 도로를 가로지르는 건물로 막았는데,
+        /// 막힌 길에 차가 다니는 게 어색해서 막는 건물을 없애고 도로를 RoadEndX까지 늘린 뒤 안개(ShopSceneBuilder)로 흐리게 했습니다.
+        /// </summary>
+        public const float StreetEndX = 70f;
+        /// <summary>도로 · 인도가 끝나는 x (±). 안개가 완전히 덮는 거리보다 멀게</summary>
+        public const float RoadEndX = 92.5f;
 
         static readonly string[] BlockShops = { "SM_Bld_Shop_01", "SM_Bld_Shop_02", "SM_Bld_Shop_04", "SM_Bld_Shop_05", "SM_Bld_Shop_06" };
         static readonly string[] BlockFlats = { "SM_Bld_Apartment_01", "SM_Bld_Apartment_02", "SM_Bld_Apartment_03" };
 
         /// <summary>
-        /// 거리 보강 (기기테스트_피드백_설계 6장 M2). 예전 거리는 x ±27.5에서 끝나고 가게 같은 편에는 가게 + 오른쪽 이웃뿐이라
-        /// 인도에 서면 "세트장 끝"과 그 너머(예전 집 자리)가 보였습니다.
-        /// - 도로 · 인도 · 맞은편 건물 줄을 x ±47.5까지 연장
-        /// - 가게 같은 편 좌우를 건물로 채움 (가게와 1.5m 골목)
-        /// - 거리 양 끝(x ±49.5)을 도로를 가로지르는 건물로 막음
+        /// 거리 보강 (기기테스트_피드백_설계 6장 M2 + 4차 기기 피드백).
+        /// - 도로 · 인도를 x ±RoadEndX까지 연장, 맞은편 건물 줄과 가게 같은 편 건물은 ±StreetEndX까지
+        /// - 도로를 왕복 2차선으로: 차선 없는 타일(Road_Bare) + 가운데 노란 겹선 + 양쪽 가장자리 흰 선.
+        ///   가운데 구간(ShopStreet의 Road_01, 차선이 여러 줄이라 주차장처럼 보였음)은 손으로 고친 ShopStreet를 건드리지 않도록
+        ///   같은 자리에 차선 없는 타일을 5mm 위로 덮어 가립니다.
+        /// - 거리 양 끝을 막던 건물은 없앰 (막힌 길에 차가 다니면 어색함)
         /// </summary>
         static GameObject BuildBlocks()
         {
@@ -343,27 +349,38 @@ namespace CardShop.EditorTools.Interior
             Transform ground = Placer.Group(root.transform, "Ground").transform;
             Transform near = Placer.Group(root.transform, "NearSide").transform;
             Transform far = Placer.Group(root.transform, "FarSide").transform;
-            Transform ends = Placer.Group(root.transform, "StreetEnds").transform;
 
             const float sidewalkZ = L.FrontZ + 2.5f, roadZ0 = L.FrontZ + 7.5f, roadZ1 = L.FrontZ + 12.5f, farWalkZ = L.FrontZ + 17.5f, farFront = L.FrontZ + 20f;
             const float roadY = -0.15f;
+            const string bare = "Environments/SM_Env_Road_Bare_01";
 
-            // 거리 연장: ShopStreet 타일(-25 ~ 25) 바깥 30 ~ 50 (50 칸은 거리 끝 건물 밑으로 들어가 틈이 안 보이게)
+            // 가운데 구간: ShopStreet 도로 타일 위에 차선 없는 타일을 살짝 띄워 덮음
+            for (int i = -5; i <= 5; i++)
+            {
+                float x = i * 5f;
+                Placer.Place(ground, ExternalArt.City(bare), new Vector3(x, roadY + 0.005f, roadZ0), Up, name: "Road_Cover");
+                Placer.Place(ground, ExternalArt.City(bare), new Vector3(x, roadY + 0.005f, roadZ1), Up, 180f, name: "Road_Cover");
+            }
+
+            // 거리 연장: ShopStreet 타일(-25 ~ 25) 바깥 30 ~ RoadEndX
+            int lastTile = Mathf.RoundToInt((RoadEndX - 2.5f) / 5f);
             for (int s = -1; s <= 1; s += 2)
-                for (int k = 6; k <= 10; k++)
+                for (int k = 6; k <= lastTile; k++)
                 {
                     float x = s * k * 5f;
                     Placer.Place(ground, ExternalArt.City("Environments/SM_Env_Sidewalk_01"), new Vector3(x, 0f, sidewalkZ), Up, 180f, name: "Sidewalk_Near");
-                    Placer.Place(ground, ExternalArt.City("Environments/SM_Env_Road_01"), new Vector3(x, roadY, roadZ0), Up, name: "Road");
-                    Placer.Place(ground, ExternalArt.City("Environments/SM_Env_Road_01"), new Vector3(x, roadY, roadZ1), Up, 180f, name: "Road");
+                    Placer.Place(ground, ExternalArt.City(bare), new Vector3(x, roadY, roadZ0), Up, name: "Road");
+                    Placer.Place(ground, ExternalArt.City(bare), new Vector3(x, roadY, roadZ1), Up, 180f, name: "Road");
                     Placer.Place(ground, ExternalArt.City("Environments/SM_Env_Sidewalk_01"), new Vector3(x, 0f, farWalkZ), Up, 0f, name: "Sidewalk_Far");
                     // 맞은편 건물 줄 연장 (ShopStreet와 같은 방식)
-                    if (k <= 9) Stack(far, new Vector3(x, 0f, farFront), new Vector3(0f, -1f, -1f), 180f, k * 3 + s);
+                    if (x * s <= StreetEndX) Stack(far, new Vector3(x, 0f, farFront), new Vector3(0f, -1f, -1f), 180f, k * 3 + s);
                 }
+
+            RoadMarkings(ground, roadZ0 - 2.5f, roadZ1 + 2.5f, roadY + 0.02f);
 
             // 가게 같은 편 오른쪽: ShopStreet의 이웃 건물(가게 오른쪽 1.5m 골목, 옆으로 돌려 놓음) 바로 오른쪽부터
             float rightCursor = L.MaxX + 1.5f + NeighborWidth();
-            for (int i = 0; rightCursor < StreetEndX - 2f && i < 20; i++)
+            for (int i = 0; rightCursor < StreetEndX - 2f && i < 30; i++)
             {
                 Bounds b = Stack(near, new Vector3(rightCursor, 0f, L.FrontZ), new Vector3(-1f, -1f, 1f), 0f, i);
                 if (b.size.x < 1f) break;
@@ -371,26 +388,41 @@ namespace CardShop.EditorTools.Interior
             }
             // 왼쪽: 가게 왼쪽 벽에서 1.5m 골목을 두고 왼쪽으로
             float leftCursor = L.MinX - 1.5f;
-            for (int i = 0; leftCursor > -StreetEndX + 2f && i < 20; i++)
+            for (int i = 0; leftCursor > -StreetEndX + 2f && i < 30; i++)
             {
                 Bounds b = Stack(near, new Vector3(leftCursor, 0f, L.FrontZ), new Vector3(1f, -1f, 1f), 0f, i + 7);
                 if (b.size.x < 1f) break;
                 leftCursor = b.min.x;
             }
-
-            // 거리 양 끝: 앞면이 거리 안쪽을 보는 건물을 z 방향으로 이어 붙여 도로 · 인도를 막음
-            for (int s = -1; s <= 1; s += 2)
-            {
-                float z = L.FrontZ - 2f;
-                for (int i = 0; z < farFront + 4f && i < 10; i++)
-                {
-                    // 왼쪽 끝(s=-1)은 앞면이 +X(yaw 90), 오른쪽 끝은 -X(yaw -90)
-                    Bounds b = Stack(ends, new Vector3(s * StreetEndX, 0f, z), new Vector3(-s, -1f, -1f), -90f * s, i + (s > 0 ? 3 : 0));
-                    if (b.size.z < 1f) break;
-                    z = b.max.z;
-                }
-            }
             return root;
+        }
+
+        // 왕복 2차선 표시: 가운데 노란 겹선 + 양쪽 가장자리 흰 실선 (얇은 판, 길이 = 도로 전체)
+        static void RoadMarkings(Transform parent, float roadMinZ, float roadMaxZ, float y)
+        {
+            var group = Placer.Group(parent, "RoadMarkings").transform;
+            Material yellow = Placer.Mat(DecorFactory.MatDir, "RoadLine_Yellow", new Color(0.95f, 0.75f, 0.15f));
+            Material white = Placer.Mat(DecorFactory.MatDir, "RoadLine_White", new Color(0.92f, 0.92f, 0.9f));
+            float length = RoadEndX * 2f;
+            float center = (roadMinZ + roadMaxZ) / 2f;
+            Line(group, "CenterLine_A", yellow, new Vector3(0f, y, center - 0.12f), new Vector3(length, 0.01f, 0.12f));
+            Line(group, "CenterLine_B", yellow, new Vector3(0f, y, center + 0.12f), new Vector3(length, 0.01f, 0.12f));
+            Line(group, "EdgeLine_Near", white, new Vector3(0f, y, roadMinZ + 0.4f), new Vector3(length, 0.01f, 0.15f));
+            Line(group, "EdgeLine_Far", white, new Vector3(0f, y, roadMaxZ - 0.4f), new Vector3(length, 0.01f, 0.15f));
+        }
+
+        static void Line(Transform parent, string name, Material mat, Vector3 center, Vector3 size)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = center;
+            go.transform.localScale = size;
+            Object.DestroyImmediate(go.GetComponent<Collider>());
+            var r = go.GetComponent<MeshRenderer>();
+            r.sharedMaterial = mat;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
         }
 
         // 1층 가게 + 위층 1~2개 + 지붕. align · yaw는 1층 기준. 1층의 월드 경계를 돌려줌 (다음 건물 자리 계산용)

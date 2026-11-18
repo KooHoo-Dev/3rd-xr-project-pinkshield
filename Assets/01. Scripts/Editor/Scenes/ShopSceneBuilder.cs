@@ -108,6 +108,14 @@ namespace CardShop.EditorTools
             // 천장이 해를 막으므로 실내는 대부분 환경광. 페이즈별 값은 PhaseLighting이 바꿈
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.62f, 0.6f, 0.58f);
+
+            // 4차 기기 피드백: 거리 끝을 건물로 막지 않고, 멀리 늘린 도로가 안개 속으로 사라지게 함.
+            // 가게 · 집 안(수 m)에는 닿지 않도록 35m부터, 도로 끝(InteriorBuilder.RoadEndX)보다 앞에서 완전히 덮음. 색은 하늘 지평선 쪽
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.Linear;
+            RenderSettings.fogStartDistance = 35f;
+            RenderSettings.fogEndDistance = 85f;
+            RenderSettings.fogColor = new Color(0.66f, 0.76f, 0.88f);
             return light;
         }
 

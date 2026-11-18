@@ -32,8 +32,8 @@ namespace CardShop.Customers
         [Tooltip("도로 윗면 높이")]
         [SerializeField] float roadY = -0.15f;
         [SerializeField] Vector2 carSpeed = new Vector2(7f, 10f);
-        [SerializeField] Vector2 carGapSeconds = new Vector2(4f, 10f);
-        [SerializeField] int maxCars = 3;
+        [SerializeField] Vector2 carGapSeconds = new Vector2(3f, 7f);
+        [SerializeField] int maxCars = 5; // 거리가 길어져서(±88m) 늘림
 
         [Header("행인")]
         [SerializeField] CustomerRoster roster;
@@ -45,8 +45,8 @@ namespace CardShop.Customers
         [SerializeField] Vector2 walkerGapSeconds = new Vector2(5f, 12f);
         [SerializeField] int maxWalkers = 4;
 
-        [Header("거리 끝 (양 끝 건물 안에서 나타나고 사라짐)")]
-        [SerializeField] float endX = 52f;
+        [Header("거리 끝 (안개 속에서 나타나고 사라짐, 4차 기기 피드백으로 막는 건물 없앰)")]
+        [SerializeField] float endX = 88f;
 
         struct Mover
         {
