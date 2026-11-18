@@ -22,6 +22,7 @@ namespace CardShop.UI
         const string DisplayHeader = "판매 등록 중";
         const string DisplayEmpty = "판매 등록 중인 카드 없음";
         const float ConfirmSeconds = 4f;
+        const float MinConfirmGap = 0.3f; // 한 번 누른 것이 두 번 들어와도(레이 클릭 중복) 바로 팔리지 않게
         // 모두 팔기 대상: 이 등급 이하 (판매 등록은 수퍼레어 이상만 되므로 그 아래를 정리하는 버튼)
         const CardRarity SellAllMax = CardRarity.Rare;
 
@@ -111,13 +112,24 @@ namespace CardShop.UI
             Refresh();
         }
 
+        // 확인 시간이 지나면 "한 번 더 누르면" 안내를 지움 (그대로 두면 다시 눌러도 견적만 다시 나옴)
+        void Update()
+        {
+            if (sellAllArmedUntil < 0f || Time.unscaledTime <= sellAllArmedUntil) return;
+            sellAllArmedUntil = -1f;
+            message = "";
+            Refresh();
+        }
+
         void OnSellAllClicked()
         {
             if (Context == null) return;
             GameSession s = Context.Session;
             string what = $"{RarityName(SellAllMax)} 이하";
 
-            if (Time.unscaledTime > sellAllArmedUntil)
+            float now = Time.unscaledTime;
+            if (now <= sellAllArmedUntil && now < sellAllArmedUntil - ConfirmSeconds + MinConfirmGap) return;
+            if (now > sellAllArmedUntil)
             {
                 int count = Context.Sales.QuoteSellAllUpTo(s, SellAllMax, out int quote);
                 if (count == 0) message = $"{what} 카드가 없어요";
