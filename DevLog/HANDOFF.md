@@ -10,7 +10,8 @@
 - 배치 모드 실행 뒤 `Assets/XR/Settings/OpenXRPackageSettings.asset`이 fileID 순서만 바뀌어 수정됨으로 뜸 → 되돌리면 됨(커밋 안 함)
 
 ### 0-1) 코드 리뷰 + 리팩토링 1·2단계 (11-18 밤, Claude)
-게임 코드(Runtime) 전체를 리뷰하고 사용자가 고른 1·2단계를 진행함. 3단계(카드 더미 · 손님 줄을 순수 C#으로 빼서 테스트, `CardRevealer` 나누기)는 아직.
+게임 코드(Runtime) 전체를 리뷰하고 1·2·3단계를 진행함.
+- **3단계 (구조)**: 카드 더미 장부를 `Presentation/CounterPile`(순수 C#, 테스트 7개)로, 카드 오브젝트 재사용을 `Presentation/CardRevealPool`로 `CardRevealer`에서 떼어 냄. 계산대 줄 칸 순서는 `Logic/CustomerLine`(테스트 5개, "떠나는 손님은 걸어 나갈 때까지 칸 유지" 규칙)으로. 결과판 · 더미 정보 팝업은 개봉 흐름과 붙어 있어 `CardRevealer`에 남김. EditMode 198/198
 - **고친 버그 9개**: 일시정지 중 찍기 · 봉투 · 청소가 되던 것(빠른 계산 보너스 꼼수), 상자 뒤 단일 팩 더미가 10cm 떠 쌓이던 것(`pileIndex`), 건너뛰기 안내 "유니크 이상" → "갓팩"(DEC-004), 1일차 아침 "어제는…" 대사, 화면 전환 중 "처음부터 다시"가 메뉴만 닫던 것, 들고 있던 진열 팩이 정리 때 슬롯 아래로 떨어지던 것, 걸어오는 동안 손님 인내심이 닳던 것, 인기 배율 1.3일 때 가격 1원 모자라던 것(테스트 추가), 건너뛴 카드가 날아가는 중에 잡히던 것
 - **지운 것 (약 −240줄)**: 카드 뒤집기 코드, 팩 · 상자 빛줄기 · 특수 팩 예고 · 아치 배치(DEC-004로 꺼져 있던 것), `BinderStash`(PileStashed와 중복), 듣는 곳 없는 이벤트(`PacksOpened` · `CustomerServed` · `Wallet.Changed`), 안 쓰는 속성들, 테스트 전용 `ServeCustomer` · `TryDisplay`, 디버그 `hideInRelease`
 - **합친 것**: 대사 읽기 3곳 → `Core/LineParser`, "마지막 날" 판단 → `CampaignConfig.IsLastDay`, 바인더 카드 날리기 → `CardRevealView.FlyTo` 재사용

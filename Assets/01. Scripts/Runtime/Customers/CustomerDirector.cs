@@ -58,8 +58,8 @@ namespace CardShop.Customers
         CustomerPicker picker;
         CustomerLines lines;
         readonly List<CustomerAgent> agents = new List<CustomerAgent>();
-        // 계산대 줄. 떠나는 손님도 걸어 나가기 시작할 때까지는 자기 칸을 차지하므로 여기에 남아 있음 (State == Leave)
-        readonly List<CustomerAgent> queue = new List<CustomerAgent>();
+        // 계산대 줄 칸 순서 (규칙은 CustomerLine). 떠나는 손님도 걸어 나가기 시작할 때까지는 자기 칸을 차지 (State == Leave)
+        readonly CustomerLine<CustomerAgent> queue = new CustomerLine<CustomerAgent>();
 
         // 지금 계산대에 물건을 올린 손님 (줄 맨 앞 한 명뿐)
         CustomerAgent checkoutAgent;
@@ -145,7 +145,7 @@ namespace CardShop.Customers
             // 인내 시간: 중간에 '기다리는 중' · '재촉' 대사, 넘으면 감점 없이 그냥 떠남 (설계서 Q2)
             for (int i = queue.Count - 1; i >= 0; i--)
             {
-                CustomerAgent a = queue[i];
+                CustomerAgent a = queue.Members[i];
                 if (a.State != CustomerState.Queue) continue;
                 float patience = Patience(a);
                 if (a.QueueSeconds >= patience) { LeaveQueueAngry(a); continue; }
@@ -237,7 +237,7 @@ namespace CardShop.Customers
         /// </summary>
         public void CheerThiefCaught(float bonusSeconds)
         {
-            foreach (CustomerAgent a in queue)
+            foreach (CustomerAgent a in queue.Members)
             {
                 if (a.State != CustomerState.Queue) continue;
                 a.QueueSeconds = Mathf.Max(0f, a.QueueSeconds - bonusSeconds);
@@ -289,9 +289,7 @@ namespace CardShop.Customers
             agent.State = CustomerState.Queue;
             agent.QueueSeconds = 0f;
             agent.InLine = false;
-            queue.Add(agent);
-
-            int index = queue.Count - 1;
+            int index = queue.Join(agent);
             SlotPose(index, out Vector3 tail, out Quaternion rot);
             Vector3[] path = fromBrowse ? Routes.BrowseToQueue(agent.transform.position, tail) : Routes.EnterToQueue(tail);
             if (entryTurn == null || aisleLow == null) path = new[] { tail }; // 예전 씬(통로 지점 없음): 곧장
@@ -303,7 +301,7 @@ namespace CardShop.Customers
         {
             if (agent.State != CustomerState.Queue) return;
             agent.InLine = true;
-            int index = queue.IndexOf(agent);
+            int index = queue.SlotOf(agent);
             if (index < 0) return;
             SlotPose(index, out Vector3 pos, out Quaternion rot);
             Vector3 flat = agent.transform.position - pos;
@@ -318,7 +316,7 @@ namespace CardShop.Customers
         /// </summary>
         void PrepareCheckout(CustomerAgent agent)
         {
-            if (checkoutAgent == agent || queue.Count == 0 || queue[0] != agent || agent.State != CustomerState.Queue) return;
+            if (checkoutAgent == agent || !queue.IsFront(agent) || agent.State != CustomerState.Queue) return;
             agent.Gesture(CustomerAnim.Talk);
             Say(agent, CustomerMoment.Checkout);
             checkoutAgent = agent;
@@ -341,7 +339,7 @@ namespace CardShop.Customers
         {
             for (int i = 0; i < queue.Count; i++)
             {
-                CustomerAgent a = queue[i];
+                CustomerAgent a = queue.Members[i];
                 if (a.State != CustomerState.Queue || !a.InLine) continue;
                 SlotPose(i, out Vector3 pos, out Quaternion rot);
                 a.WalkTo(pos, rot, () => ArriveInLine(a));
@@ -383,8 +381,7 @@ namespace CardShop.Customers
         // 줄에서 빠져 걸어 나가기 시작: 이때 칸이 비므로 줄을 당김
         void LeaveLine(CustomerAgent agent, bool wave)
         {
-            int index = queue.IndexOf(agent);
-            queue.Remove(agent);
+            int index = queue.Leave(agent);
             ShiftQueue();
             if (wave) agent.Gesture(CustomerAnim.Wave);
 
@@ -413,7 +410,7 @@ namespace CardShop.Customers
         void Remove(CustomerAgent agent)
         {
             agents.Remove(agent);
-            queue.Remove(agent);
+            queue.Leave(agent);
             if (agent != null) Destroy(agent.gameObject);
         }
 
