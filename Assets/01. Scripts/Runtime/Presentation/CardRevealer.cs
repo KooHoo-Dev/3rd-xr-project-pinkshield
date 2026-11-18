@@ -137,11 +137,10 @@ namespace CardShop.Presentation
 
         CardRevealPool cardPool;     // 카드 오브젝트 재사용
         CounterPileView counterPile; // 카운터 카드 더미 (장부는 CounterPile, CounterPileTests)
-        PackResultPanel pileInfo;
-        Coroutine pileInfoHide;
+        PileInfoPopup pileInfo;      // 더미 카드를 잡으면 테이블 카드 전체 요약
         RevealStack revealStack;     // 눈앞 카드 묶음 (맨 앞 몇 장만 실체화)
         GameContext context;
-        TextMeshPro boxBoard;
+        BoxResultBoard boxBoard;     // 상자 결과판 + 하이라이트 카드
         PackResultPanel resultPanel;
         BoxOpenEffect boxEffect;
         RevealFx fx;                 // 등급 연출: 소리 · 진동 · 폭죽 · 흔들림
@@ -358,45 +357,6 @@ namespace CardShop.Presentation
             packRoutine = null;
         }
 
-        // ---- 카드 더미 정보: 더미의 카드를 집으면 테이블에 쌓인 카드 전체의 요약을 옆에 띄움 (줄어든 오래된 카드도 포함)
-        void OnCardGrabbed(CardRevealView v)
-        {
-            if (!Pile.Contains(v) || stage == PackStage.Tearing || stage == PackStage.Flipping) return;
-            if (pileInfoHide != null) { StopCoroutine(pileInfoHide); pileInfoHide = null; }
-            if (pileInfo == null) pileInfo = PackResultPanel.Create(transform, Font);
-            float top = Pile.HeightAt(Pile.NextIndex);
-            Vector3 at = Pile.BasePose.position + anchor.right * pileInfoOffset + Vector3.up * (top + resultPanelHeight);
-            pileInfo.ShowText(BuildPileInfo(v), at, anchor.rotation, resultFontSize, 0.15f);
-        }
-
-        void OnCardReleased(CardRevealView v)
-        {
-            if (pileInfo == null || !pileInfo.IsShown || !isActiveAndEnabled) return;
-            if (pileInfoHide != null) StopCoroutine(pileInfoHide);
-            pileInfoHide = StartCoroutine(HidePileInfoAfter(pileInfoHoldSeconds));
-        }
-
-        IEnumerator HidePileInfoAfter(float seconds)
-        {
-            yield return new WaitForSeconds(seconds);
-            pileInfoHide = null;
-            if (pileInfo != null) pileInfo.Hide();
-        }
-
-        void HidePileInfo()
-        {
-            if (pileInfoHide != null) { StopCoroutine(pileInfoHide); pileInfoHide = null; }
-            if (pileInfo != null) pileInfo.Hide();
-        }
-
-        string BuildPileInfo(CardRevealView held)
-        {
-            var cards = new List<CardData>();
-            int newCount = Pile.CollectCards(cards);
-            return RevealText.PileInfo(cards, newCount, held != null ? held.Card : null, held != null && held.IsNew,
-                cardPrefab != null ? cardPrefab.Styles : null);
-        }
-
         // 갓팩 예고: 큰 금빛 폭죽 + 진동 + (있으면) 효과음 뒤 잠깐 멈춤. 카메라는 흔들지 않음 (VR 멀미 방지).
         IEnumerator GodIntro(Pose stack, XRBaseInputInteractor hand)
         {
@@ -422,29 +382,10 @@ namespace CardShop.Presentation
             yield return new WaitForSeconds(flySeconds); // 마지막 카드가 더미에 내려앉는 것까지 보여 줌
             RecycleRevealArea(); // 눈앞 묶음 · 더미 정리 (카드는 모두 보유 목록에 있음). 이어서 여는 단일 팩은 카운터 바닥부터 쌓임
 
-            TextMeshPro board = EnsureBoard();
-            board.gameObject.SetActive(true);
-            CardRarityStyles styles = cardPrefab != null ? cardPrefab.Styles : null;
-
-            var rows = new System.Text.StringBuilder();
-            for (int i = 0; i < packs.Count; i++)
-            {
-                rows.Append(RevealText.BoxRow(packs[i], i + 1, styles));
-                board.text = RevealText.BoxProgress(rows.ToString(), i + 1, packs.Count);
-                yield return new WaitForSeconds(boxRowInterval);
-            }
-
-            board.text = RevealText.BoxSummary(packs, rows.ToString(), styles);
+            yield return BoxBoard.Show(packs);
             int total = packs.Sum(p => p.Cards.Length);
             int newCount = packs.Sum(p => p.IsNew.Count(n => n));
             context?.Events.RaiseNotice($"상자 개봉: {packs.Count}팩 {total}장, 새 카드 {newCount}장");
-
-            List<(int pack, int card)> best = RevealQueue.PickHighlights(packs, boxHighlightCount);
-            for (int i = 0; i < best.Count; i++)
-            {
-                PackResult p = packs[best[i].pack];
-                Pool.Show(p.Cards[best[i].card], p.IsNew[best[i].card], SlotPosition(i, best.Count), anchor.rotation, counterScale);
-            }
 
             // 끝: 결과판 · 하이라이트는 다음 상자 · 영업 시작 때 정리 (기존 동작)
             stage = PackStage.None;
@@ -485,25 +426,6 @@ namespace CardShop.Presentation
         {
             if (IsBusy) Clear();
             else StashPile();
-        }
-
-        // 결과판: 카드 위쪽에 카드와 같은 방향으로. 한글 폰트는 카드 프리팹의 글꼴을 빌려 씁니다.
-        TextMeshPro EnsureBoard()
-        {
-            if (boxBoard != null) return boxBoard;
-            var go = new GameObject("BoxResultBoard", typeof(RectTransform));
-            go.transform.SetParent(transform, false);
-            go.transform.SetPositionAndRotation(anchor.position + anchor.up * 0.09f, anchor.rotation);
-            boxBoard = go.AddComponent<TextMeshPro>();
-            if (Font != null) boxBoard.font = Font;
-            boxBoard.fontSize = 0.22f;
-            boxBoard.alignment = TextAlignmentOptions.BottomLeft;
-            boxBoard.color = Color.white;
-            boxBoard.textWrappingMode = TextWrappingModes.NoWrap;
-            var rt = (RectTransform)go.transform;
-            rt.pivot = new Vector2(0.5f, 0f);
-            rt.sizeDelta = new Vector2(0.3f, 0.3f);
-            return boxBoard;
         }
 
         PackResultPanel EnsureResultPanel()
@@ -549,7 +471,7 @@ namespace CardShop.Presentation
             EndPackRoutine();
             if (tearingPack != null) Destroy(tearingPack);
             tearingPack = null;
-            if (boxBoard != null) boxBoard.gameObject.SetActive(false);
+            if (boxBoard != null) boxBoard.Hide();
             if (boxEffect != null) boxEffect.Stop();
             Fx.Stop();
             RecycleRevealArea(keepPile);
@@ -574,15 +496,37 @@ namespace CardShop.Presentation
             if (packRoutine != null) { StopCoroutine(packRoutine); packRoutine = null; }
             stage = PackStage.None;
             if (resultPanel != null) resultPanel.Hide();
-            HidePileInfo();
+            if (pileInfo != null) pileInfo.Hide();
             TriggerInput.HideGauge();
             rayUi.Restore();
         }
 
-        // 카운터 위 가로 한 줄의 index번째 자리 (상자 하이라이트)
-        Vector3 SlotPosition(int index, int count) => anchor.position + anchor.right * ((index - (count - 1) * 0.5f) * spacing);
-
         CardRevealPool Pool => cardPool ??= new CardRevealPool(Create);
+
+        // 더미 카드를 잡으면 정보 판 (카드를 넘기는 중에는 띄우지 않음)
+        void OnCardGrabbed(CardRevealView v)
+        {
+            if (stage == PackStage.Tearing || stage == PackStage.Flipping) return;
+            PileInfo.OnGrabbed(v);
+        }
+
+        CardRarityStyles Styles => cardPrefab != null ? cardPrefab.Styles : null;
+
+        PileInfoPopup PileInfo => pileInfo ??= new PileInfoPopup(this, anchor, Pile, () => Font, () => Styles, () => new PileInfoPopup.Settings
+        {
+            SideOffset = pileInfoOffset,
+            HoldSeconds = pileInfoHoldSeconds,
+            Height = resultPanelHeight,
+            FontSize = resultFontSize,
+        });
+
+        BoxResultBoard BoxBoard => boxBoard ??= new BoxResultBoard(transform, anchor, Pool, () => Font, () => Styles, () => new BoxResultBoard.Settings
+        {
+            RowInterval = boxRowInterval,
+            HighlightCount = boxHighlightCount,
+            Spacing = spacing,
+            CardScale = counterScale,
+        });
 
         RevealStack CardStack => revealStack ??= new RevealStack(Pool, Pile, () => new RevealStack.Settings
         {
@@ -610,7 +554,7 @@ namespace CardShop.Presentation
             CardView card = Instantiate(cardPrefab, transform);
             var view = card.gameObject.AddComponent<CardRevealView>();
             view.GrabStarted += OnCardGrabbed;
-            view.GrabEnded += OnCardReleased;
+            view.GrabEnded += _ => PileInfo.OnReleased();
             return view;
         }
     }
