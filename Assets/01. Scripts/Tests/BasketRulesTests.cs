@@ -74,6 +74,31 @@ namespace CardShop.Tests
         }
 
         [Test]
+        public void Build_PacksCanRepeatButFiguresOnlyOncePerCustomer()
+        {
+            var options = new List<StockOption>
+            {
+                new StockOption(0, "카드팩", 10, 1, 1, 0),
+                new StockOption(1, "피규어", 45, 100, 1, 1),
+            };
+            // 첫 칸은 피규어(굴림 1 → 피규어), 그 뒤로는 피규어가 빠져 가중치 합계 1 → 카드팩만
+            Basket b = BasketRules.Build(null, 0, 4, options, 1, new ScriptedRandom().Int(1, 0, 0, 0));
+            Assert.AreEqual(4, b.Count);
+            int figures = 0, packs = 0;
+            foreach (BasketLine l in b.Lines) { if (l.StockIndex == 1) figures++; else if (l.StockIndex == 0) packs++; }
+            Assert.AreEqual(1, figures, "피규어는 손님당 1개");
+            Assert.AreEqual(3, packs, "카드팩은 여러 개");
+        }
+
+        [Test]
+        public void Build_StopsEarlyWhenEveryItemReachedItsLimit()
+        {
+            var options = new List<StockOption> { new StockOption(0, "카드팩 상자", 90, 1, 1, 1) };
+            Basket b = BasketRules.Build(null, 0, 3, options, 1, new ScriptedRandom().Int(0, 0, 0));
+            Assert.AreEqual(1, b.Count, "살 수 있는 품목이 없으면 개수가 덜 차도 멈춤");
+        }
+
+        [Test]
         public void Build_WithoutStockKeepsOnlyCard()
         {
             Basket b = BasketRules.Build(null, 0, 3, new List<StockOption>(), 1, new ScriptedRandom());

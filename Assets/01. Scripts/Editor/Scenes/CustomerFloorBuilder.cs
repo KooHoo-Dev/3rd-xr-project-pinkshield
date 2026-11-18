@@ -163,7 +163,7 @@ namespace CardShop.EditorTools
             ShopItemConfig.Item item = shopItems.items.Find(i => i != null && i.displayName == name);
             if (item == null)
             {
-                item = new ShopItemConfig.Item { displayName = name, price = price, weight = weight, firstDay = firstDay };
+                item = new ShopItemConfig.Item { displayName = name, price = price, weight = weight, firstDay = firstDay, maxPerCustomer = 1 };
                 shopItems.items.Add(item);
             }
             if (item.prefab == null) item.prefab = prefab;

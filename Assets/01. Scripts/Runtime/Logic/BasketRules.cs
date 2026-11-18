@@ -11,9 +11,11 @@ namespace CardShop.Logic
         public readonly int Price;
         public readonly int Weight;
         public readonly int FirstDay;   // 이 일차부터 팔림
+        public readonly int MaxPerCustomer; // 손님 한 명이 살 수 있는 최대 개수 (0 = 제한 없음)
 
-        public StockOption(int index, string name, int price, int weight, int firstDay)
+        public StockOption(int index, string name, int price, int weight, int firstDay, int maxPerCustomer = 0)
         {
+            MaxPerCustomer = maxPerCustomer;
             Index = index;
             Name = name;
             Price = price;
@@ -105,6 +107,7 @@ namespace CardShop.Logic
     /// <summary>
     /// 장바구니 뽑기 (계산시스템_확장_설계 5-3). 개수는 가중치로 뽑되 그날 최대 개수를 넘지 않고,
     /// 판매 등록 카드(있으면 1장)가 먼저 한 칸을 차지한 뒤 나머지를 가게 재고로 채웁니다.
+    /// 재고는 품목마다 손님당 최대 개수가 있습니다 (카드팩은 제한 없음, 피규어 · 상자는 1개 — DEC-013).
     /// </summary>
     public static class BasketRules
     {
@@ -127,24 +130,29 @@ namespace CardShop.Logic
             return usable;
         }
 
-        /// <summary>그날 팔리는 재고 중 가중치로 하나. 없으면 -1 (options 안의 위치).</summary>
-        public static int PickStock(IReadOnlyList<StockOption> options, int day, IRandomSource random)
+        /// <summary>
+        /// 그날 팔리는 재고 중 가중치로 하나. 없으면 -1 (options 안의 위치).
+        /// <paramref name="taken"/>[i] = 이 손님이 이미 담은 options[i] 개수. 최대 개수에 닿은 품목은 뽑지 않습니다.
+        /// </summary>
+        public static int PickStock(IReadOnlyList<StockOption> options, int day, IRandomSource random, IReadOnlyList<int> taken = null)
         {
             int total = 0;
-            foreach (StockOption o in options) if (Available(o, day)) total += o.Weight;
+            for (int i = 0; i < options.Count; i++) if (Available(options[i], day, taken, i)) total += options[i].Weight;
             if (total <= 0) return -1;
 
             int roll = random.Range(0, total);
             for (int i = 0; i < options.Count; i++)
             {
-                if (!Available(options[i], day)) continue;
+                if (!Available(options[i], day, taken, i)) continue;
                 if (roll < options[i].Weight) return i;
                 roll -= options[i].Weight;
             }
             return -1;
         }
 
-        static bool Available(StockOption o, int day) => o.Weight > 0 && day >= o.FirstDay;
+        static bool Available(StockOption o, int day, IReadOnlyList<int> taken, int i) =>
+            o.Weight > 0 && day >= o.FirstDay
+            && (o.MaxPerCustomer <= 0 || taken == null || taken[i] < o.MaxPerCustomer);
 
         /// <param name="card">판매 등록 카드를 사기로 했으면 그 카드 (SalesRules.PickPurchase), 아니면 null</param>
         /// <param name="cardPrice">손님이 내는 카드 값 (SalesRules.CustomerPrice)</param>
@@ -152,10 +160,12 @@ namespace CardShop.Logic
         {
             var lines = new List<BasketLine>();
             if (card != null) lines.Add(new BasketLine(card.displayName, cardPrice, -1, card));
+            var taken = new int[options.Count];
             while (lines.Count < count)
             {
-                int pick = PickStock(options, day, random);
-                if (pick < 0) break;
+                int pick = PickStock(options, day, random, taken);
+                if (pick < 0) break; // 살 수 있는 품목이 다 떨어지면 개수가 덜 차도 멈춤
+                taken[pick]++;
                 StockOption o = options[pick];
                 lines.Add(new BasketLine(o.Name, o.Price, o.Index, null));
             }

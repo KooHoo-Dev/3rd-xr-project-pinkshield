@@ -17,26 +17,31 @@ MonoBehaviour:
     price: 10
     weight: 6
     firstDay: 1
+    maxPerCustomer: 0
     prefab: {fileID: 6319293964452815455, guid: 47a24a2fc59f69740b1a942db03ce571, type: 3}
   - displayName: "\uBBF8\uB2C8 \uD53C\uADDC\uC5B4"
     price: 30
     weight: 2
     firstDay: 2
+    maxPerCustomer: 1
     prefab: {fileID: 465786182735045818, guid: 865c609804eee0a4c8f14a0ae623e1df, type: 3}
   - displayName: "\uD53C\uADDC\uC5B4"
     price: 45
     weight: 1
     firstDay: 3
+    maxPerCustomer: 1
     prefab: {fileID: 8959252362034610582, guid: 690650c51664da147abfced881e5cce0, type: 3}
   - displayName: "\uD55C\uC815 \uD53C\uADDC\uC5B4"
     price: 60
     weight: 1
     firstDay: 5
+    maxPerCustomer: 1
     prefab: {fileID: 5237679001031649069, guid: 2aa49adbd96e7fc41a0289032d4b1f5a, type: 3}
   - displayName: "\uCE74\uB4DC\uD329 \uC0C1\uC790"
     price: 90
     weight: 1
     firstDay: 3
+    maxPerCustomer: 1
     prefab: {fileID: 8177928974343025942, guid: 7221a75719ed0604fa13305b29b84080, type: 3}
   countWeights: 320000001e0000000f00000005000000
   maxCountByDay: 02000000020000000300000003000000040000000400000004000000

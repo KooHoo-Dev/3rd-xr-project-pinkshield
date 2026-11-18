@@ -24,6 +24,8 @@ namespace CardShop.Cards
             public int weight = 1;
             [Tooltip("이 일차부터 팔림 (1부터)")]
             public int firstDay = 1;
+            [Tooltip("손님 한 명이 살 수 있는 최대 개수. 0 = 제한 없음 (카드팩). 피규어 · 상자는 1")]
+            public int maxPerCustomer = 0;
             [Tooltip("계산대에 올라오는 물건 (ScannableItem). CustomerFloorBuilder가 카드팩은 자동으로 채움")]
             public ScannableItem prefab;
         }
@@ -53,7 +55,7 @@ namespace CardShop.Cards
             {
                 Item it = items[i];
                 if (it == null || it.prefab == null) continue;
-                list.Add(new StockOption(i, it.displayName, it.price, it.weight, it.firstDay));
+                list.Add(new StockOption(i, it.displayName, it.price, it.weight, it.firstDay, it.maxPerCustomer));
             }
             return list;
         }
