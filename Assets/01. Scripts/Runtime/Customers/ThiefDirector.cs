@@ -13,8 +13,11 @@ namespace CardShop.Customers
     ///   ├ 빗자루(Broom)에 맞음: 팩을 그 자리에 떨어뜨리고 밖으로 도망. 줄 손님 박수 + 인내 시간 회복(CustomerDirector.CheerThiefCaught).
     ///   │  떨어진 팩을 집으면 계산대로 돌아감. 안 집고 영업이 끝나도 되찾은 것으로 침.
     ///   └ 인도 끝(문에서 escapeDistance) 도착: 장부에 도난 → 퇴근 후 무료 팩 0개 (ThiefRules.FreePacksToday)
-    /// 판단(등장 시각 · 맞음 · 길)은 ThiefRules, 몸(외형 · 걷기 · 말풍선)은 CustomerDirector.SpawnExtra가 만듭니다.
-    /// 일시정지 중에는 등장 타이머 · 맞음 판정이 멈추고, 도둑 걷기는 CustomerAgent가 멈춥니다.
+    /// 이 클래스는 흐름(등장 → 훔침 → 도망/잡힘)과 맞음 판정 · 말하기만 맡습니다 (AI-005).
+    ///   팩이 어디 있나 = <see cref="FreePackState"/>(순수, 테스트됨) · 팩 옮기기 = <see cref="FreePackHolder"/> ·
+    ///   등장 시각 = <see cref="SpawnClock"/>(순수, 테스트됨) · 복면 · 키 · 손 = <see cref="ThiefBody"/> ·
+    ///   판단(등장 일정 · 맞음 · 길) = ThiefRules · 몸(외형 · 걷기 · 말풍선) = CustomerDirector.SpawnExtra.
+    /// 일시정지 중에는 등장 시계 · 맞음 판정이 멈추고, 도둑 걷기는 CustomerAgent가 멈춥니다.
     /// </summary>
     public sealed class ThiefDirector : MonoBehaviour, IThiefFloor
     {
@@ -44,37 +47,21 @@ namespace CardShop.Customers
         static readonly string[] CaughtLines = { "으악! 잘못했어요!", "아야! 안 훔쳐요, 안 훔쳐!", "빗자루는 반칙이잖아!" };
         static readonly string[] EscapeLines = { "메롱~", "잡아 보시지!", "다음에 또 올게~" };
 
+        readonly FreePackState pack = new FreePackState();
+        readonly SpawnClock clock = new SpawnClock();
+        FreePackHolder holder;
         GameContext context;
         CampaignConfig.ThiefSettings settings;
-
         CustomerAgent thief;
         State state;
         float thiefHeight = 1.7f;
-        bool carrying;     // 도둑 손에 팩이 있음
-        bool packDropped;  // 잡혀서 떨어뜨린 팩이 바닥에 있음
-        bool stolenToday;  // 놓쳐서 오늘 팩을 잃음
-        bool returningPack;
-        Vector3 escapePoint, farEscape;
+        Vector3 farEscape;
 
-        float[] schedule = new float[0];
-        int next;
-        float elapsed;
-        bool spawning;
-
-        Transform packHomeParent;
-        Vector3 packHomeLocalPos;
-        Quaternion packHomeLocalRot;
-
-        public bool IsActive => thief != null || (spawning && next < schedule.Length && PackAtHome);
-
-        bool PackAtHome => !carrying && !packDropped && !stolenToday;
+        public bool IsActive => thief != null || (clock.HasPending && pack.AtHome);
 
         void Awake()
         {
-            if (freePack == null) return;
-            packHomeParent = freePack.transform.parent;
-            packHomeLocalPos = freePack.transform.localPosition;
-            packHomeLocalRot = freePack.transform.localRotation;
+            if (freePack != null) holder = new FreePackHolder(freePack, display); // 만들 때 놓인 자리 = 돌아올 자리
         }
 
         void OnEnable()
@@ -86,7 +73,7 @@ namespace CardShop.Customers
             if (freePack != null)
             {
                 freePack.Grabbed += OnPackGrabbed;
-                freePack.Released += OnPackReleased;
+                freePack.Released += holder.OnReleased;
             }
         }
 
@@ -97,22 +84,12 @@ namespace CardShop.Customers
             if (freePack != null)
             {
                 freePack.Grabbed -= OnPackGrabbed;
-                freePack.Released -= OnPackReleased;
+                freePack.Released -= holder.OnReleased;
             }
         }
 
-        void Start()
-        {
-            // 영업 중에만 보임 (퇴근 후에는 팩 고르기에서 무료로 깜)
-            ShowDisplay(flow != null && flow.CurrentPhase == GamePhaseId.Business);
-        }
-
-        void ShowDisplay(bool on)
-        {
-            if (display != null) display.SetActive(on);
-            if (freePack != null && (display == null || !freePack.transform.IsChildOf(display.transform)))
-                freePack.gameObject.SetActive(on);
-        }
+        // 영업 중에만 보임 (퇴근 후에는 팩 고르기에서 무료로 깜)
+        void Start() => holder?.Show(flow != null && flow.CurrentPhase == GamePhaseId.Business);
 
         void OnPhaseChanged(GamePhaseId from, GamePhaseId to)
         {
@@ -120,40 +97,30 @@ namespace CardShop.Customers
             else if (from == GamePhaseId.Business)
             {
                 DismissAll();
-                ShowDisplay(false);
+                holder?.Show(false);
             }
         }
 
         void BeginDay()
         {
             DismissAll();
-            stolenToday = false;
-            ReturnPackHome();
-            ShowDisplay(true);
+            pack.StartDay();
+            holder?.ReturnHome();
+            holder?.Show(true);
 
             settings = context.Campaign.thief;
             int day = context.Session.Day;
             int count = ThiefRules.CountToday(day, settings.firstDay, settings.perDay);
             float business = context.Campaign.GetDay(day).businessSeconds;
-            schedule = ThiefRules.Schedule(count, business, settings.spawnWindow, context.Random);
-            next = 0;
-            elapsed = 0f;
-            spawning = schedule.Length > 0;
+            clock.Start(ThiefRules.Schedule(count, business, settings.spawnWindow, context.Random));
         }
 
         void Update()
         {
             if (flow == null || flow.IsPaused || flow.CurrentPhase != GamePhaseId.Business) return;
 
-            if (spawning && thief == null)
-            {
-                elapsed += Time.deltaTime;
-                if (next < schedule.Length && schedule[next] <= elapsed)
-                {
-                    next++;
-                    if (PackAtHome) Spawn(); // 훔칠 팩이 없으면(이미 잃었거나 바닥에 있음) 그날은 더 안 옴
-                }
-            }
+            // 도둑이 나와 있는 동안은 시계가 멈춤. 훔칠 팩이 없으면(이미 잃었거나 바닥에 있음) 차례가 와도 안 옴
+            if (thief == null && clock.Tick(Time.deltaTime) && pack.AtHome) Spawn();
 
             if (thief != null && CanBeHit && broom != null && broom.IsHeld &&
                 ThiefRules.IsHit(broom.HeadPosition, broom.HeadSpeed, thief.transform.position, thiefHeight, settings.hitRadius, settings.hitSpeed))
@@ -166,16 +133,14 @@ namespace CardShop.Customers
 
         void Spawn()
         {
-            if (customers == null || stealSpot == null || freePack == null) return;
+            if (customers == null || stealSpot == null || holder == null) return;
             thief = customers.SpawnExtra("Thief");
             if (thief == null) return;
 
-            var animator = thief.GetComponentInChildren<Animator>();
-            Transform head = HumanoidHeight.Head(animator);
-            thiefHeight = head != null ? head.position.y - thief.transform.position.y + 0.15f : 1.7f;
-            WearMask(head);
+            Transform head = HumanoidHeight.Head(thief.GetComponentInChildren<Animator>());
+            thiefHeight = ThiefBody.Height(thief, head);
+            ThiefBody.WearMask(thief, head, maskTemplate, maskHeadOffset, thiefHeight);
 
-            carrying = false;
             state = State.Approach;
             Say(EnterLines);
             thief.WalkPath(ThiefRules.ApproachPath(customers.Routes, stealSpot.position), stealSpot.rotation, () =>
@@ -186,30 +151,10 @@ namespace CardShop.Customers
             });
         }
 
-        void WearMask(Transform head)
-        {
-            if (maskTemplate == null) return;
-            GameObject mask = Instantiate(maskTemplate);
-            mask.name = "ThiefMask";
-            float scale = thief.transform.lossyScale.x;
-            mask.transform.localScale = maskTemplate.transform.localScale * scale;
-            Vector3 center = head != null
-                ? head.position + Vector3.up * maskHeadOffset * scale
-                : thief.transform.position + Vector3.up * (thiefHeight - 0.15f);
-            // 지금 몸이 보는 쪽이 앞 (머리 뼈 축은 모델마다 달라서 몸 방향으로 맞춘 뒤 머리에 붙임)
-            mask.transform.SetPositionAndRotation(center, Quaternion.LookRotation(thief.transform.forward, Vector3.up));
-            mask.transform.SetParent(head != null ? head : thief.transform, true);
-            mask.SetActive(true);
-        }
-
         void Steal()
         {
-            if (thief == null) return;
-            carrying = true;
-            freePack.SetGrabbable(false);
-            Transform hand = HandOf(thief);
-            freePack.transform.SetParent(hand, true);
-            freePack.transform.localPosition = Vector3.zero;
+            if (thief == null || !pack.Steal()) return;
+            holder.AttachTo(ThiefBody.Hand(thief));
 
             state = State.Taunt;
             thief.Gesture(CustomerAnim.Cheer);
@@ -224,7 +169,7 @@ namespace CardShop.Customers
             state = State.Flee;
             bool left = context.Random.NextDouble() < 0.5;
             CustomerRoutes routes = customers.Routes;
-            escapePoint = ThiefRules.EscapePoint(routes.DoorOutside, sidewalkZ, settings.escapeDistance, left);
+            Vector3 escapePoint = ThiefRules.EscapePoint(routes.DoorOutside, sidewalkZ, settings.escapeDistance, left);
             farEscape = ThiefRules.EscapePoint(routes.DoorOutside, sidewalkZ, settings.escapeDistance + 12f, left);
             thief.WalkSpeed = settings.runSpeed;
             thief.WalkPath(ThiefRules.FleePath(routes, escapePoint), null, Escaped);
@@ -234,7 +179,7 @@ namespace CardShop.Customers
         {
             if (thief == null) return;
             state = State.RunOff;
-            stolenToday = true;
+            pack.Escaped();
             context.Session.Ledger.freePackStolen = true;
             Say(EscapeLines);
             context.Events.RaiseNotice("도둑을 놓쳤어요… 오늘 퇴근 후 무료 팩은 없어요.");
@@ -243,13 +188,13 @@ namespace CardShop.Customers
 
         void Caught()
         {
-            bool hadPack = carrying;
+            bool hadPack = pack.Caught();
             state = State.RunOff;
             context.Session.Ledger.thievesCaught++;
             thief.Gesture(CustomerAnim.Shake);
             Say(CaughtLines);
 
-            if (hadPack) DropPack();
+            if (hadPack) holder.DropInFrontOf(thief.transform, droppedPackHeight);
             customers.CheerThiefCaught(settings.heroPatienceBonus);
             context.Events.RaiseNotice(hadPack
                 ? $"도둑을 잡았어요! 떨어진 무료 팩을 주워 오세요. (줄 손님 인내 +{settings.heroPatienceBonus:0}초)"
@@ -269,23 +214,9 @@ namespace CardShop.Customers
             });
         }
 
-        // 잡힌 자리 바닥에 팩을 눕혀 떨어뜨리고 잡을 수 있게 함
-        void DropPack()
-        {
-            carrying = false;
-            packDropped = true;
-            Vector3 feet = thief.transform.position;
-            Vector3 pos = feet + thief.transform.forward * 0.35f;
-            pos.y = feet.y + droppedPackHeight;
-            freePack.transform.SetParent(packHomeParent, true);
-            freePack.PlaceAt(pos, Quaternion.Euler(90f, thief.transform.eulerAngles.y, 0f));
-            freePack.SetGrabbable(true);
-        }
-
         void RemoveThief()
         {
-            if (carrying) ReturnPackHome(hide: stolenToday); // 도둑과 함께 사라지지 않게 먼저 떼어 냄
-            carrying = false;
+            Apply(pack.ThiefRemoved()); // 도둑 손의 팩은 도둑과 함께 사라지지 않게 먼저 떼어 냄
             if (thief != null) Destroy(thief.gameObject);
             thief = null;
             state = State.None;
@@ -295,8 +226,7 @@ namespace CardShop.Customers
 
         void OnPackGrabbed(HeldItem _)
         {
-            if (!packDropped) return;
-            packDropped = false;
+            if (!pack.PickUp()) return;
             context.Events.RaiseNotice("무료 팩을 되찾았어요!");
             StartCoroutine(ReturnPackNextFrame());
         }
@@ -305,41 +235,13 @@ namespace CardShop.Customers
         IEnumerator ReturnPackNextFrame()
         {
             yield return null;
-            ReturnPackHome();
+            holder.ReturnHome();
         }
 
-        // 잡기를 끊을 때 HeldItem이 바닥으로 떨어뜨리지 않게, 놓이는 순간 제자리에 둠
-        void OnPackReleased(HeldItem _)
+        void Apply(FreePackState.Move move)
         {
-            if (returningPack) PlaceHome();
-        }
-
-        void ReturnPackHome(bool hide = false)
-        {
-            if (freePack == null) return;
-            returningPack = true;
-            freePack.SetGrabbable(false);
-            returningPack = false;
-            packDropped = false;
-            PlaceHome();
-            if (hide) ShowDisplay(false);
-        }
-
-        void PlaceHome()
-        {
-            freePack.transform.SetParent(packHomeParent, false);
-            freePack.PlaceAt(
-                packHomeParent != null ? packHomeParent.TransformPoint(packHomeLocalPos) : packHomeLocalPos,
-                packHomeParent != null ? packHomeParent.rotation * packHomeLocalRot : packHomeLocalRot);
-        }
-
-        // ------------------------------------------------------------------ 도움
-
-        static Transform HandOf(CustomerAgent agent)
-        {
-            var animator = agent.GetComponentInChildren<Animator>();
-            Transform hand = animator != null && animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.RightHand) : null;
-            return hand != null ? hand : agent.transform;
+            if (holder == null || move == FreePackState.Move.None) return;
+            holder.ReturnHome(hide: move == FreePackState.Move.HomeHidden);
         }
 
         void Say(string[] lines)
@@ -350,20 +252,15 @@ namespace CardShop.Customers
 
         // ------------------------------------------------------------------ IThiefFloor
 
-        public void StopSpawning() => spawning = false;
+        public void StopSpawning() => clock.Stop();
 
         public void DismissAll()
         {
-            spawning = false;
-            if (thief != null)
-            {
-                if (carrying) ReturnPackHome(); // 강제 종료는 도난으로 치지 않음
-                carrying = false;
-                Destroy(thief.gameObject);
-            }
+            clock.Stop();
+            Apply(pack.ForceEnd()); // 도둑 손의 팩은 도난으로 치지 않고, 잡고 안 주운 팩은 되찾은 것으로 침
+            if (thief != null) Destroy(thief.gameObject);
             thief = null;
             state = State.None;
-            if (packDropped) ReturnPackHome(); // 잡고 안 주운 팩은 되찾은 것으로 침
         }
     }
 }

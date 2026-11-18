@@ -27,6 +27,11 @@
   - 설정 묶음에서 같은 값이 두 곳이 됨: 결과함 높이 · 글자 크기(`resultPanelHeight/FontSize` ↔ `pileInfoSettings.Height/FontSize`), 카운터 카드 크기(`pileSettings.CounterScale` ↔ `boardSettings.CardScale`). 지금 값은 같음. 한 값으로 묶을지, 따로 조정할 수 있게 둘지
   - 보관함 연출 교체 지점(`CardRevealer.Stash` 공개 속성)을 쓰는 곳이 없어 지움 → 바인더 연출을 따로 넣을 계획이 있으면 `CounterPileView`에 다시 열면 됨
 
+### 0-3) ThiefDirector 분리 (11-19, [큰 클래스 나누기 제안](../Assets/98.%20Doc/큰_클래스_나누기_제안.md) 1순위)
+- 369 → 266줄. 팩 상태 플래그 3개(`carrying` · `packDropped` · `stolenToday`)를 `Logic/FreePackState`(Home · Carried · Dropped · Stolen · Gone, 순수 C#)로, 등장 타이머를 `Logic/SpawnClock`(순수, 손님도 나중에 같이 씀)으로, 팩 옮기기를 `Customers/FreePackHolder`, 복면 · 키 · 손을 `Customers/ThiefBody`로. 테스트 `FreePackStateTests` 13개
+- 인스펙터 값 · 연결은 그대로 두어 씬을 다시 빌드하지 않음 (Unity가 열려 있었음)
+- **EditMode는 아직 못 돌림** (Unity 에디터가 열려 있어 배치 실행 불가). 컴파일은 세 묶음 모두 오류 · 경고 0. Play 확인은 목록 F1~F7
+
 ### 1) 마지막 빌드 테스트 피드백 반영 (사용자가 외출 후 전달 예정)
 
 ### 2) Play / 실기기에서 볼 것
