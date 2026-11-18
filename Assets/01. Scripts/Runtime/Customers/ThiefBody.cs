@@ -2,9 +2,31 @@ using UnityEngine;
 
 namespace CardShop.Customers
 {
-    /// <summary>도둑 몸 꾸미기 (카드도둑_설계 6장): 키 재기 · 복면 씌우기 · 손 뼈 찾기.</summary>
+    /// <summary>도둑 몸 꾸미기 (카드도둑_설계 6장): 키 재기 · 복면 씌우기 · 검은 옷 · 손 뼈 찾기.</summary>
     public static class ThiefBody
     {
+        static readonly int ColorId = Shader.PropertyToID("_Color");
+        static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        static MaterialPropertyBlock block;
+
+        /// <summary>
+        /// 온몸을 어둡게 칠해 만화 속 도둑처럼 검은 옷 + 장갑으로 (11-19 피드백: 손님과 구분이 잘 안 됨).
+        /// 손님 머티리얼은 아틀라스 한 장이라 색을 곱해서 어둡게 함 (머티리얼을 복제하지 않음 — MaterialPropertyBlock).
+        /// 복면은 이 함수 뒤에 씌우므로 영향받지 않습니다.
+        /// </summary>
+        public static void DressDark(CustomerAgent thief, Color tint)
+        {
+            block ??= new MaterialPropertyBlock();
+            foreach (Renderer r in thief.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r is not SkinnedMeshRenderer && r is not MeshRenderer) continue; // 말풍선(스프라이트 · 글자)은 그대로
+                r.GetPropertyBlock(block);
+                block.SetColor(ColorId, tint);
+                block.SetColor(BaseColorId, tint);
+                r.SetPropertyBlock(block);
+            }
+        }
+
         /// <summary>발에서 머리 위까지 (빗자루 맞음 판정 높이). 머리 뼈가 없으면 1.7m.</summary>
         public static float Height(CustomerAgent thief, Transform head) =>
             head != null ? head.position.y - thief.transform.position.y + 0.15f : 1.7f;

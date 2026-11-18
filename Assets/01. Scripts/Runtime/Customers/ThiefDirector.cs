@@ -41,6 +41,10 @@ namespace CardShop.Customers
         [SerializeField] float maskHeadOffset = 0.09f;
         [Tooltip("바닥에 떨어진 팩 높이 (눕혔을 때 두께의 절반, m)")]
         [SerializeField] float droppedPackHeight = 0.008f;
+        [Tooltip("도둑 옷 색 (손님 몸 전체에 곱함). 어두울수록 수상해 보임 (11-19 피드백)")]
+        [SerializeField] Color outfitTint = new Color(0.22f, 0.22f, 0.26f);
+        [Tooltip("빗자루에 맞은 뒤 휘청하다 도망치기까지 (초)")]
+        [SerializeField] float hitStunSeconds = 1.2f;
 
         static readonly string[] EnterLines = { "(두리번두리번)", "아무도 안 보지…?", "흠흠, 손님입니다~" };
         static readonly string[] StealLines = { "이건 공짜죠? ㅎㅎ", "무료 팩 잘 받아 갑니다~", "오늘 운 좋네!" };
@@ -139,6 +143,7 @@ namespace CardShop.Customers
 
             Transform head = HumanoidHeight.Head(thief.GetComponentInChildren<Animator>());
             thiefHeight = ThiefBody.Height(thief, head);
+            ThiefBody.DressDark(thief, outfitTint);
             ThiefBody.WearMask(thief, head, maskTemplate, maskHeadOffset, thiefHeight);
 
             state = State.Approach;
@@ -191,7 +196,7 @@ namespace CardShop.Customers
             bool hadPack = pack.Caught();
             state = State.RunOff;
             context.Session.Ledger.thievesCaught++;
-            thief.Gesture(CustomerAnim.Shake);
+            thief.Gesture(CustomerAnim.Hit); // 전신 휘청 (Kevin Iglesias Stun01, 11-19 피드백: 맞아도 반응이 없어 어색)
             Say(CaughtLines);
 
             if (hadPack) holder.DropInFrontOf(thief.transform, droppedPackHeight);
@@ -203,7 +208,7 @@ namespace CardShop.Customers
             // 잠깐 멈칫한 뒤 가까운 쪽으로 도망
             thief.WalkTo(thief.transform.position, null, null);
             thief.WalkSpeed = settings.runSpeed;
-            thief.Wait(0.8f, () =>
+            thief.Wait(hitStunSeconds, () =>
             {
                 if (thief == null) return;
                 CustomerRoutes routes = customers.Routes;

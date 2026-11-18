@@ -10,6 +10,7 @@ namespace CardShop.EditorTools
     /// <summary>
     /// 손님 Animator를 Kevin Iglesias Human Basic Motions 클립으로 만듭니다 (타이틀연출_손님_설계 3-2).
     /// - Customer.controller : 남성 클립. Base(Idle ↔ Walk, Speed) + Gesture(상체 마스크, 트리거 7종)
+    ///   + Reaction(전신, 트리거 Hit: 카드 도둑이 빗자루에 맞았을 때 휘청 — 11-19 피드백)
     /// - Customer_Female.overrideController : 같은 구조에 여성 클립만 바꿔 끼움
     /// 메뉴: Tools > CardShop > Customers > Build Customer Animator
     /// </summary>
@@ -41,6 +42,12 @@ namespace CardShop.EditorTools
             ("Angry", "Social/Emotions", "Angry01"),
         };
 
+        // 전신 반응 (마스크 없음). 트리거 이름은 CustomerAnim과 같아야 합니다.
+        static readonly (string trigger, string folder, string clip)[] Reactions =
+        {
+            ("Hit", "Combat", "Stun01"),
+        };
+
         [MenuItem("Tools/CardShop/Customers/Build Customer Animator", priority = 60)]
         public static void Build()
         {
@@ -49,7 +56,7 @@ namespace CardShop.EditorTools
             AssetDatabase.DeleteAsset(ControllerPath);
             var controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
             controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
-            foreach (var g in Gestures) controller.AddParameter(g.trigger, AnimatorControllerParameterType.Trigger);
+            foreach (var g in Gestures.Concat(Reactions)) controller.AddParameter(g.trigger, AnimatorControllerParameterType.Trigger);
 
             // Base: Idle ↔ Walk
             AnimatorStateMachine baseSm = controller.layers[0].stateMachine;
@@ -95,6 +102,34 @@ namespace CardShop.EditorTools
                 back.duration = 0.25f;
             }
 
+            // Reaction: 전신을 덮어씀 (맞으면 다리까지 휘청). 빈 상태에서는 아래 레이어가 그대로
+            var reactionSm = new AnimatorStateMachine { name = "Reaction", hideFlags = HideFlags.HideInHierarchy };
+            AssetDatabase.AddObjectToAsset(reactionSm, controller);
+            controller.AddLayer(new AnimatorControllerLayer
+            {
+                name = "Reaction",
+                defaultWeight = 1f,
+                blendingMode = AnimatorLayerBlendingMode.Override,
+                stateMachine = reactionSm,
+            });
+            AnimatorState none = reactionSm.AddState("Empty", new Vector3(300, 0));
+            reactionSm.defaultState = none;
+            for (int i = 0; i < Reactions.Length; i++)
+            {
+                var r = Reactions[i];
+                AnimatorState s = reactionSm.AddState(r.trigger, new Vector3(600, i * 60));
+                s.motion = Clip("Male", r.folder, r.clip);
+                AnimatorStateTransition enter = reactionSm.AddAnyStateTransition(s);
+                enter.AddCondition(AnimatorConditionMode.If, 0f, r.trigger);
+                enter.hasExitTime = false;
+                enter.duration = 0.1f;
+                enter.canTransitionToSelf = false;
+                AnimatorStateTransition back = s.AddTransition(none);
+                back.hasExitTime = true;
+                back.exitTime = 0.9f;
+                back.duration = 0.2f;
+            }
+
             BuildFemaleOverride(controller);
             CustomerRosterBuilder.RelinkControllers(); // 다시 만들면 GUID가 바뀌므로 목록의 참조를 새로 연결
             AssetDatabase.SaveAssets();
@@ -106,7 +141,7 @@ namespace CardShop.EditorTools
             AssetDatabase.DeleteAsset(FemaleOverridePath);
             var ov = new AnimatorOverrideController(controller) { name = "Customer_Female" };
             var pairs = new List<KeyValuePair<AnimationClip, AnimationClip>>();
-            foreach (var (_, folder, clip) in Locomotion.Concat(Gestures))
+            foreach (var (_, folder, clip) in Locomotion.Concat(Gestures).Concat(Reactions))
             {
                 AnimationClip male = Clip("Male", folder, clip);
                 AnimationClip female = Clip("Female", folder, clip);

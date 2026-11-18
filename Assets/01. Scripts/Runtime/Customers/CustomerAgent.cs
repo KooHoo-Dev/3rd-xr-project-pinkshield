@@ -16,6 +16,8 @@ namespace CardShop.Customers
         public static readonly int Cheer = Animator.StringToHash("Cheer");
         public static readonly int Angry = Animator.StringToHash("Angry");
         public static readonly int Talk = Animator.StringToHash("Talk");
+        /// <summary>전신 휘청 (Reaction 레이어, 도둑이 빗자루에 맞음). 예전 Animator에는 없어 무시됨 → Build Customer Animator</summary>
+        public static readonly int Hit = Animator.StringToHash("Hit");
     }
 
     public enum CustomerState
