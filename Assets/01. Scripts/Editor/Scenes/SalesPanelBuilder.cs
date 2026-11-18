@@ -50,11 +50,10 @@ namespace CardShop.EditorTools
             content.transform.SetParent(canvasGo.transform, false);
             WorldUi.Stretch((RectTransform)content.transform, Vector2.zero, Vector2.one);
 
-            Image bg = WorldUi.AddImage(content.transform, "Background", Vector2.zero, Vector2.one, new Color(0.93f, 0.91f, 0.86f));
-            bg.raycastTarget = false;
+            WorldUi.AddPanel(content.transform);
 
-            WorldUi.AddText(content.transform, "Title", "판매", new Vector2(0.04f, 0.95f), new Vector2(0.96f, 0.99f), 30f, new Color(0.16f, 0.12f, 0.2f), font);
-            TMP_Text selected = WorldUi.AddText(content.transform, "Selected", "", new Vector2(0.06f, 0.74f), new Vector2(0.94f, 0.945f), 26f, new Color(0.16f, 0.12f, 0.2f), font);
+            WorldUi.AddText(content.transform, "Title", "판매", new Vector2(0.04f, 0.95f), new Vector2(0.96f, 0.99f), 30f, UiTheme.Gold, font);
+            TMP_Text selected = WorldUi.AddText(content.transform, "Selected", "", new Vector2(0.06f, 0.74f), new Vector2(0.94f, 0.945f), 26f, UiTheme.Text, font);
             selected.alignment = TextAlignmentOptions.TopLeft;
 
             float top = 0.728f;
@@ -65,9 +64,9 @@ namespace CardShop.EditorTools
             Button sellAll = WorldUi.AddButton(content.transform, "레어 이하 모두 팔기", new Vector2(0.51f, top - ButtonH), new Vector2(0.94f, top), font);
             sellAll.GetComponentInChildren<TMP_Text>().fontSize = 22f;
 
-            TMP_Text status = WorldUi.AddText(content.transform, "Status", "", new Vector2(0.04f, 0.50f), new Vector2(0.96f, 0.555f), 20f, new Color(0.35f, 0.32f, 0.4f), font);
-            TMP_Text message = WorldUi.AddText(content.transform, "Message", "", new Vector2(0.04f, 0.44f), new Vector2(0.96f, 0.495f), 22f, new Color(0.75f, 0.25f, 0.1f), font);
-            WorldUi.AddText(content.transform, "ListHeader", "판매 등록 중 (누르면 취소)", new Vector2(0.04f, 0.395f), new Vector2(0.96f, 0.435f), 20f, new Color(0.35f, 0.32f, 0.4f), font);
+            TMP_Text status = WorldUi.AddText(content.transform, "Status", "", new Vector2(0.04f, 0.50f), new Vector2(0.96f, 0.555f), 20f, UiTheme.SubText, font);
+            TMP_Text message = WorldUi.AddText(content.transform, "Message", "", new Vector2(0.04f, 0.44f), new Vector2(0.96f, 0.495f), 22f, UiTheme.Gold, font);
+            WorldUi.AddText(content.transform, "ListHeader", "판매 등록 중 (누르면 취소)", new Vector2(0.04f, 0.395f), new Vector2(0.96f, 0.435f), 20f, UiTheme.SubText, font);
 
             // 목록 버튼 수 = 판매 등록 칸 수 (EconomyConfig가 원본)
             var economy = AssetDatabase.LoadAssetAtPath<CardShop.Cards.EconomyConfig>(DataPaths.Economy);

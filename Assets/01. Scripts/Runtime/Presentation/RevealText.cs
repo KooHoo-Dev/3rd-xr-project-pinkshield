@@ -1,3 +1,4 @@
+using CardShop.UI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,7 +41,7 @@ namespace CardShop.Presentation
         };
 
         /// <summary>배경판 없이도 읽히도록 글자 뒤에 어두운 띠를 깝니다.</summary>
-        public static string Mark(string text) => $"<mark=#140F1ECC>{text}</mark>";
+        public static string Mark(string text) => $"<mark={UiTheme.Mark}>{text}</mark>";
 
         /// <summary>상자 결과판의 팩 한 줄 (끝에 줄바꿈 포함).</summary>
         public static string BoxRow(PackResult pack, int packNumber, CardRarityStyles styles)

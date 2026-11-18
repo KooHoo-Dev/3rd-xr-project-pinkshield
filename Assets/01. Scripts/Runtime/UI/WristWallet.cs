@@ -83,7 +83,7 @@ namespace CardShop.UI
             if (money != shownMoney)
             {
                 shownMoney = money;
-                text.text = $"<mark=#140F1EE6 padding=\"8,8,4,4\"><size=55%>보유 재화</size>\n<b>{money:N0}</b></mark>";
+                text.text = $"<mark={UiTheme.MarkStrong} padding=\"8,8,4,4\"><size=55%>보유 재화</size>\n<b>{money:N0}</b></mark>";
             }
         }
 

@@ -95,10 +95,9 @@ namespace CardShop.EditorTools
             rt.localRotation = tilt;
             rt.localPosition = new Vector3(0f, halfHeight + 0.012f, 0f);
 
-            Image bg = WorldUi.AddImage(canvasGo.transform, "Background", Vector2.zero, Vector2.one, new Color(0.93f, 0.91f, 0.86f));
-            bg.raycastTarget = false;
+            WorldUi.AddPanel(canvasGo.transform);
 
-            TMP_Text pageLabel = WorldUi.AddText(canvasGo.transform, "PageLabel", "1 / 1 쪽", new Vector2(0.04f, 0.92f), new Vector2(0.96f, 0.985f), 30f, new Color(0.16f, 0.12f, 0.2f), font);
+            TMP_Text pageLabel = WorldUi.AddText(canvasGo.transform, "PageLabel", "1 / 1 쪽", new Vector2(0.04f, 0.92f), new Vector2(0.96f, 0.985f), 30f, UiTheme.Text, font);
 
             // 속성 탭: 전체 · 불 · 물 · 땅 · 공기 · 무 · 기타 (BinderTabs.Order 순서. 글자는 BinderView가 채움)
             var tabs = new Button[BinderTabs.Order.Length];
@@ -131,7 +130,7 @@ namespace CardShop.EditorTools
 
             Button prev = WorldUi.AddButton(canvasGo.transform, "< 이전", new Vector2(0.04f, 0.02f), new Vector2(0.34f, 0.09f), font);
             Button next = WorldUi.AddButton(canvasGo.transform, "다음 >", new Vector2(0.66f, 0.02f), new Vector2(0.96f, 0.09f), font);
-            WorldUi.AddText(canvasGo.transform, "Hint", "카드를 누르면 선택", new Vector2(0.34f, 0.02f), new Vector2(0.66f, 0.09f), 20f, new Color(0.35f, 0.32f, 0.4f), font);
+            WorldUi.AddText(canvasGo.transform, "Hint", "카드를 누르면 선택", new Vector2(0.34f, 0.02f), new Vector2(0.66f, 0.09f), 20f, UiTheme.SubText, font);
 
             var view = root.gameObject.AddComponent<BinderView>();
             var so = new SerializedObject(view);

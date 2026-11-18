@@ -1,3 +1,4 @@
+using CardShop.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -34,7 +35,7 @@ namespace CardShop.Presentation
             labelGo.transform.SetParent(go.transform, false);
             var label = labelGo.AddComponent<TextMeshPro>();
             if (font != null) label.font = font;
-            label.text = "<mark=#140F1ECC> 꾹 누르면 건너뛰기 · 갓팩은 보여 줘요 </mark>";
+            label.text = $"<mark={UiTheme.Mark}> 꾹 누르면 건너뛰기 · 갓팩은 보여 줘요 </mark>";
             label.fontSize = 0.09f; // 1 ≈ 10cm → 글자 약 9mm
             label.alignment = TextAlignmentOptions.Bottom;
             label.color = Color.white;

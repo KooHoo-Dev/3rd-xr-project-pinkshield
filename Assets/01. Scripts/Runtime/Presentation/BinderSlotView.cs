@@ -1,3 +1,4 @@
+using CardShop.UI;
 using System.Collections;
 using CardShop.Cards;
 using TMPro;
@@ -77,7 +78,7 @@ namespace CardShop.Presentation
                 nameText.text = card.displayName;
                 nameText.color = DarkText;
                 // 배경판 없이도 읽히도록 글자 뒤에 어두운 띠
-                countText.text = $"<mark=#140F1ECC> {CountLabel(count, listed)} </mark>";
+                countText.text = $"<mark={UiTheme.Mark}> {CountLabel(count, listed)} </mark>";
             }
             else
             {

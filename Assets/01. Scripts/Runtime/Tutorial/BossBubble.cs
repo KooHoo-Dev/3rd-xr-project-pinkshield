@@ -1,3 +1,4 @@
+using CardShop.UI;
 using System;
 using CardShop.Core;
 using TMPro;
@@ -76,8 +77,8 @@ namespace CardShop.Tutorial
             text.color = boss ? bossTextColor : selfTextColor;
             string body = message ?? string.Empty;
             text.text = boss
-                ? $"<mark=#140F1ECC padding=\"8,8,4,4\"><size=75%><color=#{ColorUtility.ToHtmlStringRGB(bossNameColor)}>{BossName}</color></size>\n{body}</mark>"
-                : $"<mark=#140F1ECC padding=\"8,8,4,4\">{body}</mark>";
+                ? $"<mark={UiTheme.Mark} padding=\"8,8,4,4\"><size=75%><color=#{ColorUtility.ToHtmlStringRGB(bossNameColor)}>{BossName}</color></size>\n{body}</mark>"
+                : $"<mark={UiTheme.Mark} padding=\"8,8,4,4\">{body}</mark>";
             text.alpha = 0f;
             shownFor = 0f;
             showing = true;

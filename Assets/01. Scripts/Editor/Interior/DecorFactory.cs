@@ -181,6 +181,25 @@ namespace CardShop.EditorTools.Interior
             return root;
         }
 
+        /// <summary>가게 정면 큰 간판 (ShopFrontSign, DEC-027). center는 판 중심, 앞면이 forward. 진보라 판 + 분홍 테두리 + 글자</summary>
+        public static GameObject FrontSign(Transform parent, Vector3 center, float yaw, Vector2 size)
+        {
+            var root = new GameObject("ShopFrontSign");
+            root.transform.SetParent(parent, false);
+            root.transform.SetPositionAndRotation(center, Quaternion.Euler(0f, yaw, 0f));
+            Placer.Prim(root.transform, PrimitiveType.Cube, "Frame", new Vector3(0f, 0f, -0.01f), new Vector3(size.x + 0.08f, size.y + 0.08f, 0.06f), Placer.Mat(MatDir, "FrontSignFrame", CardShop.UI.UiTheme.Accent));
+            Placer.Prim(root.transform, PrimitiveType.Cube, "Board", new Vector3(0f, 0f, 0.012f), new Vector3(size.x, size.y, 0.03f), Placer.Mat(MatDir, "FrontSignBoard", CardShop.UI.UiTheme.Panel));
+            TMP_Text text = Text(root.transform, "Slime CardShop", new Vector3(0f, 0f, 0.03f), 2.4f, size * 0.94f, Color.white);
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 1f;
+            text.fontSizeMax = 2.4f;
+            var sign = root.AddComponent<ShopFrontSign>();
+            var so = new SerializedObject(sign);
+            so.FindProperty("label").objectReferenceValue = text;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return root;
+        }
+
         /// <summary>벽 달력 (DayCalendar). center는 판 중심, 앞면이 forward.</summary>
         public static GameObject Calendar(Transform parent, Vector3 center, float yaw)
         {

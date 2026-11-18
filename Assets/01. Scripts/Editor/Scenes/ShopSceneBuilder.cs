@@ -362,7 +362,7 @@ namespace CardShop.EditorTools
             var bg = new GameObject("Background", typeof(RectTransform), typeof(Image));
             bg.transform.SetParent(canvasGo.transform, false);
             WorldUi.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one);
-            bg.GetComponent<Image>().color = new Color(0.1f, 0.08f, 0.14f, 0.85f);
+            bg.GetComponent<Image>().color = UiTheme.Panel;
 
             var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(canvasGo.transform, false);
@@ -528,7 +528,7 @@ namespace CardShop.EditorTools
             var bg = new GameObject("Background", typeof(RectTransform), typeof(Image));
             bg.transform.SetParent(canvasGo.transform, false);
             WorldUi.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one);
-            bg.GetComponent<Image>().color = new Color(0.1f, 0.08f, 0.14f, 0.92f);
+            bg.GetComponent<Image>().color = UiTheme.Panel;
 
             WorldUi.AddText(canvasGo.transform, "Title", "일시정지", new Vector2(0f, 0.76f), new Vector2(1f, 0.95f), 44f, Color.white, font);
 

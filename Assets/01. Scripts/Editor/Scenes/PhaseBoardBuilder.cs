@@ -17,8 +17,7 @@ namespace CardShop.EditorTools
         public const string GameName = "카드깡 알바생의 하루";
         public const string Credit = "제작: PinkshieldStudio";
 
-        static readonly Color Panel = new Color(0.1f, 0.08f, 0.14f, 0.9f);
-        static readonly Color Gold = new Color(1f, 0.82f, 0.35f);
+        static Color Gold => UiTheme.Gold;
 
         /// <returns>타이틀에서 서는 자리 (DayTransition.titleSpawn에 연결)</returns>
         public static Transform Create(TMP_FontAsset font)
@@ -30,6 +29,8 @@ namespace CardShop.EditorTools
             spawn.SetPositionAndRotation(ShopLayout.TitleSpawnPos, Quaternion.Euler(0f, ShopLayout.TitleSpawnYaw, 0f));
 
             CreateTitle(root, font);
+            // 가게 정면 큰 간판: 타이틀 연출(TitleIntro)이 점등하므로 여기서 씬에 둠 (ShopInterior 프리팹은 사용자가 손볼 수 있어 다시 만들지 않음)
+            Interior.DecorFactory.FrontSign(root, ShopLayout.FrontSignPos, 0f, ShopLayout.FrontSignSize);
             CreateResult<SettlementBoard>(root, "SettlementBoard", "확인", font);
             CreateResult<FinalBoard>(root, "FinalBoard", "타이틀로", font);
             return spawn;
@@ -42,8 +43,8 @@ namespace CardShop.EditorTools
             Transform c = canvas.transform.Find("Content");
             TMP_Text heading = WorldUi.AddText(c, "Heading", GameName, new Vector2(0.04f, 0.68f), new Vector2(0.96f, 0.94f), 76f, Gold, font);
             heading.fontStyle = FontStyles.Bold;
-            TMP_Text body = WorldUi.AddText(c, "Sub", "7일 동안 카드샵을 지키고, 퇴근 후엔 카드팩을 뜯자!", new Vector2(0.04f, 0.58f), new Vector2(0.96f, 0.68f), 30f, Color.white, font);
-            WorldUi.AddText(c, "Credit", Credit, new Vector2(0.04f, 0.03f), new Vector2(0.96f, 0.11f), 24f, new Color(1f, 1f, 1f, 0.7f), font);
+            TMP_Text body = WorldUi.AddText(c, "Sub", "7일 동안 카드샵을 지키고, 퇴근 후엔 카드팩을 뜯자!", new Vector2(0.04f, 0.58f), new Vector2(0.96f, 0.68f), 30f, UiTheme.Text, font);
+            WorldUi.AddText(c, "Credit", Credit, new Vector2(0.04f, 0.03f), new Vector2(0.96f, 0.11f), 24f, UiTheme.SubText, font);
 
             // 버튼 높이 74mm(0.12) · 간격 37mm(0.06)
             Button start = WorldUi.AddButton(c, "영업 시작", new Vector2(0.25f, 0.38f), new Vector2(0.75f, 0.50f), font);
@@ -51,6 +52,7 @@ namespace CardShop.EditorTools
             Button recalibrate = WorldUi.AddButton(c, "눈높이 맞추기", new Vector2(0.25f, 0.20f), new Vector2(0.75f, 0.32f), font);
 
             var board = canvas.AddComponent<TitleBoard>();
+            canvas.AddComponent<TitleIntro>(); // 간판 점등 → 판 떠오름 (CanvasGroup은 RequireComponent로 붙음)
             var so = Wire(board, canvas, heading, body, start);
             so.FindProperty("recalibrateButton").objectReferenceValue = recalibrate;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -63,7 +65,7 @@ namespace CardShop.EditorTools
             Transform c = canvas.transform.Find("Content");
             TMP_Text heading = WorldUi.AddText(c, "Heading", name, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.97f), 44f, Gold, font);
             heading.fontStyle = FontStyles.Bold;
-            TMP_Text body = WorldUi.AddText(c, "Body", "", new Vector2(0.08f, 0.22f), new Vector2(0.92f, 0.83f), 28f, Color.white, font);
+            TMP_Text body = WorldUi.AddText(c, "Body", "", new Vector2(0.08f, 0.22f), new Vector2(0.92f, 0.83f), 28f, UiTheme.Text, font);
             body.alignment = TextAlignmentOptions.TopLeft;
             body.lineSpacing = 12f;
             Button ok = WorldUi.AddButton(c, buttonText, new Vector2(0.25f, 0.05f), new Vector2(0.75f, 0.16f), font);
@@ -99,7 +101,7 @@ namespace CardShop.EditorTools
             var content = new GameObject("Content", typeof(RectTransform));
             content.transform.SetParent(go.transform, false);
             WorldUi.Stretch((RectTransform)content.transform, Vector2.zero, Vector2.one);
-            WorldUi.AddImage(content.transform, "Background", Vector2.zero, Vector2.one, Panel);
+            WorldUi.AddPanel(content.transform);
             content.SetActive(false);
             return go;
         }

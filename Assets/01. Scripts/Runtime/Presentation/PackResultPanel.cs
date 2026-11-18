@@ -1,3 +1,4 @@
+using CardShop.UI;
 using System.Collections;
 using System.Text;
 using CardShop.Cards;
@@ -49,7 +50,7 @@ namespace CardShop.Presentation
         public void ShowText(string markup, Vector3 position, Quaternion rotation, float fontSize, float popSeconds)
         {
             text.fontSize = fontSize;
-            text.text = $"<mark=#140F1ECC>{markup}</mark>";
+            text.text = $"<mark={UiTheme.Mark}>{markup}</mark>";
             transform.SetPositionAndRotation(position, rotation);
             gameObject.SetActive(true);
             if (popRoutine != null) StopCoroutine(popRoutine);

@@ -115,5 +115,18 @@
 | H7 | 바인더: 탭 · 쪽 넘기기 · ★ · 카드 고르기 · 집 도착 반짝임이 전과 같은지 | `BinderView` 나누기 | |
 | H8 | Quest 기기: `Builds/` 의 Development APK 설치 → 위 항목 중 손목 · 도둑 · 손님 동선을 실기기로 | APK | |
 
+## I. 11-19 UI 테마 · 간판 · 첫 등장 (DEC-027, 씬 다시 빌드됨)
+
+| # | 확인할 것 | 관련 변경 | 결과 |
+|---|---|---|---|
+| I1 | 앱을 켜면 검은 화면에서 밝아지며 → 간판 "Slime CardShop" 글자가 하나씩 켜지고(Slime 분홍 · CardShop 금색) → 타이틀 판이 아래에서 떠오르는지 · 떠오르기 전엔 버튼이 안 눌리는지 · 전체 2~3초가 적당한지 (`TitleBoard > TitleIntro`) | `TitleIntro` · `DayTransition` | |
+| I2 | 간판 위치 · 크기: 타이틀 자리에서 타이틀 판 위로 잘 보이는지, 창 · 벽에 묻히거나 떠 보이지 않는지 (`ShopLayout.FrontSignPos` · `FrontSignSize`, 씬에서는 PhaseBoards > ShopFrontSign) | `DecorFactory.FrontSign` | |
+| I3 | 최종 판 → 타이틀로 돌아올 때도 점등 연출이 다시 나오는지 | `TitleIntro` | |
+| I4 | 판 색: 판매 · 바인더 · 정산 · 타이틀 · 일시정지 · 디버그 판이 진보라 + 위쪽 분홍 띠로 통일됐는지 · 낮 가게에서 무거워 보이지 않는지 · 글자가 잘 읽히는지 | `UiTheme` · `WorldUi.AddPanel` | |
+| I5 | 버튼: 레이가 닿으면 분홍으로 확 바뀌는지 (예전 주황) | `WorldUi.AddButton` | |
+| I6 | 3D 글자 띠(결과함 · 혼잣말 · 손목 재화 · 바인더 장수 · 건너뛰기 안내 · 사장님 말)가 검정 대신 진보라인지 · 잘 읽히는지 | `UiTheme.Mark` | |
+
+> 색을 바꾸려면 `Runtime/UI/UiTheme.cs` 값을 고치고 Build Shop Scene을 다시 실행하세요.
+
 > B7(바인더에 손으로 꽂기)은 11-19 결정으로 만들지 않음: 바인더 · 판매는 레이 클릭 방식으로 확정.
 

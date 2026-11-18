@@ -65,6 +65,11 @@ namespace CardShop.Presentation
             subscribed = GameContext.Instance;
             if (subscribed != null) subscribed.Events.PhaseChanged += OnPhaseChanged;
             if (flow != null && flow.CurrentPhase != GamePhaseId.None) Relocate(flow.CurrentPhase);
+
+            // 앱은 늘 타이틀로 시작: 어두운 화면에서 밝아지며 시작 (첫 등장 연출 A, 간판 점등은 TitleIntro)
+            EnsureVeil();
+            SetAlpha(1f);
+            StartCoroutine(Fade(0f));
         }
 
         void OnPhaseChanged(GamePhaseId from, GamePhaseId to) => Relocate(to);

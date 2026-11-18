@@ -113,6 +113,9 @@ namespace CardShop.Core
         public const float TitleSpawnYaw = 180f;
         /// <summary>타이틀 판 가운데 (플레이어 앞 1.4m, 눈높이보다 조금 아래). 판 앞면이 플레이어를 봄</summary>
         public static readonly Vector3 TitleBoardPos = new Vector3(0.5f, 1.45f, FrontZ + 2.2f);
+        /// <summary>가게 정면 큰 간판 가운데 (앞벽 바깥, 창 위). 타이틀 자리에서 타이틀 판 위로 보이는 높이</summary>
+        public static readonly Vector3 FrontSignPos = new Vector3(0.5f, 2.78f, FrontZ + WallHalf + 0.05f);
+        public static readonly Vector2 FrontSignSize = new Vector2(3.2f, 0.5f);
         /// <summary>정산 · 최종 판 가운데: 카운터 위 손님 쪽 (플레이어 자리 원점에서 1.3m). 아래 끝이 카운터 윗면보다 위</summary>
         public static readonly Vector3 ResultBoardPos = new Vector3(0f, 1.5f, 1.3f);
 

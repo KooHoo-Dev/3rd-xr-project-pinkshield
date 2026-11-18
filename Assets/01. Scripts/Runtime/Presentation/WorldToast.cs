@@ -1,3 +1,4 @@
+using CardShop.UI;
 using TMPro;
 using UnityEngine;
 
@@ -38,7 +39,7 @@ namespace CardShop.Presentation
         {
             transform.position = position;
             // 배경을 더 진하게 + 글자 둘레 여백 (11-19 피드백: 밝은 배경 앞에서 잘 안 보임)
-            text.text = $"<mark=#140F1EF0 padding=\"6,6,3,3\">{message}</mark>";
+            text.text = $"<mark={UiTheme.MarkStrong} padding=\"6,6,3,3\">{message}</mark>";
             text.alpha = 1f;
             hideAt = Time.time + SecondsFor(message);
             gameObject.SetActive(true);
