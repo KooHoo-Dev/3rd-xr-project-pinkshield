@@ -87,6 +87,15 @@ namespace CardShop.Core
         /// <summary>가게 앞 인도 가운데 z (도둑이 달리는 줄)</summary>
         public const float SidewalkMidZ = FrontZ + 2.2f;
 
+        // ---------------------------------------------------------------- 타이틀 · 정산 판 (타이틀연출_손님_설계 0-2 · 0-3)
+        /// <summary>타이틀에서 플레이어가 서는 곳: 가게 앞 인도, 파노라마 창과 출입구가 함께 보이는 자리. 가게(−Z)를 봄</summary>
+        public static readonly Vector3 TitleSpawnPos = new Vector3(0.5f, 0f, FrontZ + 3.6f);
+        public const float TitleSpawnYaw = 180f;
+        /// <summary>타이틀 판 가운데 (플레이어 앞 1.4m, 눈높이보다 조금 아래). 판 앞면이 플레이어를 봄</summary>
+        public static readonly Vector3 TitleBoardPos = new Vector3(0.5f, 1.45f, FrontZ + 2.2f);
+        /// <summary>정산 · 최종 판 가운데: 카운터 위 손님 쪽 (플레이어 자리 원점에서 1.3m). 아래 끝이 카운터 윗면보다 위</summary>
+        public static readonly Vector3 ResultBoardPos = new Vector3(0f, 1.5f, 1.3f);
+
         // ---------------------------------------------------------------- 집 (가게에서 30m 떨어진 같은 씬 구역)
         /// <remarks>
         /// 예전 (30, 0, 0)은 가게 앞 거리 끝(x ±27.5) 바로 옆이라 인도에서 집 상자가 보였음 (2026-11-18 기기 테스트 피드백 M1).

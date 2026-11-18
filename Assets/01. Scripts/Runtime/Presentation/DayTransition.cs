@@ -12,7 +12,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 namespace CardShop.Presentation
 {
     /// <summary>
-    /// 장면 전환 연출 (시연 피드백: 퇴근 후 집에서 쉬는 느낌). 화면을 검게 덮고 → 플레이어를 가게/집 구역으로 옮기고 → 다시 밝힙니다.
+    /// 장면 전환 연출 (시연 피드백: 퇴근 후 집에서 쉬는 느낌). 화면을 검게 덮고 → 플레이어를 가게 · 집 · 가게 앞 인도(타이틀) 구역으로 옮기고 → 다시 밝힙니다.
     /// 같은 Shop 씬 안의 다른 구역으로 옮기는 방식이라 씬 로딩이 없습니다.
     /// - 이동은 화면이 완전히 어두운 동안에만 일어나 멀미 영향이 없습니다.
     /// - 손에 든 물건이 집까지 따라가지 않도록 이동 전에 모든 잡기를 해제합니다.
@@ -26,6 +26,8 @@ namespace CardShop.Presentation
         [SerializeField] XROrigin origin;
         [Tooltip("집 구역의 시작 위치·방향 (앞이 +Z 방향)")]
         [SerializeField] Transform homeSpawn;
+        [Tooltip("타이틀에서 서는 가게 앞 인도 자리·방향 (앞이 +Z 방향)")]
+        [SerializeField] Transform titleSpawn;
         [SerializeField] TMP_FontAsset font;
         [Tooltip("아침 혼잣말 목록(전날 카드팩 결과별). 비워 두면 기본 문장")]
         [SerializeField] MorningLineSet morningLines;
@@ -41,7 +43,11 @@ namespace CardShop.Presentation
         WorldToast toast;
         Vector3 shopPosition;
         Quaternion shopRotation;
-        bool atHome;
+
+        // 플레이어가 서 있는 구역. 가게(계산대 자리) · 집 · 가게 앞 인도(타이틀)
+        enum Zone { Shop, Home, Title }
+        Zone zone = Zone.Shop;
+        GameContext subscribed;
 
         void Awake()
         {
@@ -53,8 +59,19 @@ namespace CardShop.Presentation
             }
         }
 
+        // 페이드 없이 바뀐 페이즈(앱 시작 때의 타이틀)도 구역을 맞춤. 페이드 중에는 Play가 화면이 가려진 뒤 옮기므로 같은 결과.
+        void Start()
+        {
+            subscribed = GameContext.Instance;
+            if (subscribed != null) subscribed.Events.PhaseChanged += OnPhaseChanged;
+            if (flow != null && flow.CurrentPhase != GamePhaseId.None) Relocate(flow.CurrentPhase);
+        }
+
+        void OnPhaseChanged(GamePhaseId from, GamePhaseId to) => Relocate(to);
+
         void OnDestroy()
         {
+            if (subscribed != null) subscribed.Events.PhaseChanged -= OnPhaseChanged;
             if (flow != null && flow.Transition == (IPhaseTransition)this) flow.Transition = null;
         }
 
@@ -64,8 +81,7 @@ namespace CardShop.Presentation
             yield return Fade(1f);
 
             ReleaseAllGrabs();
-            switchPhase();
-            Relocate(flow.CurrentPhase);
+            switchPhase(); // 구역 이동은 PhaseChanged를 받은 Relocate가 같은 프레임에 함
 
             yield return new WaitForSecondsRealtime(holdSeconds);
             yield return Fade(0f);
@@ -104,23 +120,25 @@ namespace CardShop.Presentation
             toast.Show(message, HeadPose.InFront(cam.transform, 1.0f, 0.05f).position);
         }
 
-        // 집으로, 또는 집에 있다가 다른 페이즈가 되면 가게로. 높이(눈높이 보정값)는 그대로 둡니다.
+        static Zone ZoneOf(GamePhaseId phase) =>
+            phase == GamePhaseId.Home ? Zone.Home : phase == GamePhaseId.Title ? Zone.Title : Zone.Shop;
+
+        // 구역이 바뀔 때만 옮깁니다. 가게로 돌아올 때는 처음 계산대 자리 · 방향. 높이(눈높이 보정값)는 그대로 둡니다.
         void Relocate(GamePhaseId phase)
         {
             if (origin == null) return;
+            Zone target = ZoneOf(phase);
+            if (target == zone) return;
             Transform rig = origin.transform;
-            if (phase == GamePhaseId.Home && homeSpawn != null)
-            {
-                if (!atHome) { shopPosition = new Vector3(shopPosition.x, rig.position.y, shopPosition.z); }
-                rig.SetPositionAndRotation(new Vector3(homeSpawn.position.x, rig.position.y, homeSpawn.position.z),
-                    Quaternion.Euler(0f, homeSpawn.eulerAngles.y, 0f));
-                atHome = true;
-            }
-            else if (atHome)
-            {
+            Transform spawn = target == Zone.Home ? homeSpawn : target == Zone.Title ? titleSpawn : null;
+            if (target != Zone.Shop && spawn == null) return;
+
+            ReleaseAllGrabs(); // 손에 든 물건이 다른 구역까지 따라가지 않게
+            if (spawn != null)
+                rig.SetPositionAndRotation(new Vector3(spawn.position.x, rig.position.y, spawn.position.z), Quaternion.Euler(0f, spawn.eulerAngles.y, 0f));
+            else
                 rig.SetPositionAndRotation(new Vector3(shopPosition.x, rig.position.y, shopPosition.z), shopRotation);
-                atHome = false;
-            }
+            zone = target;
         }
 
         static void ReleaseAllGrabs()

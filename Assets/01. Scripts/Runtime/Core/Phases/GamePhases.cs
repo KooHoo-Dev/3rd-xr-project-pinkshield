@@ -26,7 +26,9 @@ namespace CardShop.Core.Phases
         protected void Log(string msg) => Debug.Log($"[{Id}] Day {Context.Session.Day}: {msg}");
     }
 
-    /// <summary>타이틀. 시작 버튼 → 새 세션, 1일차 인트로.</summary>
+    /// <summary>
+    /// 타이틀. 플레이어는 가게 앞 인도에 서 있고(DayTransition), 타이틀 판의 [영업 시작] → 새 세션 → 페이드 → 1일차 인트로.
+    /// </summary>
     public sealed class TitlePhase : GamePhase
     {
         public TitlePhase(GameFlow f, GameContext c) : base(f, c) { }
@@ -35,11 +37,14 @@ namespace CardShop.Core.Phases
         public override void OnAdvanceRequested()
         {
             Context.StartNewSession();
-            Flow.GoTo(GamePhaseId.Intro);
+            Flow.GoToFaded(GamePhaseId.Intro);
         }
     }
 
-    /// <summary>1일차 사장님 첫 팩 · 업무 소개. TODO(5일차): 튜토리얼 완료 시 진행.</summary>
+    /// <summary>
+    /// 1일차 사장님 첫 팩 · 업무 소개. 튜토리얼(TODO)이 생기기 전까지는 첫 Tick에 바로 영업으로 넘어갑니다
+    /// (출시 빌드에는 디버그 "다음" 버튼이 없어 여기서 멈췄음 — 타이틀연출_손님_설계 0-3).
+    /// </summary>
     public sealed class IntroPhase : GamePhase
     {
         public IntroPhase(GameFlow f, GameContext c) : base(f, c) { }
@@ -48,8 +53,11 @@ namespace CardShop.Core.Phases
         public override void Enter()
         {
             Context.Events.RaiseDayStarted(Context.Session.Day);
-            Log("사장님 첫 팩 (튜토리얼 미구현: Advance로 넘어감)");
+            Log("사장님 첫 팩 (튜토리얼 미구현: 바로 영업으로)");
         }
+
+        // Enter 안에서 바로 GoTo하면 PhaseChanged 구독자가 Intro → Business를 한 호출 안에서 겹쳐 받으므로 한 프레임 뒤에 넘김
+        public override void Tick(float deltaTime) => Flow.GoTo(GamePhaseId.Business);
 
         public override void OnAdvanceRequested() => Flow.GoTo(GamePhaseId.Business);
     }
@@ -237,6 +245,7 @@ namespace CardShop.Core.Phases
                 $"랭크 {rank.name}, {(rank.isSuccess ? Context.Score.successEnding : Context.Score.failEnding)}");
         }
 
-        public override void OnAdvanceRequested() => Flow.GoTo(GamePhaseId.Title);
+        // 가게 앞 인도(타이틀)로 옮기므로 페이드 (DayTransition)
+        public override void OnAdvanceRequested() => Flow.GoToFaded(GamePhaseId.Title);
     }
 }

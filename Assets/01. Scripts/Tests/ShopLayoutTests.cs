@@ -205,6 +205,24 @@ namespace CardShop.Tests
             Assert.AreEqual(ShopLayout.MaxX - ShopLayout.Module / 2f, ShopLayout.DoorX, 1e-4f, "출입구가 앞벽 오른쪽 칸 가운데가 아님");
         }
 
+        /// <summary>타이틀 자리는 걸을 수 있는 인도이고, 타이틀 판은 그 앞(가게 쪽) 인도 위, 플레이어와 가게 벽 사이에 있음</summary>
+        [Test]
+        public void TitleSpot_IsOnSidewalk_FacingShop()
+        {
+            Assert.IsTrue(ShopLayout.InsideWalkArea(ShopLayout.TitleSpawnPos), "타이틀 자리가 걸을 수 있는 곳이 아님 (PlayAreaGuard가 밀어냄)");
+            Assert.IsFalse(ShopLayout.InsideShop(ShopLayout.TitleSpawnPos), "타이틀 자리는 가게 밖이어야 함");
+            Assert.Less(ShopLayout.TitleBoardPos.z, ShopLayout.TitleSpawnPos.z, "판이 플레이어 뒤에 있음 (플레이어는 −Z를 봄)");
+            Assert.Greater(ShopLayout.TitleBoardPos.z, ShopLayout.FrontZ + 0.5f, "판이 가게 벽에 너무 붙음");
+            Assert.AreEqual(180f, ShopLayout.TitleSpawnYaw);
+        }
+
+        /// <summary>정산 판 아래 끝(판 높이 0.62m)이 카운터 윗면보다 위 (BUG-010: 패널이 카운터에 묻힘)</summary>
+        [Test]
+        public void ResultBoard_IsAboveCounter()
+        {
+            Assert.Greater(ShopLayout.ResultBoardPos.y - 0.31f, ShopLayout.CounterTop);
+        }
+
         static Rect Footprint(Vector3 center, Vector3 size) =>
             new Rect(center.x - size.x / 2f, center.z - size.z / 2f, size.x, size.z);
     }

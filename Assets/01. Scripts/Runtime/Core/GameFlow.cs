@@ -151,12 +151,14 @@ namespace CardShop.Core
 
         public void Resume() => IsPaused = false;
 
-        /// <summary>처음부터 다시: 새 세션을 만들고 타이틀로 돌아갑니다. (타이틀에서 시작을 누르면 인트로)</summary>
+        /// <summary>
+        /// 처음부터 다시: 새 세션을 만들고 타이틀(가게 앞 인도)로 돌아갑니다. (타이틀에서 시작을 누르면 인트로)
+        /// 자리를 옮기므로 페이드하고, 새 세션은 화면이 가려진 뒤 만듭니다(테이블 카드가 눈앞에서 사라지지 않게).
+        /// </summary>
         public void RestartGame()
         {
             IsPaused = false;
-            context.StartNewSession();
-            GoTo(GamePhaseId.Title);
+            GoToFaded(GamePhaseId.Title, context.StartNewSession);
         }
 
         void Register(IGamePhase phase) => phases[phase.Id] = phase;
@@ -175,17 +177,18 @@ namespace CardShop.Core
         }
 
         /// <summary>화면 전환 연출(페이드 아웃 → 전환·이동 → 페이드 인)과 함께 페이즈를 바꿉니다.</summary>
-        public void GoToFaded(GamePhaseId next)
+        /// <param name="beforeSwitch">화면이 완전히 가려진 뒤, 페이즈를 바꾸기 직전에 할 일 (예: 새 세션)</param>
+        public void GoToFaded(GamePhaseId next, Action beforeSwitch = null)
         {
-            if (Transition == null) { GoTo(next); return; }
+            if (Transition == null) { beforeSwitch?.Invoke(); GoTo(next); return; }
             if (isTransitioning) return;
-            StartCoroutine(FadedRoutine(next));
+            StartCoroutine(FadedRoutine(next, beforeSwitch));
         }
 
-        IEnumerator FadedRoutine(GamePhaseId next)
+        IEnumerator FadedRoutine(GamePhaseId next, Action beforeSwitch)
         {
             isTransitioning = true;
-            yield return Transition.Play(() => GoTo(next));
+            yield return Transition.Play(() => { beforeSwitch?.Invoke(); GoTo(next); });
             isTransitioning = false;
         }
 

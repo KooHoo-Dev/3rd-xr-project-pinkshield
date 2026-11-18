@@ -83,6 +83,7 @@ namespace CardShop.EditorTools
             ThiefBuilder.Create(flow, font); // CustomerDirector를 찾으므로 손님 동선 다음
             CreateDebugPanel(flow);
             CreatePauseMenu(flow);
+            titleSpawn = PhaseBoardBuilder.Create(font); // 타이틀 · 정산 · 최종 판 (디버그 패널 없이 한 판 완주)
             CreateHome(flow, sun);
             BinderBuilder.Create();
             SalesPanelBuilder.Create();
@@ -457,6 +458,7 @@ namespace CardShop.EditorTools
             so.FindProperty("flow").objectReferenceValue = flow;
             so.FindProperty("origin").objectReferenceValue = origin;
             so.FindProperty("homeSpawn").objectReferenceValue = spawn;
+            so.FindProperty("titleSpawn").objectReferenceValue = titleSpawn;
             so.FindProperty("font").objectReferenceValue = font;
             so.FindProperty("morningLines").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MorningLineSet>(DataPaths.MorningLines);
             so.FindProperty("eveningLines").objectReferenceValue = AssetDatabase.LoadAssetAtPath<EveningLineSet>(DataPaths.EveningLines);
@@ -488,6 +490,7 @@ namespace CardShop.EditorTools
         }
 
         static GameObject streetInstance, blocksInstance;
+        static Transform titleSpawn;
 
         static Material TintedMaterial(Color color)
         {

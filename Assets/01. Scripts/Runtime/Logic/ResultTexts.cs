@@ -1,0 +1,53 @@
+namespace CardShop.Logic
+{
+    /// <summary>
+    /// 정산 · 최종 판에 쓰는 글자 (타이틀연출_손님_설계 0-3). 화면 코드와 떼어 두어 숫자 · 부호를 테스트로 고정합니다.
+    /// 오른쪽 숫자 열은 TMP &lt;pos&gt; 태그로 맞춥니다.
+    /// </summary>
+    public static class ResultTexts
+    {
+        const string Col = "<pos=68%>";
+
+        /// <summary>+12 / −3 / 0 (빼기는 읽기 쉬운 유니코드 마이너스)</summary>
+        public static string Signed(int v) => v > 0 ? "+" + v : v < 0 ? "−" + (-v) : "0";
+
+        public static string SettlementTitle(int day, int dayCount) => $"{day}일차 정산 <size=60%>({day}/{dayCount}일)</size>";
+
+        /// <param name="total">SettlementPhase.LastTotal (이미 지갑에 더해진 값)</param>
+        /// <param name="money">더한 뒤 보유 금액</param>
+        public static string Settlement(DayLedger l, EconomyRules rules, int total, int money)
+        {
+            if (l == null || rules == null) return "";
+            var sb = new System.Text.StringBuilder();
+            sb.Append("기본급").Append(Col).Append(Signed(l.basePay)).Append('\n');
+            sb.Append($"청소 {l.cleanupsDone}곳");
+            if (l.cleanupsMissed > 0) sb.Append($" · 못 치움 {l.cleanupsMissed}곳");
+            sb.Append(Col).Append(Signed(rules.CleanupTotal(l))).Append('\n');
+            sb.Append($"빠른 계산 {l.checkoutsFast}건");
+            if (l.customersLost > 0) sb.Append($" · 떠난 손님 {l.customersLost}명");
+            sb.Append(Col).Append(Signed(rules.CheckoutTotal(l))).Append('\n');
+            sb.Append($"판매 {l.sales.Count}장").Append(Col).Append(Signed(rules.SalesTotal(l))).Append('\n');
+            if (l.thievesCaught > 0) sb.Append($"<size=80%>도둑 {l.thievesCaught}명 잡음!</size>\n");
+            if (l.freePackStolen) sb.Append("<size=80%>도둑이 오늘 무료 팩을 가져감</size>\n");
+            sb.Append($"<b>합계</b>{Col}<b>{Signed(total)}</b>\n");
+            sb.Append($"<size=80%>보유 금액</size>{Col}<size=80%>{money}</size>");
+            return sb.ToString();
+        }
+
+        public static string Final(FinalResult r, string ending)
+        {
+            if (r == null) return "";
+            var sb = new System.Text.StringBuilder();
+            sb.Append("보유 재화").Append(Col).Append(r.Money).Append('\n');
+            sb.Append("카드 가치").Append(Col).Append(r.CardValue).Append('\n');
+            sb.Append($"도감 {r.CollectedKinds}/{r.TotalKinds}종").Append(Col).Append(Signed(r.CollectionPoints)).Append('\n');
+            sb.Append($"<size=80%>수퍼레어 이상 {r.RareCollected}/{r.RareTotal}종 · 연 팩 {r.PacksOpened}개</size>\n");
+            if (r.BestCard != null) sb.Append($"<size=80%>최고의 카드: {r.BestCard.displayName}</size>\n");
+            sb.Append($"<b>최종 점수</b>{Col}<b>{r.Score}</b>\n");
+            string rank = r.Rank != null ? r.Rank.name : "-";
+            sb.Append($"<size=120%><b>랭크 {rank}</b></size>");
+            if (!string.IsNullOrEmpty(ending)) sb.Append($"  {ending}");
+            return sb.ToString();
+        }
+    }
+}

@@ -5,7 +5,7 @@ namespace CardShop.Presentation
 {
     /// <summary>
     /// 페이즈별 조명 분위기 (시연 피드백: 하루의 흐름·쉬는 느낌).
-    /// 영업 = 낮 / 정산·퇴근 전 = 노을빛 / 집 = 어둡고 따뜻하게. 바뀌는 시점은 대부분 장면 전환(검은 화면) 중입니다.
+    /// 영업 = 낮 / 타이틀·정산·퇴근 전 = 노을빛 / 집 = 어둡고 따뜻하게. 바뀌는 시점은 대부분 장면 전환(검은 화면) 중입니다.
     /// </summary>
     public sealed class PhaseLighting : MonoBehaviour
     {
@@ -50,6 +50,7 @@ namespace CardShop.Presentation
             Color ambient = dayAmbient;
             switch (phase)
             {
+                case GamePhaseId.Title: // 가게 앞 인도의 타이틀은 노을빛 (타이틀연출_손님_설계 0-2)
                 case GamePhaseId.Settlement:
                 case GamePhaseId.AfterHours:
                     color = eveningColor; intensity = eveningIntensity; ambient = eveningAmbient; break;
