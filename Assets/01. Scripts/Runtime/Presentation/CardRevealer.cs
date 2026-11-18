@@ -28,7 +28,6 @@ namespace CardShop.Presentation
     public sealed class CardRevealer : MonoBehaviour
     {
         enum PackStage { None, Tearing, Flipping, Result, Summary }
-        enum Advance { Next, Skip }
 
         static readonly Color SpecialGold = new Color(1f, 0.82f, 0.3f);
 
@@ -148,15 +147,13 @@ namespace CardShop.Presentation
         TextMeshPro boxBoard;
         PackResultPanel resultPanel;
         BoxOpenEffect boxEffect;
-        SkipHoldGauge gauge;
         RevealBurst burst;
         Coroutine packRoutine;
         Coroutine warmRoutine;
         PackStage stage;
         GameObject tearingPack;
         ICardStash stash;
-        HoldToSkipTimer skipTimer;
-        Advance advance;
+        RevealInput input;           // 트리거 한 번 = 다음, 꾹 누르기 = 건너뛰기 (게이지 · 진동)
 
         // 연출 중 오른손 레이의 UI 클릭을 잠시 끔 (트리거 하나가 넘기기 · 넣기 · UI 클릭을 동시에 하지 않게)
         readonly RayUiSuppressor rayUi = new RayUiSuppressor();
@@ -253,7 +250,7 @@ namespace CardShop.Presentation
         public void WarmUp()
         {
             EnsureBoxEffect();
-            EnsureGauge();
+            TriggerInput.Prewarm();
             EnsureBurst();
             if (warmRoutine == null && isActiveAndEnabled) warmRoutine = StartCoroutine(WarmPool());
         }
@@ -277,8 +274,7 @@ namespace CardShop.Presentation
             stage = PackStage.Tearing;
             XRBaseInputInteractor hand = HandFinder.Find(InteractorHandedness.Right);
             rayUi.Suppress(hand); // 연출 중 오른손 트리거가 Ray UI 클릭까지 하지 않게
-            skipTimer = new HoldToSkipTimer(fastForwardHoldSeconds, holdGaugeGrace);
-            skipTimer.RequireRelease(); // 자르기 제스처로 트리거를 누른 채 열렸을 수 있음
+            TriggerInput.Begin(); // 자르기 제스처로 트리거를 누른 채 열렸을 수 있어 한 번 뗄 때까지 꾹 누르기를 세지 않음
             Pile.Begin(PileBase(), isBox);
             List<RevealItem> queue = RevealQueue.BuildAll(packs);
 
@@ -332,12 +328,12 @@ namespace CardShop.Presentation
                 CardData card = p.Cards[item.Card];
                 bool confirmed = p.Special == SpecialPackType.LegendaryPack && card.rarity == CardRarity.Legendary;
                 float pause = AnnounceCard(front, card, confirmed, hand);
-                yield return WaitForAdvance(hand, pause, !godPack, gaugePose);
+                yield return TriggerInput.WaitForAdvance(hand, pause, !godPack, gaugePose);
                 stackViews.RemoveAt(0);
                 Pile.Send(front, isBox, 0f);
                 qi++;
 
-                if (advance == Advance.Skip && !skipped)
+                if (TriggerInput.Last == RevealInput.Result.Skip && !skipped)
                 {
                     queue = ApplySkip(packs, queue, qi, stack, isBox);
                     qi = 0;
@@ -346,7 +342,7 @@ namespace CardShop.Presentation
                 }
                 else FillStack(packs, queue, qi, stack, stackDepth, popIn: false);
             }
-            if (gauge != null) gauge.Hide();
+            TriggerInput.HideGauge();
 
             // ③ 결과
             if (isBox)
@@ -406,50 +402,6 @@ namespace CardShop.Presentation
             int newCount = Pile.CollectCards(cards);
             return RevealText.PileInfo(cards, newCount, held != null ? held.Card : null, held != null && held.IsNew,
                 cardPrefab != null ? cardPrefab.Styles : null);
-        }
-
-        // 트리거를 새로 누르면 다음(Next), 1.5초 꾹이면 건너뛰기(Skip). 결과는 advance 필드에.
-        // pause 동안은 넘기지 않음(실수로 두 장을 넘기지 않게). 손을 못 찾으면 pause + 1초 뒤 자동으로 다음.
-        IEnumerator WaitForAdvance(XRBaseInputInteractor hand, float pause, bool allowSkip, Pose gaugePose)
-        {
-            float readyAt = Time.time + pause;
-            float autoAt = readyAt + 1f;
-            float nextPulse = 0f;
-            while (true)
-            {
-                float now = Time.time;
-                bool held = hand != null && hand.activateInput.ReadIsPerformed();
-                bool fired = skipTimer.Update(held, now);
-                if (allowSkip)
-                {
-                    if (fired)
-                    {
-                        if (gauge != null) gauge.Hide();
-                        if (hand != null) hand.SendHapticImpulse(0.8f, 0.12f);
-                        advance = Advance.Skip;
-                        yield break;
-                    }
-                    if (skipTimer.IsCharging(now))
-                    {
-                        float progress = skipTimer.Progress(now);
-                        EnsureGauge().Show(gaugePose, progress);
-                        if (hand != null && now >= nextPulse)
-                        {
-                            // 누를수록 조금씩 세짐 (눌림이 전달되고 있다는 신호)
-                            hand.SendHapticImpulse(Mathf.Lerp(holdHapticMin, holdHapticMax, progress), 0.1f);
-                            nextPulse = now + 0.09f;
-                        }
-                    }
-                    else if (gauge != null) gauge.Hide();
-                }
-
-                if (now >= readyAt && (hand != null ? hand.activateInput.ReadWasPerformedThisFrame() : now >= autoAt))
-                {
-                    advance = Advance.Next;
-                    yield break;
-                }
-                yield return null;
-            }
         }
 
         // 맨 앞 카드 공개: 뒷면이 뒤집히며 등급 연출. 수퍼레어~유니크는 같은 연출(DEC-004), 레전더리만 더 크게:
@@ -688,11 +640,13 @@ namespace CardShop.Presentation
             return boxEffect;
         }
 
-        SkipHoldGauge EnsureGauge()
+        RevealInput TriggerInput => input ??= new RevealInput(() => SkipHoldGauge.Create(transform, Font), () => new RevealInput.Settings
         {
-            if (gauge == null) gauge = SkipHoldGauge.Create(transform, Font);
-            return gauge;
-        }
+            HoldSeconds = fastForwardHoldSeconds,
+            GaugeGrace = holdGaugeGrace,
+            HapticMin = holdHapticMin,
+            HapticMax = holdHapticMax,
+        });
 
         RevealBurst EnsureBurst()
         {
@@ -741,7 +695,7 @@ namespace CardShop.Presentation
             stage = PackStage.None;
             if (resultPanel != null) resultPanel.Hide();
             HidePileInfo();
-            if (gauge != null) gauge.Hide();
+            TriggerInput.HideGauge();
             rayUi.Restore();
         }
 
