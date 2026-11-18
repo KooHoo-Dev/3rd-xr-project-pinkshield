@@ -9,9 +9,9 @@ namespace CardShop.Cards
     {
         None = 0,
         Trash = 1,     // 바닥 쓰레기
-        Smudge = 2,    // 창문 얼룩
+        // 2 = 창문 얼룩: 업무가 많아져 제외 (DEC-014). 저장된 값이 꼬이지 않게 번호는 비워 둠
         MessyPack = 4, // 흐트러진 팩
-        All = Trash | Smudge | MessyPack,
+        All = Trash | MessyPack,
     }
 
     /// <summary>

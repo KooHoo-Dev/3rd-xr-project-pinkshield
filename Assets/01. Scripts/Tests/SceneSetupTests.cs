@@ -171,9 +171,9 @@ namespace CardShop.Tests
             Assert.Greater(pay.GetComponent<CardShop.Interaction.PokeButton>().pressed.GetPersistentEventCount(), 0, "결제 버튼에 연결된 동작 없음");
         }
 
-        // 청소 3종 (기획서 5-1): 쓰레기 원본 · 창 자리 · 걸레 · 팩 꽂이가 연결되고, 잡는 물건은 잡기 + 물리 없는 Rigidbody
+        // 청소 2종 (기획서 5-1, DEC-014): 쓰레기 원본 · 팩 꽂이가 연결되고, 잡는 물건은 잡기 + 물리 없는 Rigidbody
         [Test]
-        public void ShopScene_HasCleanupDirectorWithAllThreeKinds()
+        public void ShopScene_HasCleanupDirectorWithTrashAndPackRack()
         {
             Assume.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null, "Shop 씬 없음");
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
@@ -190,12 +190,6 @@ namespace CardShop.Tests
                 Assert.IsFalse(t.gameObject.activeSelf, $"{t.name}: 원본은 꺼 둬야 함 (켜 두면 영업 전부터 바닥에 보임)");
                 AssertGrabbable(t.gameObject);
             }
-
-            SerializedProperty windows = so.FindProperty("windowSpots");
-            Assert.Greater(windows.arraySize, 0, "창문 얼룩 자리 없음");
-            for (int i = 0; i < windows.arraySize; i++)
-                Assert.IsTrue(ShopLayout.InsideShop(((Transform)windows.GetArrayElementAtIndex(i).objectReferenceValue).position), "얼룩 자리가 가게 벽 밖");
-            AssertGrabbable(((CardShop.Cleanup.CleaningRag)so.FindProperty("rag").objectReferenceValue).gameObject);
 
             var rack = (CardShop.Cleanup.PackRack)so.FindProperty("rack").objectReferenceValue;
             var rackSo = new SerializedObject(rack);

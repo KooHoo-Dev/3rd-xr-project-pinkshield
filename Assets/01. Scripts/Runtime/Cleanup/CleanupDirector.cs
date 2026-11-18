@@ -7,7 +7,7 @@ using UnityEngine;
 namespace CardShop.Cleanup
 {
     /// <summary>
-    /// 영업 중 청소 구역 관리 (기획서 5-1 · 설계서 7-4). 손님이 나갈 때마다 그날 켜진 종류(CampaignConfig.cleanupKinds) 중
+    /// 영업 중 청소 구역 관리 (기획서 5-1 · 설계서 7-4, 창문 얼룩은 DEC-014로 제외: 바닥 쓰레기 · 흐트러진 팩 2종). 손님이 나갈 때마다 그날 켜진 종류(CampaignConfig.cleanupKinds) 중
     /// 하나를 만들고, 치우면 장부에 보너스 건수를 적습니다. 영업이 끝나면 BusinessPhase가 EndDay로 남은 구역을 걷어 내고
     /// 치우지 못한 수를 감점으로 적습니다. 청소 종류를 줄이려면 CampaignConfig의 cleanupKinds만 바꾸면 됩니다.
     /// </summary>
@@ -20,12 +20,6 @@ namespace CardShop.Cleanup
         [Tooltip("쓰레기 모양 원본 (꺼 둠). 하나를 골라 복제")]
         [SerializeField] TrashSpot[] trashTemplates;
 
-        [Header("창문 얼룩")]
-        [SerializeField] CleaningRag rag;
-        [SerializeField] SmudgeSpot smudgeTemplate;
-        [Tooltip("얼룩이 생길 수 있는 창 자리. forward = 가게 안쪽")]
-        [SerializeField] Transform[] windowSpots;
-
         [Header("흐트러진 팩")]
         [SerializeField] PackRack rack;
         [Tooltip("손님 한 명이 떨어뜨리는 팩 수")]
@@ -33,7 +27,6 @@ namespace CardShop.Cleanup
 
         GameContext context;
         readonly List<CleanupSpot> active = new List<CleanupSpot>();
-        readonly Dictionary<CleanupSpot, int> windowOf = new Dictionary<CleanupSpot, int>();
 
         public int PendingCount
         {
@@ -67,7 +60,6 @@ namespace CardShop.Cleanup
             CleanupSpot spot = kind switch
             {
                 CleanupKinds.Trash => SpawnTrash(around),
-                CleanupKinds.Smudge => SpawnSmudge(),
                 CleanupKinds.MessyPack => SpawnMessyPacks(around),
                 _ => null,
             };
@@ -80,7 +72,6 @@ namespace CardShop.Cleanup
         {
             CleanupKinds k = CleanupKinds.None;
             if (bin != null && trashTemplates != null && trashTemplates.Length > 0) k |= CleanupKinds.Trash;
-            if (rag != null && smudgeTemplate != null && FreeWindow() >= 0) k |= CleanupKinds.Smudge;
             if (rack != null && rack.InPlaceCount > 0) k |= CleanupKinds.MessyPack;
             return k;
         }
@@ -100,19 +91,6 @@ namespace CardShop.Cleanup
             return trash;
         }
 
-        CleanupSpot SpawnSmudge()
-        {
-            int w = FreeWindow();
-            if (w < 0) return null;
-            Transform at = windowSpots[w];
-            SmudgeSpot smudge = Instantiate(smudgeTemplate, at.position, at.rotation, transform);
-            smudge.gameObject.SetActive(true);
-            smudge.Init(rag);
-            windowOf[smudge] = w;
-            context.Events.RaiseNotice("창문에 손자국이 생겼어요. 걸레로 문질러 주세요!");
-            return smudge;
-        }
-
         CleanupSpot SpawnMessyPacks(Vector3 around)
         {
             List<RackPack> scattered = rack.Scatter(around, packsPerMess, context.Random);
@@ -125,20 +103,9 @@ namespace CardShop.Cleanup
             return spot;
         }
 
-        // 아직 얼룩이 없는 창 자리 하나 (없으면 -1). 앞에서부터 차례로가 아니라 무작위
-        int FreeWindow()
-        {
-            if (windowSpots == null || windowSpots.Length == 0) return -1;
-            var free = new List<int>();
-            for (int i = 0; i < windowSpots.Length; i++)
-                if (!windowOf.ContainsValue(i)) free.Add(i);
-            return free.Count == 0 ? -1 : free[context.Random.Range(0, free.Count)];
-        }
-
         void OnCompleted(CleanupSpot spot)
         {
             spot.Completed -= OnCompleted;
-            windowOf.Remove(spot);
             if (flow.CurrentPhase != GamePhaseId.Business) return;
             context.Session.Ledger.cleanupsDone++;
             int left = PendingCount;
@@ -158,7 +125,6 @@ namespace CardShop.Cleanup
                 s.Discard();
             }
             active.Clear();
-            windowOf.Clear();
             if (rack != null) rack.ResetAll();
             return missed;
         }

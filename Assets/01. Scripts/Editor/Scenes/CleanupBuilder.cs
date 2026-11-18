@@ -9,9 +9,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 namespace CardShop.EditorTools
 {
     /// <summary>
-    /// 청소 3종(기획서 5-1)에 필요한 씬 오브젝트를 만듭니다. ShopSceneBuilder.Build가 손님 동선 다음에 호출합니다.
+    /// 청소 2종(기획서 5-1, 창문 얼룩은 DEC-014로 제외)에 필요한 씬 오브젝트를 만듭니다. ShopSceneBuilder.Build가 손님 동선 다음에 호출합니다.
     ///   바닥 쓰레기: 쓰레기통 판정(인테리어 Trash_01 자리) + 쓰레기 모양 원본 3종(꺼 둠, CleanupDirector가 복제)
-    ///   창문 얼룩: 창 자리 4곳 + 얼룩 원본(꺼 둠) + 창 앞 받침 위 걸레
     ///   흐트러진 팩: 판매 진열대 위 팩 꽂이(4칸) + 꽂혀 있는 팩
     /// 모양은 기본 도형(가볍고 Quest에서 그림자 없음). 위치 값은 ShopLayout.
     /// </summary>
@@ -44,18 +43,6 @@ namespace CardShop.EditorTools
                 Trash(templates, "Trash_Wrapper", PrimitiveType.Cube, new Vector3(0.13f, 0.012f, 0.09f), Quaternion.Euler(0f, 0f, 4f), new Color(1f, 0.8f, 0.2f)),
             };
 
-            // ---- 창문 얼룩
-            var windows = new Transform[ShopLayout.SmudgePositions.Length];
-            for (int i = 0; i < windows.Length; i++)
-            {
-                var w = new GameObject($"SmudgeSpot_{i}").transform;
-                w.SetParent(root);
-                w.SetPositionAndRotation(ShopLayout.SmudgePositions[i], Quaternion.LookRotation(Vector3.back)); // forward = 가게 안쪽
-                windows[i] = w;
-            }
-            SmudgeSpot smudge = Smudge(templates);
-            CleaningRag rag = Rag(root, font);
-
             // ---- 흐트러진 팩
             PackRack rack = Rack(root, font);
 
@@ -64,9 +51,6 @@ namespace CardShop.EditorTools
             so.FindProperty("flow").objectReferenceValue = flow;
             so.FindProperty("bin").objectReferenceValue = bin;
             SetArray(so.FindProperty("trashTemplates"), trash);
-            so.FindProperty("rag").objectReferenceValue = rag;
-            so.FindProperty("smudgeTemplate").objectReferenceValue = smudge;
-            SetArray(so.FindProperty("windowSpots"), windows);
             so.FindProperty("rack").objectReferenceValue = rack;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -87,47 +71,6 @@ namespace CardShop.EditorTools
             TrashSpot spot = go.AddComponent<TrashSpot>();
             go.SetActive(false);
             return spot;
-        }
-
-        static SmudgeSpot Smudge(Transform parent)
-        {
-            var go = new GameObject("Smudge");
-            go.transform.SetParent(parent);
-            go.transform.rotation = Quaternion.LookRotation(Vector3.back);
-            // 납작한 원판: 실린더 축(y)을 창 면 수직(z)으로 눕힘. 손바닥 자국 같은 진한 회갈색
-            GameObject disc = Visual(go.transform, PrimitiveType.Cylinder, new Vector3(0.24f, 0.002f, 0.2f), new Color(0.32f, 0.28f, 0.22f));
-            disc.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            var visual = new GameObject("Visual").transform; // 크기를 줄일 부모 (원판 회전과 분리)
-            visual.SetParent(go.transform, false);
-            disc.transform.SetParent(visual, false);
-            SmudgeSpot spot = go.AddComponent<SmudgeSpot>();
-            var so = new SerializedObject(spot);
-            so.FindProperty("visual").objectReferenceValue = visual;
-            so.ApplyModifiedPropertiesWithoutUndo();
-            go.SetActive(false);
-            return spot;
-        }
-
-        static CleaningRag Rag(Transform root, TMP_FontAsset font)
-        {
-            Vector3 standTop = ShopLayout.RagStandPos + Vector3.up * ShopLayout.RagStandSize.y;
-            var stand = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            stand.name = "RagStand";
-            stand.transform.SetParent(root);
-            stand.transform.position = ShopLayout.RagStandPos + Vector3.up * (ShopLayout.RagStandSize.y / 2f);
-            stand.transform.localScale = ShopLayout.RagStandSize;
-            stand.GetComponent<MeshRenderer>().sharedMaterial = Mat(new Color(0.55f, 0.6f, 0.65f));
-            GameObjectUtility.SetStaticEditorFlags(stand, StaticEditorFlags.BatchingStatic);
-
-            var go = new GameObject("Rag");
-            go.transform.SetParent(root);
-            go.transform.position = standTop + Vector3.up * 0.015f;
-            Visual(go.transform, PrimitiveType.Cube, new Vector3(0.18f, 0.03f, 0.12f), new Color(0.35f, 0.6f, 0.95f));
-            var col = go.AddComponent<BoxCollider>();
-            col.size = new Vector3(0.2f, 0.05f, 0.14f);
-            MakeGrabbable(go);
-            CustomerFloorBuilder.Label(root, "걸레\n(창문 얼룩)", standTop + new Vector3(0f, 0.25f, 0f), font, 0.3f);
-            return go.AddComponent<CleaningRag>();
         }
 
         // 판매 진열대 윗면 뒤쪽 절반에 받침 + 칸마다 세운 팩 (앞면이 -Z = 손님 · 계산대 쪽, 뒤로 12도 기댐)
