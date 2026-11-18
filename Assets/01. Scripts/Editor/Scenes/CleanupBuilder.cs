@@ -10,7 +10,8 @@ namespace CardShop.EditorTools
 {
     /// <summary>
     /// 청소 2종(기획서 5-1, 창문 얼룩은 DEC-014로 제외)에 필요한 씬 오브젝트를 만듭니다. ShopSceneBuilder.Build가 손님 동선 다음에 호출합니다.
-    ///   바닥 쓰레기: 쓰레기통 판정(인테리어 Trash_01 자리) + 쓰레기 모양 원본 3종(꺼 둠, CleanupDirector가 복제)
+    ///   바닥 쓰레기: 쓰레기통 판정(인테리어 Trash_01 자리) + 쓰레기 원본 4종(꺼 둠, CleanupDirector가 복제).
+    ///     11-19 피드백으로 모양을 에셋 소품으로: PolygonCity 음료 캔 · 구긴 종이 · 신문, LowPolyInterior 커피컵 (없으면 예전 기본 도형)
     ///   흐트러진 팩: 판매 진열대 위 팩 꽂이(4칸) + 꽂혀 있는 팩
     /// 모양은 기본 도형(가볍고 Quest에서 그림자 없음). 위치 값은 ShopLayout.
     /// </summary>
@@ -39,10 +40,15 @@ namespace CardShop.EditorTools
             templates.SetParent(root);
             TrashSpot[] trash =
             {
-                Trash(templates, "Trash_Paper", PrimitiveType.Sphere, new Vector3(0.08f, 0.07f, 0.075f), Quaternion.identity, new Color(0.92f, 0.92f, 0.88f)),
-                Trash(templates, "Trash_Can", PrimitiveType.Cylinder, new Vector3(0.066f, 0.06f, 0.066f), Quaternion.Euler(0f, 0f, 90f), new Color(0.85f, 0.2f, 0.2f)),
-                Trash(templates, "Trash_Wrapper", PrimitiveType.Cube, new Vector3(0.13f, 0.012f, 0.09f), Quaternion.Euler(0f, 0f, 4f), new Color(1f, 0.8f, 0.2f)),
+                TrashProp(templates, "Trash_Can", PolyProps + "SM_Prop_Soda_01.prefab", 0.12f, Quaternion.Euler(0f, 0f, 90f),
+                    () => Trash(templates, "Trash_Can", PrimitiveType.Cylinder, new Vector3(0.066f, 0.06f, 0.066f), Quaternion.Euler(0f, 0f, 90f), new Color(0.85f, 0.2f, 0.2f))),
+                TrashProp(templates, "Trash_Paper", PolyProps + "SM_Prop_Paper_02.prefab", 0.14f, Quaternion.identity,
+                    () => Trash(templates, "Trash_Paper", PrimitiveType.Sphere, new Vector3(0.08f, 0.07f, 0.075f), Quaternion.identity, new Color(0.92f, 0.92f, 0.88f))),
+                TrashProp(templates, "Trash_Newspaper", PolyProps + "SM_Prop_Newspaper_01.prefab", 0.25f, Quaternion.identity,
+                    () => Trash(templates, "Trash_Wrapper", PrimitiveType.Cube, new Vector3(0.13f, 0.012f, 0.09f), Quaternion.Euler(0f, 0f, 4f), new Color(1f, 0.8f, 0.2f))),
+                TrashProp(templates, "Trash_CoffeeCup", "Assets/99. External Assets/LowPolyInterior/Prefabs/KitchenObjects/CoffeeCup.prefab", 0.11f, Quaternion.Euler(0f, 0f, 90f), null),
             };
+            trash = System.Array.FindAll(trash, t => t != null);
 
             // ---- 흐트러진 팩
             PackRack rack = Rack(root, font);
@@ -54,6 +60,60 @@ namespace CardShop.EditorTools
             SetArray(so.FindProperty("trashTemplates"), trash);
             so.FindProperty("rack").objectReferenceValue = rack;
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        const string PolyProps = "Assets/99. External Assets/PolygonCity/Prefabs/Props/";
+
+        /// <summary>
+        /// 에셋 소품으로 만든 쓰레기 원본. 소품 크기가 제각각이라 가장 긴 변이 longest(m)가 되게 맞추고, 바닥(y=0)에 놓음.
+        /// 콜라이더 · LOD는 떼고 그림자는 끔(Quest). 프리팹이 없으면 fallback(기본 도형), fallback도 없으면 null.
+        /// </summary>
+        static TrashSpot TrashProp(Transform parent, string name, string prefabPath, float longest, Quaternion lie, System.Func<TrashSpot> fallback)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"[CleanupBuilder] 쓰레기 소품 없음: {prefabPath} → 기본 도형");
+                return fallback?.Invoke();
+            }
+
+            var go = new GameObject(name);
+            go.transform.SetParent(parent);
+            go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+            GameObject visual = Object.Instantiate(prefab, go.transform);
+            visual.name = "Visual_" + prefab.name;
+            visual.transform.localPosition = Vector3.zero;
+            visual.transform.localRotation = lie;
+            foreach (Collider c in visual.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
+            foreach (LODGroup l in visual.GetComponentsInChildren<LODGroup>(true)) Object.DestroyImmediate(l);
+            foreach (Renderer r in visual.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            // 크기 맞추기 → 가운데 · 바닥 맞추기 (원본 자리 x · z = 0, 바닥 y = 0)
+            Bounds b = WorldBounds(visual);
+            float size = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+            if (size > 0.0001f) visual.transform.localScale *= longest / size;
+            b = WorldBounds(visual);
+            visual.transform.localPosition -= new Vector3(b.center.x, b.min.y, b.center.z);
+            float height = b.size.y;
+
+            // 잡기 판정은 모양보다 크게 (바닥의 작은 물건을 레이저로 맞히기 쉽게)
+            var col = go.AddComponent<SphereCollider>();
+            col.radius = 0.09f;
+            col.center = new Vector3(0f, height / 2f, 0f);
+            MakeGrabbable(go);
+            TrashSpot spot = go.AddComponent<TrashSpot>();
+            go.SetActive(false);
+            return spot;
+        }
+
+        static Bounds WorldBounds(GameObject go)
+        {
+            Renderer[] rs = go.GetComponentsInChildren<Renderer>(true);
+            if (rs.Length == 0) return new Bounds(go.transform.position, Vector3.zero);
+            Bounds b = rs[0].bounds;
+            for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds);
+            return b;
         }
 
         // 꺼 둔 원본: 바닥에 닿는 높이(y)와 기본 자세만 의미 있음. x · z는 복제할 때 정함
