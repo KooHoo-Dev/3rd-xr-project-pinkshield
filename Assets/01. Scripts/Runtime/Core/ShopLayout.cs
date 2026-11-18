@@ -77,6 +77,16 @@ namespace CardShop.Core
         public const int PackRackSlots = 4;
         public const float PackRackSpacing = 0.3f;
 
+        // ---------------------------------------------------------------- 카드 도둑 (카드도둑_설계 5장)
+        /// <summary>오늘 무료 팩 받침 바닥 가운데: 계산대 윗면 손님 쪽 왼쪽 (상자 열기 · 퇴근 버튼 x -0.98 · -0.8, z 0.5보다 손님 쪽)</summary>
+        public static readonly Vector3 FreePackPos = new Vector3(-0.9f, CounterTop, 0.9f);
+        /// <summary>도둑이 무료 팩을 집으려고 서는 자리 (계산대 앞, 진열대 통로 왼쪽)</summary>
+        public static readonly Vector3 ThiefStealPos = new Vector3(-0.9f, 0f, 1.4f);
+        /// <summary>빗자루 세워 두는 자리: 카운터 오른쪽 뒤 (문 쪽으로 나가며 집기 좋게, 쓰레기통 앞)</summary>
+        public static readonly Vector3 BroomPos = new Vector3(1.35f, 0f, 0.12f);
+        /// <summary>가게 앞 인도 가운데 z (도둑이 달리는 줄)</summary>
+        public const float SidewalkMidZ = FrontZ + 2.2f;
+
         // ---------------------------------------------------------------- 집 (가게에서 30m 떨어진 같은 씬 구역)
         /// <remarks>
         /// 예전 (30, 0, 0)은 가게 앞 거리 끝(x ±27.5) 바로 옆이라 인도에서 집 상자가 보였음 (2026-11-18 기기 테스트 피드백 M1).

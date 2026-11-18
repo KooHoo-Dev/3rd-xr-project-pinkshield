@@ -37,6 +37,17 @@ namespace CardShop.Core
         void DismissAll();
     }
 
+    /// <summary>영업 중 카드 도둑. 구현은 Customers의 ThiefDirector. 없으면 도둑이 안 나옵니다.</summary>
+    public interface IThiefFloor
+    {
+        /// <summary>도둑이 가게 안팎에 있거나 오늘 올 도둑이 남았는가 (영업 마감이 기다림)</summary>
+        bool IsActive { get; }
+        /// <summary>영업 시간이 끝남: 아직 안 온 도둑은 오지 않음</summary>
+        void StopSpawning();
+        /// <summary>디버그 · 강제 종료: 도둑을 즉시 없애고 팩을 제자리로 (도난으로 치지 않음)</summary>
+        void DismissAll();
+    }
+
     /// <summary>영업 중 청소 구역. 구현은 Cleanup의 CleanupDirector. 없으면 청소 없이 손님만 기다립니다.</summary>
     public interface ICleanupFloor
     {
@@ -80,6 +91,9 @@ namespace CardShop.Core
 
         /// <summary>청소 구역. CleanupDirector가 OnEnable에서 등록합니다.</summary>
         public ICleanupFloor Cleanup { get; set; }
+
+        /// <summary>카드 도둑. ThiefDirector가 OnEnable에서 등록합니다.</summary>
+        public IThiefFloor Thief { get; set; }
 
         /// <summary>전환 연출 중에는 버튼 입력을 받지 않습니다.</summary>
         public bool IsTransitioning => isTransitioning;

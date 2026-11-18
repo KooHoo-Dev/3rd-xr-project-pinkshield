@@ -80,6 +80,7 @@ namespace CardShop.EditorTools
             CreateCounterButtons(flow, opener);
             CustomerFloorBuilder.Create(flow, font);
             CleanupBuilder.Create(flow, font);
+            ThiefBuilder.Create(flow, font); // CustomerDirector를 찾으므로 손님 동선 다음
             CreateDebugPanel(flow);
             CreatePauseMenu(flow);
             CreateHome(flow, sun);

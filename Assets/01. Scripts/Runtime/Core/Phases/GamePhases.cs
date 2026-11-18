@@ -94,10 +94,12 @@ namespace CardShop.Core.Phases
                 TimeLeft = 0f;
                 IsClosing = true;
                 Flow.Customers?.StopSpawning();
+                Flow.Thief?.StopSpawning();
                 Log("영업 시간 종료 (남은 손님 결제 대기)");
             }
 
-            bool hasCustomers = Flow.Customers != null && Flow.Customers.HasCustomers;
+            // 도둑을 쫓는 중이면 손님처럼 끝날 때까지 기다림 (카드도둑_설계 3장)
+            bool hasCustomers = (Flow.Customers != null && Flow.Customers.HasCustomers) || (Flow.Thief != null && Flow.Thief.IsActive);
             if (hasCustomers) return;
             int pending = Flow.Cleanup?.PendingCount ?? 0;
             if (sinceLastCustomer < 0f)
@@ -118,14 +120,19 @@ namespace CardShop.Core.Phases
             }
         }
 
-        public override void Exit() => Flow.Cleanup?.EndDay();
+        public override void Exit()
+        {
+            Flow.Cleanup?.EndDay();
+            Flow.Thief?.DismissAll();
+        }
 
-        /// <summary>디버그: 영업 즉시 종료 (남은 손님도 내보내고 마감 정리도 건너뜀 → 남은 청소는 감점)</summary>
+        /// <summary>디버그: 영업 즉시 종료 (남은 손님 · 도둑도 내보내고 마감 정리도 건너뜀 → 남은 청소는 감점)</summary>
         public override void OnAdvanceRequested()
         {
             TimeLeft = 0f;
             skipCleanup = true;
             Flow.Customers?.DismissAll();
+            Flow.Thief?.DismissAll();
         }
     }
 
@@ -143,7 +150,7 @@ namespace CardShop.Core.Phases
             ledger.basePay = Context.Economy.dailyBasePay;
             LastTotal = Context.EconomyRules.SettlementTotal(ledger);
             Context.Session.Wallet.Add(LastTotal);
-            Log($"정산 +{LastTotal} (청소 {ledger.cleanupsDone}곳 · 못 치움 {ledger.cleanupsMissed}곳 · 빠른 계산 {ledger.checkoutsFast}건 · 떠난 손님 {ledger.customersLost}명) → 보유 {Context.Session.Wallet.Money}");
+            Log($"정산 +{LastTotal} (청소 {ledger.cleanupsDone}곳 · 못 치움 {ledger.cleanupsMissed}곳 · 빠른 계산 {ledger.checkoutsFast}건 · 떠난 손님 {ledger.customersLost}명 · 잡은 도둑 {ledger.thievesCaught}명{(ledger.freePackStolen ? " · 무료 팩 도난" : "")}) → 보유 {Context.Session.Wallet.Money}");
         }
 
         public override void OnAdvanceRequested() => Flow.GoTo(GamePhaseId.AfterHours);
@@ -157,7 +164,10 @@ namespace CardShop.Core.Phases
 
         public override void Enter()
         {
-            Context.Session.FreePacksLeft = Context.Economy.freePacksPerDay;
+            // 도둑을 놓친 날은 무료 팩 없음 (카드도둑_설계 2장)
+            bool stolen = Context.Session.Ledger.freePackStolen;
+            Context.Session.FreePacksLeft = ThiefRules.FreePacksToday(Context.Economy.freePacksPerDay, stolen);
+            if (stolen) Context.Events.RaiseNotice("도둑이 무료 팩을 가져가서 오늘은 무료 팩이 없어요…");
             Log("퇴근 전 시간 (퇴근 버튼 = Advance)");
         }
 

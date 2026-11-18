@@ -122,6 +122,8 @@ namespace CardShop.Logic
         public int customersServed;
         public int checkoutsFast;     // 기준 시간 안에 끝낸 계산 (EconomyRules.IsFastCheckout)
         public int customersLost;     // 줄에서 기다리다 떠난 손님
+        public bool freePackStolen;   // 도둑을 놓쳐 오늘 무료 팩을 잃음 (ThiefRules.FreePacksToday)
+        public int thievesCaught;     // 빗자루로 잡은 도둑
         // 아침 혼잣말용 하루 요약 (PackOpeningService가 개봉할 때마다 채움)
         public int packsOpened;
         public int newCards;

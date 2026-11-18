@@ -73,6 +73,35 @@ namespace CardShop.Cards
         /// <summary>CustomerSchedule.Build에 넘길 물결 설정 (끄면 null)</summary>
         public WaveSettings Waves => useWaves ? waves : null;
 
+        /// <summary>카드 도둑 (카드도둑_설계 4장, 2026-11-18 확정: 3일차부터 하루 1번, 빗자루 한 대, 놓치면 그날 무료 팩 없음)</summary>
+        [Serializable]
+        public class ThiefSettings
+        {
+            [Tooltip("도둑이 처음 나오는 일차")]
+            public int firstDay = 3;
+            [Tooltip("하루에 나오는 도둑 수 (0이면 안 나옴)")]
+            public int perDay = 1;
+            [Tooltip("등장 시각 = 영업 시간 × 이 비율 사이 무작위 (최소, 최대)")]
+            public Vector2 spawnWindow = new Vector2(0.25f, 0.6f);
+            [Tooltip("팩을 들고 달아나는 속도 (m/s). 플레이어 이동 2.5 m/s보다 느리게")]
+            public float runSpeed = 1.8f;
+            [Tooltip("훔칠 자리에 와서 팩을 집기 전 머뭇거리는 시간 (초). 이때 쳐도 잡힘")]
+            public float lingerSeconds = 1.5f;
+            [Tooltip("팩을 집은 뒤 달아나기 전 약 올리는 시간 (초)")]
+            public float tauntSeconds = 1f;
+            [Tooltip("문 바깥에서 인도를 따라 이만큼 가면 놓침 (m)")]
+            public float escapeDistance = 10f;
+            [Tooltip("빗자루 머리가 이 속도(m/s) 이상이어야 맞은 것으로 침")]
+            public float hitSpeed = 1.0f;
+            [Tooltip("도둑 몸 반지름 (m). 빗자루 머리가 이 안에 들어오면 맞음")]
+            public float hitRadius = 0.35f;
+            [Tooltip("도둑을 잡으면 줄 선 손님의 인내 시간을 이만큼 되돌려 줌 (초, 영웅 보너스)")]
+            public float heroPatienceBonus = 10f;
+        }
+
+        [Header("카드 도둑")]
+        public ThiefSettings thief = new ThiefSettings();
+
         [Header("선반 (설계서 Q5)")]
         public int shelfSlotCount = 12;
 

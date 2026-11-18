@@ -196,7 +196,7 @@ namespace CardShop.EditorTools
         // 물리 없이 잡기 (키네마틱). 카드와 같은 잡기 감각 (3차 기기 피드백: 손에 착 붙는 느낌이 어색):
         // 잡은 자리 · 각도 그대로 들고(동적 어태치), 레이저로 잡으면 레이저 끝에 매달려 옴(카드와 같은 원거리 방식).
         // 놓으면 받는 곳(통 · 꽂이)이 아니면 아래로 떨어져 그 자리에 머묾 (HeldItem)
-        static void MakeGrabbable(GameObject go)
+        internal static void MakeGrabbable(GameObject go)
         {
             var rb = go.AddComponent<Rigidbody>();
             rb.isKinematic = true;
@@ -210,7 +210,7 @@ namespace CardShop.EditorTools
         }
 
         // 보이는 모양만 (콜라이더 제거). 잡기 판정은 부모 콜라이더가 맡음
-        static GameObject Visual(Transform parent, PrimitiveType shape, Vector3 size, Color color, bool unlit = false)
+        internal static GameObject Visual(Transform parent, PrimitiveType shape, Vector3 size, Color color, bool unlit = false)
         {
             GameObject v = GameObject.CreatePrimitive(shape);
             v.name = "Visual_" + shape;

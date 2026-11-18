@@ -76,7 +76,8 @@ namespace CardShop.Customers
         /// <summary>출입문 지점 (입구 종이 문을 지나는지 판단할 때 사용)</summary>
         public Transform Door => door;
 
-        CustomerRoutes Routes => new CustomerRoutes(
+        /// <summary>손님이 걷는 통로 (도둑도 같은 통로를 씀)</summary>
+        public CustomerRoutes Routes => new CustomerRoutes(
             outside.position,
             doorOutside != null ? doorOutside.position : door.position,
             door.position,
@@ -179,28 +180,8 @@ namespace CardShop.Customers
 
         void Spawn()
         {
-            int index = picker.Next();
-            if (index < 0) return;
-            CustomerRoster.Entry entry = roster.entries[index];
-            if (entry.prefab == null) return;
-
-            GameObject go = Instantiate(entry.prefab, outside.position, outside.rotation, transform);
-            go.name = $"Customer_{entry.prefab.name}";
-
-            var animator = go.GetComponentInChildren<Animator>();
-            if (animator != null)
-            {
-                animator.applyRootMotion = false; // 이동은 CustomerAgent가 함 (제자리 걷기 클립)
-                animator.runtimeAnimatorController = roster.ControllerFor(entry.gender);
-            }
-
-            // 키 맞추기 (플레이 피드백: 손님이 너무 큼). 크기를 줄이면 보폭도 줄어드므로 걷는 속도도 같은 비율로.
-            float scale = FitHeight(go, animator, roster.HeadHeightFor(entry.gender));
-
-            var agent = go.AddComponent<CustomerAgent>();
-            agent.Init(this, animator, roster.walkSpeed * scale, roster.turnSpeedDegrees);
-            agent.Bubble = SpeechBubble.Create(go.transform, HumanoidHeight.Head(animator), bubbleFont);
-            agent.Bubble.IsPaused = () => IsPaused;
+            CustomerAgent agent = CreateAgent("Customer");
+            if (agent == null) return;
             agents.Add(agent);
 
             agent.State = CustomerState.Enter;
@@ -216,6 +197,60 @@ namespace CardShop.Customers
                 JoinQueue(agent, fromBrowse: false);
             }
         }
+
+        // 손님 외형 하나를 밖 지점에 만들고 걷기 · 말풍선을 붙임 (줄 · 손님 목록에는 넣지 않음)
+        CustomerAgent CreateAgent(string prefix)
+        {
+            if (picker == null) return null;
+            int index = picker.Next();
+            if (index < 0) return null;
+            CustomerRoster.Entry entry = roster.entries[index];
+            if (entry.prefab == null) return null;
+
+            GameObject go = Instantiate(entry.prefab, outside.position, outside.rotation, transform);
+            go.name = $"{prefix}_{entry.prefab.name}";
+
+            var animator = go.GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                animator.applyRootMotion = false; // 이동은 CustomerAgent가 함 (제자리 걷기 클립)
+                animator.runtimeAnimatorController = roster.ControllerFor(entry.gender);
+            }
+
+            // 키 맞추기 (플레이 피드백: 손님이 너무 큼). 크기를 줄이면 보폭도 줄어드므로 걷는 속도도 같은 비율로.
+            float scale = FitHeight(go, animator, roster.HeadHeightFor(entry.gender));
+
+            var agent = go.AddComponent<CustomerAgent>();
+            agent.Init(this, animator, roster.walkSpeed * scale, roster.turnSpeedDegrees);
+            agent.Bubble = SpeechBubble.Create(go.transform, HumanoidHeight.Head(animator), bubbleFont);
+            agent.Bubble.IsPaused = () => IsPaused;
+            return agent;
+        }
+
+        /// <summary>
+        /// 손님 외형으로 손님이 아닌 인물(도둑)을 밖 지점에 만듭니다. 손님 목록 · 줄에는 들어가지 않으므로
+        /// 없애는 일은 만든 쪽이 맡습니다. 오늘 손님 외형을 아직 못 정했으면(영업 전) null.
+        /// </summary>
+        public CustomerAgent SpawnExtra(string prefix) => CreateAgent(prefix);
+
+        /// <summary>
+        /// 도둑을 잡음 (카드도둑_설계 2장 영웅 보너스): 줄 선 손님이 박수 치고 인내 시간을 bonusSeconds만큼 되돌려 받습니다.
+        /// </summary>
+        public void CheerThiefCaught(float bonusSeconds)
+        {
+            foreach (CustomerAgent a in queue)
+            {
+                if (a.State != CustomerState.Queue) continue;
+                a.QueueSeconds = Mathf.Max(0f, a.QueueSeconds - bonusSeconds);
+                a.Gesture(CustomerAnim.Cheer);
+            }
+            foreach (CustomerAgent a in agents)
+                if (a.State != CustomerState.Leave && a.Bubble != null && Chance(0.6f)) a.Bubble.Say(Pick(HeroLines), 2.2f);
+        }
+
+        static readonly string[] HeroLines = { "와, 멋있다!", "나이스!", "(짝짝짝)", "알바생 최고!", "잡았다!" };
+
+        string Pick(string[] list) => list[context != null ? context.Random.Range(0, list.Length) : 0];
 
         /// <summary>머리 뼈 높이가 range 안의 무작위 값이 되도록 균일 축소/확대. 적용한 배율을 돌려줍니다.</summary>
         float FitHeight(GameObject go, Animator animator, Vector2 range) => HumanoidHeight.Fit(go, animator, RandomIn(range));

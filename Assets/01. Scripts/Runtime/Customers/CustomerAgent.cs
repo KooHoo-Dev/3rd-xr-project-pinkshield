@@ -58,6 +58,10 @@ namespace CardShop.Customers
         Action onWaitDone;
 
         public CustomerState State { get; set; }
+        /// <summary>걷는 속도 (m/s). 도둑이 달아날 때 올림</summary>
+        public float WalkSpeed { get => walkSpeed; set => walkSpeed = Mathf.Max(0.1f, value); }
+        /// <summary>지금 실제로 움직이는 속도 (m/s)</summary>
+        public Vector3 Velocity => velocity;
         public bool IsMoving => path != null;
         /// <summary>진열대에서 구경한 자리 (퇴장 시 청소 구역 위치로 알림)</summary>
         public Vector3 BrowsePosition { get; set; }
