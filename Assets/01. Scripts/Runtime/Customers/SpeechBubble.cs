@@ -11,8 +11,13 @@ namespace CardShop.Customers
     {
         const float FadeSeconds = 0.3f;
         // 손님 키를 줄여도 글자 크기는 같게: 크기는 월드 기준으로 맞춤
-        const float FontSize = 0.22f;
-        const float HeadClearance = 0.32f;
+        // 3차 기기 피드백: 0.22는 2~4m 떨어진 손님 말풍선으로는 너무 작았음 → 키우고, 멀수록 더 키움
+        const float FontSize = 0.4f;
+        const float BubbleWidth = 0.9f;
+        // 이 거리까지는 기본 크기, 더 멀면 거리에 비례해 키움 (최대 MaxDistanceScale배)
+        const float ReferenceDistance = 1.5f;
+        const float MaxDistanceScale = 2.5f;
+        const float HeadClearance = 0.2f; // 머리 뼈 → 말풍선 아랫변
 
         TextMeshPro text;
         Transform head;
@@ -39,7 +44,9 @@ namespace CardShop.Customers
             bubble.text.alignment = TextAlignmentOptions.Bottom;
             bubble.text.textWrappingMode = TextWrappingModes.Normal;
             bubble.text.color = new Color(0.12f, 0.1f, 0.14f);
-            ((RectTransform)go.transform).sizeDelta = new Vector2(0.6f, 0.2f);
+            ((RectTransform)go.transform).sizeDelta = new Vector2(BubbleWidth, 0.3f);
+            // 아래 가운데를 기준점으로: 거리에 따라 키워도 말풍선 아랫변이 머리 위에 머묾 (위로만 커짐)
+            ((RectTransform)go.transform).pivot = new Vector2(0.5f, 0f);
             go.SetActive(false);
             return bubble;
         }
@@ -73,12 +80,19 @@ namespace CardShop.Customers
 
             // 부모(손님)의 키 맞춤 배율을 되돌려 글자 크기를 일정하게
             Vector3 s = body.lossyScale;
-            transform.localScale = new Vector3(1f / Mathf.Max(0.01f, s.x), 1f / Mathf.Max(0.01f, s.y), 1f / Mathf.Max(0.01f, s.z));
+            Vector3 unscale = new Vector3(1f / Mathf.Max(0.01f, s.x), 1f / Mathf.Max(0.01f, s.y), 1f / Mathf.Max(0.01f, s.z));
 
             // TMP 글자는 -Z 쪽에서 읽히므로 forward = 카메라 → 글자 방향
             Camera cam = Camera.main;
-            if (cam == null) return;
+            if (cam == null)
+            {
+                transform.localScale = unscale;
+                return;
+            }
             Vector3 dir = transform.position - cam.transform.position;
+            // 멀리 있는 손님 말풍선도 읽히게: 보이는 크기가 거의 일정하도록 거리에 비례해 키움
+            float distanceScale = Mathf.Clamp(dir.magnitude / ReferenceDistance, 1f, MaxDistanceScale);
+            transform.localScale = unscale * distanceScale;
             dir.y = 0f; // 수평으로만 돌림 (위아래로 기울면 읽기 어려움)
             if (dir.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
         }

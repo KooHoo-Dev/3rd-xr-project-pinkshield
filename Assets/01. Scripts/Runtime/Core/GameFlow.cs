@@ -110,7 +110,10 @@ namespace CardShop.Core
 
         void Start() => GoTo(GamePhaseId.Title);
 
-        void Update() => current?.Tick(Time.deltaTime);
+        void Update()
+        {
+            if (!IsPaused) current?.Tick(Time.deltaTime); // 일시정지 중에는 어느 페이즈의 시간도 흐르지 않음
+        }
 
         // 헤드셋을 벗거나(Pause) Quest 시스템 메뉴가 열리면(포커스 상실) 영업 타이머를 멈춥니다.
         // 되돌리는 건 PauseMenu의 [이어서 하기] → Resume() (예전에는 되돌리는 코드가 없어 영업이 영영 멈췄음).
@@ -126,10 +129,10 @@ namespace CardShop.Core
         }
 #endif
 
-        /// <summary>일시정지. 멈출 시간이 있는 영업 중에만 의미가 있어 다른 페이즈에서는 무시합니다.</summary>
+        /// <summary>일시정지. 어느 페이즈에서나 됩니다 (3차 기기 피드백: 예전엔 영업 중에만 됐음). 멈추는 것은 영업 타이머 · 손님 · 거리 행인.</summary>
         public void Pause()
         {
-            if (CurrentPhase == GamePhaseId.Business) IsPaused = true;
+            IsPaused = true;
         }
 
         public void Resume() => IsPaused = false;
@@ -149,7 +152,8 @@ namespace CardShop.Core
         public void GoTo(GamePhaseId next)
         {
             GamePhaseId prev = CurrentPhase;
-            if (next != GamePhaseId.Business) IsPaused = false; // 일시정지가 다음 판으로 새지 않게
+            // 일시정지는 페이즈가 바뀌어도 그대로 둠: 메뉴가 떠 있는 채로 버튼을 눌러 페이즈가 바뀌어도 메뉴가 갑자기 사라지지 않게.
+            // 새 판(RestartGame)에서만 풉니다.
             current?.Exit();
             current = phases[next];
             context.Events.RaisePhaseChanged(prev, next);

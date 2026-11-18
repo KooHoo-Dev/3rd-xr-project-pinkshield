@@ -33,6 +33,7 @@ namespace CardShop.EditorTools
             binGo.transform.position = ShopLayout.TrashBinPos;
             TrashBin bin = binGo.AddComponent<TrashBin>();
             CustomerFloorBuilder.Label(root, "쓰레기통", ShopLayout.TrashBinPos + new Vector3(0f, 0.75f, 0f), font, 0.3f);
+            bin.Configure(BinHint(binGo.transform, font));
 
             var templates = new GameObject("Templates (꺼 둔 원본)").transform;
             templates.SetParent(root);
@@ -115,10 +116,86 @@ namespace CardShop.EditorTools
             SetArray(so.FindProperty("slots"), slots);
             SetArray(so.FindProperty("packs"), packs);
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // 팩을 들고 있을 때: 빈 칸마다 팩 모양 윤곽 + 꽂이 위 안내 글자
+            var slotHints = new DropHint[n];
+            for (int i = 0; i < n; i++) slotHints[i] = SlotHint(slots[i]);
+            rack.ConfigureHints(slotHints, LabelHint(rackGo.transform, new Vector3(0f, 0.3f, 0f), "빈 칸에 꽂기", font));
             return rack;
         }
 
-        // 물리 없이 잡기 (키네마틱) + 멀리서 레이저로 잡아도 손으로 끌려옴 + 놓으면 제자리 (HeldItem)
+        // ------------------------------------------------------------------ 놓을 곳 표시 (3차 기기 피드백)
+
+        static readonly Color HintColor = new Color(1f, 0.78f, 0.2f);
+
+        // 쓰레기통: 바닥 빛 고리 + 통 위에서 위아래로 움직이는 표식 + "여기에 버리기"
+        static DropHint BinHint(Transform bin, TMP_FontAsset font)
+        {
+            var hintGo = new GameObject("DropHint");
+            hintGo.transform.SetParent(bin, false);
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(hintGo.transform, false);
+
+            GameObject ring = Visual(visual, PrimitiveType.Cylinder, new Vector3(0.7f, 0.003f, 0.7f), HintColor, unlit: true);
+            ring.transform.localPosition = new Vector3(0f, 0.008f, 0f);
+            var marker = new GameObject("Marker").transform;
+            marker.SetParent(visual, false);
+            marker.localPosition = new Vector3(0f, 1.0f, 0f);
+            GameObject gem = Visual(marker, PrimitiveType.Cube, new Vector3(0.07f, 0.07f, 0.07f), HintColor, unlit: true);
+            gem.transform.localRotation = Quaternion.Euler(45f, 0f, 45f); // 꼭짓점이 아래를 가리키는 마름모
+            CustomerFloorBuilder.Label(marker, "여기에 버리기", marker.position + new Vector3(0f, 0.14f, 0f), font, 0.35f);
+
+            var hint = hintGo.AddComponent<DropHint>();
+            hint.Configure(visual.gameObject, new[] { ring.GetComponent<Renderer>(), gem.GetComponent<Renderer>() }, marker);
+            return hint;
+        }
+
+        // 꽂이 빈 칸: 꽂힐 자리에 팩 크기 윤곽(얇은 테두리 4개)
+        static DropHint SlotHint(Transform slot)
+        {
+            var hintGo = new GameObject("DropHint");
+            hintGo.transform.SetParent(slot, false);
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(hintGo.transform, false);
+            const float t = 0.008f;
+            float w = PackSize.x + 0.02f, h = PackSize.y + 0.02f;
+            var edges = new Renderer[4];
+            edges[0] = Visual(visual, PrimitiveType.Cube, new Vector3(w, t, t), HintColor, unlit: true).GetComponent<Renderer>();
+            edges[0].transform.localPosition = new Vector3(0f, h / 2f, 0f);
+            edges[1] = Visual(visual, PrimitiveType.Cube, new Vector3(w, t, t), HintColor, unlit: true).GetComponent<Renderer>();
+            edges[1].transform.localPosition = new Vector3(0f, -h / 2f, 0f);
+            edges[2] = Visual(visual, PrimitiveType.Cube, new Vector3(t, h, t), HintColor, unlit: true).GetComponent<Renderer>();
+            edges[2].transform.localPosition = new Vector3(w / 2f, 0f, 0f);
+            edges[3] = Visual(visual, PrimitiveType.Cube, new Vector3(t, h, t), HintColor, unlit: true).GetComponent<Renderer>();
+            edges[3].transform.localPosition = new Vector3(-w / 2f, 0f, 0f);
+
+            var hint = hintGo.AddComponent<DropHint>();
+            hint.Configure(visual.gameObject, edges, null);
+            return hint;
+        }
+
+        // 글자 + 작은 마름모 표식만 있는 안내 (꽂이 위)
+        static DropHint LabelHint(Transform parent, Vector3 localPos, string text, TMP_FontAsset font)
+        {
+            var hintGo = new GameObject("DropHint_Label");
+            hintGo.transform.SetParent(parent, false);
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(hintGo.transform, false);
+            var marker = new GameObject("Marker").transform;
+            marker.SetParent(visual, false);
+            marker.localPosition = localPos;
+            GameObject gem = Visual(marker, PrimitiveType.Cube, new Vector3(0.05f, 0.05f, 0.05f), HintColor, unlit: true);
+            gem.transform.localRotation = Quaternion.Euler(45f, 0f, 45f);
+            CustomerFloorBuilder.Label(marker, text, marker.position + new Vector3(0f, 0.1f, 0f), font, 0.3f);
+
+            var hint = hintGo.AddComponent<DropHint>();
+            hint.Configure(visual.gameObject, new[] { gem.GetComponent<Renderer>() }, marker);
+            return hint;
+        }
+
+        // 물리 없이 잡기 (키네마틱). 카드와 같은 잡기 감각 (3차 기기 피드백: 손에 착 붙는 느낌이 어색):
+        // 잡은 자리 · 각도 그대로 들고(동적 어태치), 레이저로 잡으면 레이저 끝에 매달려 옴(카드와 같은 원거리 방식).
+        // 놓으면 받는 곳(통 · 꽂이)이 아니면 아래로 떨어져 그 자리에 머묾 (HeldItem)
         static void MakeGrabbable(GameObject go)
         {
             var rb = go.AddComponent<Rigidbody>();
@@ -127,12 +204,13 @@ namespace CardShop.EditorTools
             var grab = go.AddComponent<XRGrabInteractable>();
             grab.movementType = XRBaseInteractable.MovementType.Instantaneous;
             grab.throwOnDetach = false;
-            grab.farAttachMode = InteractableFarAttachMode.Near;
+            grab.useDynamicAttach = true;
+            grab.farAttachMode = InteractableFarAttachMode.DeferToInteractor;
             go.AddComponent<HeldItem>();
         }
 
         // 보이는 모양만 (콜라이더 제거). 잡기 판정은 부모 콜라이더가 맡음
-        static GameObject Visual(Transform parent, PrimitiveType shape, Vector3 size, Color color)
+        static GameObject Visual(Transform parent, PrimitiveType shape, Vector3 size, Color color, bool unlit = false)
         {
             GameObject v = GameObject.CreatePrimitive(shape);
             v.name = "Visual_" + shape;
@@ -140,9 +218,17 @@ namespace CardShop.EditorTools
             v.transform.localScale = size;
             Object.DestroyImmediate(v.GetComponent<Collider>());
             var r = v.GetComponent<MeshRenderer>();
-            r.sharedMaterial = Mat(color);
+            r.sharedMaterial = unlit ? UnlitMat(color) : Mat(color);
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             return v;
+        }
+
+        // 표시용: 조명과 상관없이 밝게 보이는 색 (DropHint가 _BaseColor를 바꿈)
+        static Material UnlitMat(Color color)
+        {
+            var m = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            m.SetColor("_BaseColor", color);
+            return m;
         }
 
         static Material Mat(Color color)

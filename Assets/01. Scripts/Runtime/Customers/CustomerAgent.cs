@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using CardShop.Logic;
 using UnityEngine;
 
 namespace CardShop.Customers
@@ -34,6 +36,14 @@ namespace CardShop.Customers
     {
         const float ArriveDistance = 0.03f;
 
+        // 매장에 있는 손님들 (서로 피하기용)
+        static readonly List<CustomerAgent> Active = new List<CustomerAgent>();
+        readonly List<SteeringNeighbor> neighborBuffer = new List<SteeringNeighbor>();
+
+        [Tooltip("손님 한 명이 차지하는 반지름 (m). 걸을 때 이 거리 안으로는 서로 비켜 감")]
+        [SerializeField] float avoidRadius = 0.35f;
+
+        Vector3 velocity;
         CustomerDirector director;
         Animator animator;
         float walkSpeed;
@@ -88,6 +98,14 @@ namespace CardShop.Customers
             onWaitDone = done;
         }
 
+        void OnEnable() => Active.Add(this);
+
+        void OnDisable()
+        {
+            Active.Remove(this);
+            velocity = Vector3.zero;
+        }
+
         public void Gesture(int trigger)
         {
             if (animator != null && animator.runtimeAnimatorController != null) animator.SetTrigger(trigger);
@@ -115,7 +133,8 @@ namespace CardShop.Customers
                 }
             }
 
-            if (animator != null) animator.SetFloat(CustomerAnim.Speed, path != null ? walkSpeed : 0f);
+            // 실제로 걸은 속도 (다른 손님 뒤에서 멈칫하면 걷는 동작도 느려짐)
+            if (animator != null) animator.SetFloat(CustomerAnim.Speed, path != null ? velocity.magnitude : 0f);
         }
 
         void Move(float dt)
@@ -127,17 +146,42 @@ namespace CardShop.Customers
 
             if (dist > ArriveDistance)
             {
-                transform.position = Vector3.MoveTowards(transform.position, new Vector3(target.x, transform.position.y, target.z), walkSpeed * dt);
-                TurnTo(Quaternion.LookRotation(to / dist, Vector3.up), dt);
+                Vector3 before = transform.position;
+                Vector3 flatTarget = new Vector3(target.x, before.y, target.z);
+                if (dist <= walkSpeed * dt)
+                {
+                    transform.position = flatTarget; // 이번 프레임에 닿음
+                }
+                else
+                {
+                    // 다른 손님을 피해 걸음 (3차 기기 피드백: 서로 겹쳐 지나감)
+                    Vector3 v = CustomerSteering.Velocity(before, flatTarget, walkSpeed, Neighbors(), avoidRadius);
+                    transform.position = before + v * dt;
+                }
+                Vector3 moved = transform.position - before;
+                velocity = dt > 0f ? moved / dt : Vector3.zero;
+                Vector3 face = moved.sqrMagnitude > 1e-8f ? moved : to;
+                face.y = 0f;
+                if (face.sqrMagnitude > 1e-8f) TurnTo(Quaternion.LookRotation(face.normalized, Vector3.up), dt);
                 return;
             }
 
             if (++pathIndex < path.Length) return;
 
             path = null;
+            velocity = Vector3.zero;
             Action arrived = onArrive;
             onArrive = null;
             arrived?.Invoke();
+        }
+
+        // 지금 매장에 있는 다른 손님들 (몇 명뿐이라 매 프레임 모아도 가벼움)
+        List<SteeringNeighbor> Neighbors()
+        {
+            neighborBuffer.Clear();
+            foreach (CustomerAgent a in Active)
+                if (a != this) neighborBuffer.Add(new SteeringNeighbor(a.transform.position, a.velocity));
+            return neighborBuffer;
         }
 
         void TurnTo(Quaternion goal, float dt)

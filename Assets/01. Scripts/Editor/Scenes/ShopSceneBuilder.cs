@@ -149,10 +149,30 @@ namespace CardShop.EditorTools
                 rig.AddComponent<PlayerHeightCalibrator>().Configure(origin);
                 // 가게 · 인도 · 집 밖(도로 등)으로 못 나가게 + 혼잣말 (BUG-009)
                 rig.AddComponent<PlayAreaGuard>().Configure(origin, font);
+                UseSmoothTurn(rig);
             }
             else Debug.LogError($"[ShopSceneBuilder] XR Origin 프리팹 없음: {XrOriginPrefab} (XRI Starter Assets 샘플 임포트 필요)");
 
             new GameObject("EventSystem", typeof(EventSystem), typeof(XRUIInputModule));
+        }
+
+        // 오른쪽 조이스틱 회전: 스냅(45도씩 뚝) → 부드러운 회전 (3차 기기 피드백: 끊기는 회전이 어지러움).
+        // Starter Assets의 ControllerInputActionManager는 샘플 어셈블리라 이름으로 찾아 직렬화 값만 바꿉니다.
+        // 회전 속도는 XR Origin 프리팹의 ContinuousTurnProvider.turnSpeed (기본 60도/초).
+        static void UseSmoothTurn(GameObject rig)
+        {
+            int changed = 0;
+            foreach (MonoBehaviour mb in rig.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (mb == null || mb.GetType().Name != "ControllerInputActionManager") continue;
+                var so = new SerializedObject(mb);
+                SerializedProperty smoothTurn = so.FindProperty("m_SmoothTurnEnabled");
+                if (smoothTurn == null) continue;
+                smoothTurn.boolValue = true;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                changed++;
+            }
+            if (changed == 0) Debug.LogWarning("[ShopSceneBuilder] ControllerInputActionManager를 못 찾아 부드러운 회전을 켜지 못했습니다.");
         }
 
         // ------------------------------------------------------------------ 게임

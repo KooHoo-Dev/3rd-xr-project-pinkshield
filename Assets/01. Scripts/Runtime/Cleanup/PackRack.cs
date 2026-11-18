@@ -7,8 +7,9 @@ namespace CardShop.Cleanup
 {
     /// <summary>
     /// 판매 진열대 위 팩 꽂이 (기획서 5-1 "흐트러진 팩 정리: 흩어진 팩을 집어 진열대 칸에 꽂기").
-    /// 칸마다 팩이 하나씩 꽂혀 있고, 손님이 흐트러뜨리면 팩 몇 개가 근처 바닥으로 떨어집니다.
+    /// 칸마다 팩이 하나씩 꽂혀 있고, 손님이 흐트러뜨리면 팩 몇 개가 바닥(CleanupDirector가 고른 자리 근처)으로 떨어집니다.
     /// 빈 칸 근처에서 팩을 놓으면 그 칸에 꽂힙니다(소켓 대신 거리 판정: 어느 빈 칸이든 됨).
+    /// 팩을 들고 있는 동안 빈 칸마다 윤곽(DropHint)이 뜨고, 꽂히는 거리면 그 칸이 초록으로 바뀝니다 (3차 기기 피드백).
     /// </summary>
     public sealed class PackRack : MonoBehaviour
     {
@@ -18,12 +19,26 @@ namespace CardShop.Cleanup
         [SerializeField] RackPack[] packs;
         [Tooltip("빈 칸에서 이 거리 안에 놓으면 꽂힘 (m)")]
         [SerializeField] float snapDistance = 0.18f;
+        [Tooltip("칸마다 빈 칸 윤곽 (slots와 같은 순서, 없어도 됨)")]
+        [SerializeField] DropHint[] slotHints;
+        [Tooltip("팩을 들고 있을 때 꽂이 위에 뜨는 안내 (없어도 됨)")]
+        [SerializeField] DropHint rackHint;
+        [Tooltip("바닥에 떨어진 팩 높이 (눕혔을 때 두께의 절반, m)")]
+        [SerializeField] float floorHeight = 0.006f;
+
+        public void ConfigureHints(DropHint[] perSlot, DropHint overall)
+        {
+            slotHints = perSlot;
+            rackHint = overall;
+        }
 
         void Awake()
         {
             for (int i = 0; i < packs.Length; i++)
             {
                 packs[i].Init(this, i);
+                packs[i].Held.LandHeight = floorHeight;
+                packs[i].Held.LandFlat = true;
                 packs[i].Held.SetGrabbable(false);
             }
         }
@@ -33,24 +48,24 @@ namespace CardShop.Cleanup
             get { int n = 0; foreach (RackPack p in packs) if (p.InRack) n++; return n; }
         }
 
-        /// <summary>꽂힌 팩 중 최대 count개를 around 근처 바닥에 떨어뜨리고, 떨어뜨린 팩을 돌려줍니다.</summary>
-        public List<RackPack> Scatter(Vector3 around, int count, IRandomSource random)
+        /// <summary>꽂힌 팩 중 최대 count개를 center 둘레 바닥에 흩어 떨어뜨리고, 떨어뜨린 팩을 돌려줍니다.</summary>
+        public List<RackPack> Scatter(Vector3 center, int count, IRandomSource random)
         {
             var inRack = new List<RackPack>();
             foreach (RackPack p in packs) if (p.InRack) inRack.Add(p);
             var scattered = new List<RackPack>();
+            float startAngle = (float)(random.NextDouble() * 360.0);
             for (int i = 0; i < count && inRack.Count > 0; i++)
             {
                 RackPack p = inRack[random.Range(0, inRack.Count)];
                 inRack.Remove(p);
                 p.Slot = -1;
-                // 바닥에 눕힘: 손님 자리에서 진열대 반대쪽(-Z, 계산대 쪽) 반원, 반경 0.25~0.55m, 가게 벽 안쪽
-                // (진열대 아래로 들어가 안 보이는 일이 없게)
-                float angle = 100f + (float)(random.NextDouble() * 160.0);
-                float dist = 0.25f + (float)random.NextDouble() * 0.3f;
-                Vector3 pos = around + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * dist;
+                // 가운데 둘레에 고르게 (각도를 나눠 서로 겹치지 않게), 반경 0.15~0.4m, 가게 벽 안쪽
+                float angle = startAngle + i * (360f / Mathf.Max(1, count)) + (float)(random.NextDouble() * 40.0 - 20.0);
+                float dist = 0.15f + (float)random.NextDouble() * 0.25f;
+                Vector3 pos = center + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * dist;
                 pos = ClampInsideShop(pos);
-                pos.y = 0.006f;
+                pos.y = floorHeight;
                 Quaternion rot = Quaternion.Euler(90f, (float)(random.NextDouble() * 360.0), 0f);
                 p.Held.PlaceAt(pos, rot);
                 p.Held.SetGrabbable(true);
@@ -62,17 +77,23 @@ namespace CardShop.Cleanup
         /// <summary>가장 가까운 빈 칸이 놓은 위치에서 snapDistance 안이면 꽂습니다.</summary>
         public bool TryReturn(RackPack pack)
         {
+            int best = NearestEmptySlot(pack.transform.position);
+            if (best < 0) return false;
+            Seat(pack, best);
+            return true;
+        }
+
+        int NearestEmptySlot(Vector3 position)
+        {
             int best = -1;
             float bestSqr = snapDistance * snapDistance;
             for (int i = 0; i < slots.Length; i++)
             {
                 if (Occupied(i)) continue;
-                float d = (slots[i].position - pack.transform.position).sqrMagnitude;
+                float d = (slots[i].position - position).sqrMagnitude;
                 if (d <= bestSqr) { bestSqr = d; best = i; }
             }
-            if (best < 0) return false;
-            Seat(pack, best);
-            return true;
+            return best;
         }
 
         /// <summary>하루 끝: 흐트러진 팩을 모두 빈 칸에 다시 꽂습니다.</summary>
@@ -83,6 +104,32 @@ namespace CardShop.Cleanup
                 if (p.InRack) continue;
                 for (int i = 0; i < slots.Length; i++)
                     if (!Occupied(i)) { Seat(p, i); break; }
+            }
+        }
+
+        // 들고 있는 팩이 있으면 빈 칸 윤곽을 보여 주고, 꽂히는 칸은 초록
+        void Update()
+        {
+            int readySlot = -1;
+            bool carrying = false;
+            foreach (RackPack p in packs)
+            {
+                if (p.InRack || !p.Held.IsHeld) continue;
+                carrying = true;
+                int s = NearestEmptySlot(p.transform.position);
+                if (s >= 0) readySlot = s;
+            }
+            if (rackHint != null)
+            {
+                rackHint.SetShown(carrying);
+                rackHint.SetReady(readySlot >= 0);
+            }
+            if (slotHints == null) return;
+            for (int i = 0; i < slotHints.Length && i < slots.Length; i++)
+            {
+                if (slotHints[i] == null) continue;
+                slotHints[i].SetShown(carrying && !Occupied(i));
+                slotHints[i].SetReady(i == readySlot);
             }
         }
 

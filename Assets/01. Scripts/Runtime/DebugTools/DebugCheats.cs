@@ -49,7 +49,7 @@ namespace CardShop.DebugTools
         public void PauseNow()
         {
             flow.Pause();
-            Ctx.Events.RaiseNotice(flow.IsPaused ? "[치트] 일시정지" : "[치트] 영업 중에만 일시정지돼요");
+            Ctx.Events.RaiseNotice("[치트] 일시정지");
         }
 
         public void CalibrateHeight()

@@ -25,8 +25,19 @@ namespace CardShop.Cleanup
         [Tooltip("손님 한 명이 떨어뜨리는 팩 수")]
         [SerializeField] int packsPerMess = 2;
 
+        [Header("떨어지는 자리 (3차 기기 피드백: 한곳에 몰리고, 안 보이는 곳에 생겼음)")]
+        [Tooltip("시야 밖에 생겨도 되는 확률 (둘러보게 하는 예외)")]
+        [SerializeField, Range(0f, 1f)] float outOfViewChance = 0.15f;
+        [Tooltip("청소 구역끼리 최소 거리 (m)")]
+        [SerializeField] float minSeparation = 0.9f;
+        [Tooltip("플레이어 시야 부채꼴 반각 (도)")]
+        [SerializeField] float viewHalfAngle = 35f;
+
         GameContext context;
+        CleanupPlacement placement;
+        Transform viewer;
         readonly List<CleanupSpot> active = new List<CleanupSpot>();
+        readonly List<Vector3> activeSpots = new List<Vector3>();
 
         public int PendingCount
         {
@@ -53,9 +64,8 @@ namespace CardShop.Cleanup
 
             CleanupKinds enabledToday = context.Campaign.GetDay(context.Session.Day).cleanupKinds;
             CleanupKinds kind = CleanupRules.Pick(enabledToday, Available(), context.Random);
-            Vector3 around = browsePosition.sqrMagnitude > 0.01f
-                ? browsePosition
-                : ShopLayout.BrowsePositions[context.Random.Range(0, ShopLayout.BrowsePositions.Length)];
+            if (kind == CleanupKinds.None) return;
+            Vector3 around = PickSpot();
 
             CleanupSpot spot = kind switch
             {
@@ -66,6 +76,40 @@ namespace CardShop.Cleanup
             if (spot == null) return;
             spot.Completed += OnCompleted;
             active.Add(spot);
+        }
+
+        // 손님 자리 대신: 플레이어가 지금 보는 쪽, 다른 청소 구역과 떨어진 바닥 (CleanupPlacement)
+        Vector3 PickSpot()
+        {
+            if (placement == null) placement = CreatePlacement();
+            placement.OutOfViewChance = outOfViewChance;
+            placement.MinSeparation = minSeparation;
+            placement.ViewHalfAngle = viewHalfAngle;
+
+            if (viewer == null && Camera.main != null) viewer = Camera.main.transform;
+            Vector3 eye = viewer != null ? viewer.position : new Vector3(0f, 1.6f, 0f);
+            Vector3 forward = viewer != null ? viewer.forward : Vector3.forward;
+
+            activeSpots.Clear();
+            foreach (CleanupSpot s in active)
+                if (s != null && !s.IsDone) activeSpots.Add(s.transform.position);
+            return placement.Pick(context.Random, eye, forward, activeSpots);
+        }
+
+        // 손님 쪽 바닥(카운터 앞 ~ 앞벽)에서 진열대 · 손님 줄 자리를 뺀 곳
+        static CleanupPlacement CreatePlacement()
+        {
+            const float wallMargin = 0.5f;
+            float minX = ShopLayout.MinX + ShopLayout.WallHalf + wallMargin + 0.3f; // 왼쪽 벽장 · 서랍장 깊이
+            float maxX = ShopLayout.MaxX - ShopLayout.WallHalf - wallMargin;
+            float minZ = ShopLayout.CounterCenter.z + ShopLayout.CounterSize.z / 2f + 0.35f;
+            float maxZ = ShopLayout.FrontZ - ShopLayout.WallHalf - wallMargin;
+            var p = new CleanupPlacement(Rect.MinMaxRect(minX, minZ, maxX, maxZ));
+            p.Obstacles.Add(CleanupPlacement.Box(ShopLayout.StandPos, ShopLayout.StandSize, 0.3f));
+            // 손님 줄 자리: 손님 발밑에 가려지지 않게
+            foreach (Vector3 q in ShopLayout.QueuePositions)
+                p.Obstacles.Add(CleanupPlacement.Box(q, new Vector3(0.5f, 0f, 0.5f), 0.1f));
+            return p;
         }
 
         CleanupKinds Available()
@@ -79,15 +123,13 @@ namespace CardShop.Cleanup
         CleanupSpot SpawnTrash(Vector3 around)
         {
             TrashSpot template = trashTemplates[context.Random.Range(0, trashTemplates.Length)];
-            // 손님 자리 주변, 진열대 반대쪽(-Z)으로 조금 떨어진 바닥
-            float x = around.x + ((float)context.Random.NextDouble() - 0.5f) * 0.8f;
-            float z = around.z - 0.15f - (float)context.Random.NextDouble() * 0.4f;
-            Vector3 pos = new Vector3(x, template.transform.position.y, z);
+            // PickSpot이 고른 바닥 자리 그대로
+            Vector3 pos = new Vector3(around.x, template.transform.position.y, around.z);
             Quaternion rot = Quaternion.Euler(0f, (float)context.Random.NextDouble() * 360f, 0f) * template.transform.rotation;
             TrashSpot trash = Instantiate(template, pos, rot, transform);
             trash.gameObject.SetActive(true);
             trash.Init(bin);
-            context.Events.RaiseNotice("바닥에 쓰레기가 떨어졌어요. 주워서 쓰레기통에!");
+            context.Events.RaiseNotice("바닥에 쓰레기가 떨어졌어요. 주워서 카운터 오른쪽 쓰레기통에!");
             return trash;
         }
 
@@ -97,9 +139,10 @@ namespace CardShop.Cleanup
             if (scattered.Count == 0) return null;
             var go = new GameObject("MessyPacks");
             go.transform.SetParent(transform, false);
+            go.transform.position = around; // 다른 청소 구역과 떨어뜨릴 때 이 자리를 씀
             var spot = go.AddComponent<MessyPackSpot>();
             spot.Init(rack, scattered);
-            context.Events.RaiseNotice("진열대 팩이 바닥에 떨어졌어요. 팩 꽂이에 다시 꽂아 주세요!");
+            context.Events.RaiseNotice("진열대 팩이 바닥에 떨어졌어요. 왼쪽 판매 진열대 팩 꽂이에 다시 꽂아 주세요!");
             return spot;
         }
 
