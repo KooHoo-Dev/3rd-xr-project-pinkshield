@@ -62,6 +62,9 @@ namespace CardShop.EditorTools
             DataPaths.EnsureFolder("Assets/00. Scenes");
             font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
 
+            // 손으로 옮긴 계산대 물건 자리 · 손님 지점 등을 기억했다가 새 씬에 되살림 (PlacementKey)
+            var moved = PlacementMemory.Capture(ScenePath);
+
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             // 인테리어 프리팹: 없을 때만 처음 배치로 만들고, 있으면 손으로 고친 그대로 씀 (D7)
@@ -81,6 +84,7 @@ namespace CardShop.EditorTools
             CreateHome(flow, sun);
             BinderBuilder.Create();
             SalesPanelBuilder.Create();
+            PlacementMemory.Restore(scene, moved);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
@@ -112,7 +116,19 @@ namespace CardShop.EditorTools
             var root = new GameObject("Environment").transform;
             var shop = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.ShopPath);
             var street = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.StreetPath);
-            if (street != null) ((GameObject)PrefabUtility.InstantiatePrefab(street)).transform.SetParent(root, false);
+            var blocks = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.BlocksPath);
+            streetInstance = blocksInstance = null;
+            if (street != null)
+            {
+                streetInstance = (GameObject)PrefabUtility.InstantiatePrefab(street);
+                streetInstance.transform.SetParent(root, false);
+            }
+            // 거리 보강: 가게 같은 편 건물 · 거리 연장 · 양 끝 막음 (기기 테스트 피드백 M2)
+            if (blocks != null)
+            {
+                blocksInstance = (GameObject)PrefabUtility.InstantiatePrefab(blocks);
+                blocksInstance.transform.SetParent(root, false);
+            }
             if (shop != null) ((GameObject)PrefabUtility.InstantiatePrefab(shop)).transform.SetParent(root, false);
             else Debug.LogError($"[ShopSceneBuilder] {InteriorBuilder.ShopPath} 프리팹이 없습니다 (LowPolyInterior 임포트 확인).");
             return root;
@@ -226,11 +242,14 @@ namespace CardShop.EditorTools
         static void CreateCounterButtons(GameFlow flow, PackOpener opener)
         {
             var economy = AssetDatabase.LoadAssetAtPath<EconomyConfig>(DataPaths.Economy);
-            PokeButton box = CreatePokeButton("Button_OpenBox", new Vector3(0.35f, CounterTop, 0.5f), $"상자 열기 ({economy.boxPrice})", new Color(1f, 0.75f, 0.3f));
+            // 카운터 왼쪽 끝, 팩 테이블 쪽 (기기 테스트 피드백: 오른쪽은 종이봉투에 내줌. 오른쪽 끝은 게임 진행 패널에 글자가 가려짐)
+            PokeButton box = CreatePokeButton("Button_OpenBox", new Vector3(-0.98f, CounterTop, 0.5f), $"상자 열기 ({economy.boxPrice})", new Color(1f, 0.75f, 0.3f));
             UnityEventTools.AddPersistentListener(box.pressed, opener.TryOpenBox);
+            PlacementKey.Mark(box.gameObject, "Counter/Button_OpenBox");
 
-            PokeButton clockOut = CreatePokeButton("Button_ClockOut", new Vector3(0.55f, CounterTop, 0.5f), "퇴근", new Color(0.45f, 0.8f, 1f));
+            PokeButton clockOut = CreatePokeButton("Button_ClockOut", new Vector3(-0.8f, CounterTop, 0.5f), "퇴근", new Color(0.45f, 0.8f, 1f));
             UnityEventTools.AddPersistentListener(clockOut.pressed, opener.TryClockOut);
+            PlacementKey.Mark(clockOut.gameObject, "Counter/Button_ClockOut");
         }
 
         // 카운터 위에 놓인 누름 버튼: 받침 + 위로 튀어나온 버튼 + 글자 (CustomerFloorBuilder의 결제 버튼도 사용)
@@ -345,7 +364,12 @@ namespace CardShop.EditorTools
             root.position = HomeOrigin;
 
             var interior = AssetDatabase.LoadAssetAtPath<GameObject>(InteriorBuilder.HomePath);
-            if (interior != null) ((GameObject)PrefabUtility.InstantiatePrefab(interior)).transform.SetParent(root, false);
+            GameObject homeInterior = null;
+            if (interior != null)
+            {
+                homeInterior = (GameObject)PrefabUtility.InstantiatePrefab(interior);
+                homeInterior.transform.SetParent(root, false);
+            }
             else Debug.LogError($"[ShopSceneBuilder] {InteriorBuilder.HomePath} 프리팹이 없습니다 (LowPolyInterior 임포트 확인).");
 
             // 책상(바인더 자리): BinderBuilder가 이 상자의 위치 · 크기로 바인더를 올림. 모양은 인테리어의 OfficeTable(윗면 0.8)이라 상자는 숨김(충돌만).
@@ -397,7 +421,26 @@ namespace CardShop.EditorTools
             lso.FindProperty("sun").objectReferenceValue = sun; // 이름 · 순서로 찾지 않음: 인테리어 조명이 해로 잡히지 않게
             lso.FindProperty("homeLight").objectReferenceValue = lightGo;
             lso.ApplyModifiedPropertiesWithoutUndo();
+
+            // 거리 생동감: 지나가는 차 · 행인 (기기 테스트 피드백 M3)
+            var lifeGo = new GameObject("StreetLife");
+            var life = lifeGo.AddComponent<CardShop.Customers.StreetLife>();
+            string[] cars = { "SM_Veh_Car_Sedan_01", "SM_Veh_Car_Taxi_01", "SM_Veh_Car_Small_01", "SM_Veh_Car_Medium_01", "SM_Veh_Car_Van_01", "SM_Veh_Car_Muscle_01" };
+            var carPrefabs = new System.Collections.Generic.List<GameObject>();
+            foreach (string c in cars)
+            {
+                GameObject p = ExternalArt.City("Vehicles/" + c);
+                if (p != null) carPrefabs.Add(p);
+            }
+            life.Configure(flow, carPrefabs.ToArray(), AssetDatabase.LoadAssetAtPath<CustomerRoster>(CustomerRosterBuilder.RosterPath));
+
+            // 집 페이즈에만 집 실내, 그 밖에는 거리 (기기 테스트 피드백 M1: 밖에서 집이 보임)
+            transitionGo.AddComponent<ZoneVisibility>().Configure(
+                homeInterior != null ? new[] { homeInterior } : new GameObject[0],
+                new[] { streetInstance, blocksInstance, lifeGo });
         }
+
+        static GameObject streetInstance, blocksInstance;
 
         static Material TintedMaterial(Color color)
         {

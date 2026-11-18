@@ -33,11 +33,12 @@ namespace CardShop.Cards
         {
             new DayEntry { customerMin = 3, customerMax = 4 },
             new DayEntry { customerMin = 3, customerMax = 4 },
-            new DayEntry { customerMin = 4, customerMax = 5 },
-            new DayEntry { customerMin = 4, customerMax = 5 },
-            new DayEntry { customerMin = 5, customerMax = 6 },
-            new DayEntry { customerMin = 5, customerMax = 6 },
-            new DayEntry { customerMin = 5, customerMax = 6 },
+            // 손님 물결(P1)로 한산한 시간이 생기는 만큼 영업 시간을 늘림: 4~5명 135초, 5~6명 150초
+            new DayEntry { businessSeconds = 135f, customerMin = 4, customerMax = 5 },
+            new DayEntry { businessSeconds = 135f, customerMin = 4, customerMax = 5 },
+            new DayEntry { businessSeconds = 150f, customerMin = 5, customerMax = 6 },
+            new DayEntry { businessSeconds = 150f, customerMin = 5, customerMax = 6 },
+            new DayEntry { businessSeconds = 150f, customerMin = 5, customerMax = 6 },
         };
 
         [Header("영업 규칙 (설계서 Q1, Q2)")]
@@ -49,6 +50,28 @@ namespace CardShop.Cards
         public float customerPatienceSeconds = 30f;
         [Tooltip("계산대 물건이 2개째부터 한 개당 더 기다려 주는 시간(초) (계산시스템_확장_설계 K6)")]
         public float patiencePerExtraItemSeconds = 10f;
+
+        /// <summary>손님 물결 (기기테스트_피드백_설계 P1, 2026-11-18 확정: 물결 A안, 사건 조율 B안은 쓰지 않음)</summary>
+        [Serializable]
+        public class WaveSettings
+        {
+            [Tooltip("한 물결의 손님 수 (최소, 최대)")]
+            public Vector2Int waveSize = new Vector2Int(2, 3);
+            [Tooltip("같은 물결 안 손님 사이 간격(초)")]
+            public Vector2 inWaveGapSeconds = new Vector2(3f, 6f);
+            [Tooltip("손님 한 명 계산에 걸린다고 보는 시간(초). 다음 물결은 (이 값 × 인원) + 한산한 시간 뒤에 옴")]
+            public float secondsPerCustomer = 15f;
+            [Tooltip("물결 사이 한산한 시간(초): 청소 · 도둑에 대처할 틈")]
+            public Vector2 lullSeconds = new Vector2(12f, 20f);
+        }
+
+        [Header("손님 물결 (P1)")]
+        [Tooltip("끄면 예전처럼 등장 구간에 고르게 분산")]
+        public bool useWaves = true;
+        public WaveSettings waves = new WaveSettings();
+
+        /// <summary>CustomerSchedule.Build에 넘길 물결 설정 (끄면 null)</summary>
+        public WaveSettings Waves => useWaves ? waves : null;
 
         [Header("선반 (설계서 Q5)")]
         public int shelfSlotCount = 12;

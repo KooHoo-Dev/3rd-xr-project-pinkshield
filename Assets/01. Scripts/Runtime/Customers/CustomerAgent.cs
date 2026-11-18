@@ -54,6 +54,13 @@ namespace CardShop.Customers
         public int BrowseSlot { get; set; } = -1;
         /// <summary>줄에 선 뒤 흐른 시간(초). 인내 시간 판정용</summary>
         public float QueueSeconds { get; set; }
+        /// <summary>줄 칸에 한 번이라도 도착했는가 (아직 줄로 걸어오는 중이면 false: 줄이 당겨져도 길을 바꾸지 않고 도착 뒤 줄을 따라 이동)</summary>
+        public bool InLine { get; set; }
+        /// <summary>줄에서 '기다리는 중' · '재촉' 대사를 이미 했는가</summary>
+        public bool SaidWaiting { get; set; }
+        public bool SaidImpatient { get; set; }
+        /// <summary>머리 위 말풍선 (CustomerDirector가 만듦, 없을 수 있음)</summary>
+        public SpeechBubble Bubble { get; set; }
 
         public void Init(CustomerDirector owner, Animator anim, float speed, float turnDegreesPerSecond)
         {
@@ -94,7 +101,6 @@ namespace CardShop.Customers
 
             float dt = Time.deltaTime;
             if (State == CustomerState.Queue) QueueSeconds += dt;
-
             if (path != null) Move(dt);
             else if (faceOnArrive.HasValue) TurnTo(faceOnArrive.Value, dt);
 

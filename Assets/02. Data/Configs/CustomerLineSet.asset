@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1ee2e13d91d4821853e88c406edcbe1, type: 3}
+  m_Name: CustomerLineSet
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CustomerLineSet
+  lines: "# \uC608) Enter|\uC5EC\uAE30 \uCE74\uB4DC \uB9DB\uC9D1\uC774\uB77C\uB358\uB370?\n#
+    \uC608) PaidCard|{card} \uB4DC\uB514\uC5B4 \uC190\uC5D0 \uB123\uC5C8\uB2E4!\n"
+  enterChance: 0.5
+  browseChance: 0.6
+  waitingChance: 0.5
+  bubbleSeconds: 2.8
+  waitingAt: 0.35
+  impatientAt: 0.75

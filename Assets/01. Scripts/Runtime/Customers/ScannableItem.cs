@@ -111,6 +111,18 @@ namespace CardShop.Customers
             }
         }
 
+        /// <summary>
+        /// 물건 바닥이 <paramref name="surface"/>(월드 높이 기준점)에 닿게 놓고, 그 자리를 "제자리"로 삼습니다.
+        /// 원점이 가운데인 카드 · 팩이 카운터 윗면에 반쯤 묻혀 안 보이던 문제(2026-11-18 기기 테스트 피드백) 때문에 씁니다.
+        /// </summary>
+        public void PlaceOn(Vector3 surface, Quaternion rotation, float gap = 0.002f)
+        {
+            Vector3 pos = surface + rotation * (Vector3.up * (gap - LocalBottom()));
+            transform.SetPositionAndRotation(pos, rotation);
+            homePos = pos;
+            homeRot = rotation;
+        }
+
         // 원점에서 물건 바닥까지 (아래가 음수). 원점이 가운데인 팩 · 카드도 바닥이 봉투 바닥에 닿게
         float LocalBottom()
         {

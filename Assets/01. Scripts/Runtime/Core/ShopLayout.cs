@@ -36,10 +36,24 @@ namespace CardShop.Core
         public static readonly Vector3 DoorOutsidePos = new Vector3(DoorX, 0f, 5.0f);
         /// <summary>출입구 바로 안</summary>
         public static readonly Vector3 DoorInsidePos = new Vector3(DoorX, 0f, 3.5f);
-        /// <summary>판매 진열대 앞 구경 자리</summary>
-        public static readonly Vector3[] BrowsePositions = { new Vector3(-2.2f, 0f, 1.75f), new Vector3(-1.6f, 0f, 1.75f), new Vector3(-0.95f, 0f, 1.9f) };
-        /// <summary>계산대 줄. 0번이 맨 앞(결제 자리)</summary>
-        public static readonly Vector3[] QueuePositions = { new Vector3(0f, 0f, 1.4f), new Vector3(0f, 0f, 2.0f), new Vector3(0f, 0f, 2.6f) };
+        /// <summary>판매 진열대 앞 구경 자리 (진열대 x -2.67 ~ -1.13 안쪽, 0.55m 간격)</summary>
+        public static readonly Vector3[] BrowsePositions = { new Vector3(-2.3f, 0f, 1.75f), new Vector3(-1.75f, 0f, 1.75f), new Vector3(-1.2f, 0f, 1.75f) };
+        /// <summary>
+        /// 계산대 줄. 0번이 맨 앞(결제 자리). 0.7m 간격으로 뒤(+Z)로 3칸 선 뒤 오른쪽(+X)으로 꺾음 —
+        /// 앞벽 쪽 입장 통로(EntryTurnPos의 z)와 진열대 쪽 통로(AisleX)를 막지 않게 (기기 테스트 피드백: 손님이 겹쳐 섬).
+        /// 이보다 길면 마지막 두 칸의 간격대로 이어집니다.
+        /// </summary>
+        public static readonly Vector3[] QueuePositions =
+        {
+            new Vector3(0f, 0f, 1.4f), new Vector3(0f, 0f, 2.1f), new Vector3(0f, 0f, 2.8f),
+            new Vector3(0.7f, 0f, 2.8f), new Vector3(1.4f, 0f, 2.8f),
+        };
+        /// <summary>입장 통로가 꺾이는 곳: 문 안에서 앞벽을 따라 왼쪽으로 온 뒤, 진열대 오른쪽 통로로 내려감</summary>
+        public static readonly Vector3 EntryTurnPos = new Vector3(-0.65f, 0f, 3.6f);
+        /// <summary>진열대 오른쪽 통로의 아래 끝 (카운터 앞 · 구경 자리 앞을 지나는 낮은 통로가 시작되는 곳)</summary>
+        public static readonly Vector3 AisleLowPos = new Vector3(-0.65f, 0f, 1.3f);
+        /// <summary>결제를 마친 손님이 줄을 가로지르지 않고 카운터 앞을 따라 오른쪽으로 빠지는 곳</summary>
+        public static readonly Vector3 CounterExitPos = new Vector3(2.2f, 0f, 1.4f);
         /// <summary>앞벽 파노라마 창 구간 (x 범위). 창으로는 바깥이 보임</summary>
         public const float PanoramaMinX = MinX;
         public const float PanoramaMaxX = MinX + 2f * Module;
@@ -57,7 +71,11 @@ namespace CardShop.Core
         public static readonly Vector3 StandSize = new Vector3(1.54f, 0.77f, 0.52f);
 
         // ---------------------------------------------------------------- 집 (가게에서 30m 떨어진 같은 씬 구역)
-        public static readonly Vector3 HomeOrigin = new Vector3(30f, 0f, 0f);
+        /// <remarks>
+        /// 예전 (30, 0, 0)은 가게 앞 거리 끝(x ±27.5) 바로 옆이라 인도에서 집 상자가 보였음 (2026-11-18 기기 테스트 피드백 M1).
+        /// 가게 뒤쪽 60m로 옮겨 가게 건물 뒤에 가리고, ZoneVisibility가 페이즈별로 집 · 거리를 켜고 끕니다.
+        /// </remarks>
+        public static readonly Vector3 HomeOrigin = new Vector3(0f, 0f, -60f);
         // 집 로컬 좌표의 벽 중심선 (2.5m 모듈 2 × 2). 책상(z 1.6)이 뒷벽에 붙도록 뒷벽을 z 2.0에 둠.
         public const float HomeMinX = -2.5f;
         public const float HomeMaxX = 2.5f;

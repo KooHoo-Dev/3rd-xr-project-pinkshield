@@ -21,23 +21,23 @@ MonoBehaviour:
     customerMin: 3
     customerMax: 4
     cleanupKinds: 7
-  - businessSeconds: 90
+  - businessSeconds: 135
     customerMin: 4
     customerMax: 5
     cleanupKinds: 7
-  - businessSeconds: 90
+  - businessSeconds: 135
     customerMin: 4
     customerMax: 5
     cleanupKinds: 7
-  - businessSeconds: 90
+  - businessSeconds: 150
     customerMin: 5
     customerMax: 6
     cleanupKinds: 7
-  - businessSeconds: 90
+  - businessSeconds: 150
     customerMin: 5
     customerMax: 6
     cleanupKinds: 7
-  - businessSeconds: 90
+  - businessSeconds: 150
     customerMin: 5
     customerMax: 6
     cleanupKinds: 7
