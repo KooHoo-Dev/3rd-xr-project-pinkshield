@@ -3,6 +3,7 @@ using CardShop.Cards;
 using CardShop.Cleanup;
 using CardShop.Core;
 using CardShop.Logic;
+using CardShop.Presentation;
 using UnityEngine;
 
 namespace CardShop.Customers
@@ -148,6 +149,7 @@ namespace CardShop.Customers
 
             state = State.Approach;
             Say(EnterLines);
+            Sfx.Play(thief.IsFemale ? SoundId.ThiefLaughFemale : SoundId.ThiefLaughMale, thief.transform.position); // 등장 힌트
             thief.WalkPath(ThiefRules.ApproachPath(customers.Routes, stealSpot.position), stealSpot.rotation, () =>
             {
                 state = State.Linger;
@@ -187,6 +189,7 @@ namespace CardShop.Customers
             pack.Escaped();
             context.Session.Ledger.freePackStolen = true;
             Say(EscapeLines);
+            Sfx.Play(SoundId.ThiefEscaped);
             context.Events.RaiseNotice("도둑을 놓쳤어요… 오늘 퇴근 후 무료 팩은 없어요.");
             thief.WalkPath(new[] { farEscape }, null, RemoveThief);
         }
@@ -196,6 +199,8 @@ namespace CardShop.Customers
             bool hadPack = pack.Caught();
             state = State.RunOff;
             context.Session.Ledger.thievesCaught++;
+            Sfx.Play(SoundId.BroomHit, thief.transform.position + Vector3.up);
+            Sfx.Play(SoundId.ThiefCaught, thief.transform.position);
             thief.Gesture(CustomerAnim.Hit); // 전신 휘청 (Kevin Iglesias Stun01, 11-19 피드백: 맞아도 반응이 없어 어색)
             Say(CaughtLines);
 

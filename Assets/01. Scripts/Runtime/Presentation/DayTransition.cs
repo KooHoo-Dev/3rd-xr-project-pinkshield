@@ -81,13 +81,23 @@ namespace CardShop.Presentation
             yield return Fade(1f);
 
             ReleaseAllGrabs();
+            GamePhaseId before = flow.CurrentPhase;
             switchPhase(); // 구역 이동은 PhaseChanged를 받은 Relocate가 같은 프레임에 함
+            PlayTransitionSound(before, flow.CurrentPhase);
 
             yield return new WaitForSecondsRealtime(holdSeconds);
             yield return Fade(0f);
 
             string text = MessageFor(flow.CurrentPhase);
             if (text != null) ShowMessage(text);
+        }
+
+        // 화면이 가려진 동안의 소리: 집 문 · 불 끄고 잠자기 · 아침 닭 (SoundBank 칸이 비면 조용)
+        static void PlayTransitionSound(GamePhaseId from, GamePhaseId to)
+        {
+            if (to == GamePhaseId.Home) Sfx.Play(SoundId.HomeDoor);
+            else if (from == GamePhaseId.Home) { Sfx.Play(SoundId.LightSwitch); Sfx.Play(SoundId.Sleep); }
+            if (to == GamePhaseId.Business && from != GamePhaseId.Title && from != GamePhaseId.Intro) Sfx.Play(SoundId.Rooster);
         }
 
         string MessageFor(GamePhaseId phase)

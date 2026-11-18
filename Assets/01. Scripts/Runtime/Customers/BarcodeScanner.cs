@@ -1,4 +1,6 @@
 using System.Collections;
+using CardShop.Cards;
+using CardShop.Presentation;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -87,7 +89,8 @@ namespace CardShop.Customers
                 var item = hit.collider.GetComponentInParent<ScannableItem>();
                 if (item == null || !item.TryScan()) continue;
 
-                AudioSource.PlayClipAtPoint(Beep(), tip.position, beepVolume);
+                if (Sfx.Has(SoundId.ScanBeep)) Sfx.Play(SoundId.ScanBeep, tip.position);
+                else AudioSource.PlayClipAtPoint(Beep(), tip.position, beepVolume); // SoundBank 칸이 비면 코드로 만든 삑
                 if (args.interactorObject is XRBaseInputInteractor hand) hand.SendHapticImpulse(0.5f, 0.08f);
                 return;
             }

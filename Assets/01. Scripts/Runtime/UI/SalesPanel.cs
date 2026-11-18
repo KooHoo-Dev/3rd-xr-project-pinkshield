@@ -105,9 +105,9 @@ namespace CardShop.UI
             CardData card = binder != null ? binder.SelectedCard : null;
             if (card == null || Context == null) return;
 
-            message = Context.Sales.TrySellInstantly(Context.Session, card.id, out int price)
-                ? $"{card.displayName} 판매  +{price}"
-                : "보유한 카드가 없어요";
+            bool sold = Context.Sales.TrySellInstantly(Context.Session, card.id, out int price);
+            message = sold ? $"{card.displayName} 판매  +{price}" : "보유한 카드가 없어요";
+            if (sold) Sfx.Play(SoundId.MoneyIn, transform.position);
             Refresh();
         }
 
@@ -132,6 +132,7 @@ namespace CardShop.UI
                 sellAllArmedUntil = -1f;
                 int sold = Context.Sales.SellAllUpTo(s, SellAllMax, out int total);
                 message = sold > 0 ? $"{what} {sold}장 판매  +{total}" : $"{what} 카드가 없어요";
+                if (sold > 0) Sfx.Play(SoundId.MoneyIn, transform.position);
             }
             Refresh();
         }

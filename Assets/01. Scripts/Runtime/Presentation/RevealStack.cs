@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CardShop.Cards;
 using CardShop.Logic;
 using UnityEngine;
 
@@ -114,6 +115,7 @@ namespace CardShop.Presentation
         public CardRevealView TakeFront()
         {
             CardRevealView v = views[0];
+            Sfx.Play(SoundId.CardFlip, v.transform.position);
             views.RemoveAt(0);
             return v;
         }
@@ -126,6 +128,7 @@ namespace CardShop.Presentation
         {
             Settings s = settings;
             List<RevealItem> kept = RevealQueue.GodOnly(packs, queue, from);
+            Sfx.Play(SoundId.CardShuffle, Pose.position);
             Vector3 back = Pose.rotation * Vector3.forward;
             int flyIndex = 0;
             for (int k = from; k < queue.Count; k++)

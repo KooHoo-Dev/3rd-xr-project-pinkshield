@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Logic;
+using CardShop.Presentation;
 using UnityEngine;
 
 namespace CardShop.Customers
@@ -129,6 +130,7 @@ namespace CardShop.Customers
             }
             if (!basket.MarkBagged(index)) return;
             bag.Put(item);
+            Sfx.Play(SoundId.BagPut, item.transform.position);
             if (pos != null) pos.Show(basket);
         }
 
@@ -159,6 +161,7 @@ namespace CardShop.Customers
             if (ctx.EconomyRules.IsFastCheckout(checkoutSeconds, count)) ctx.Session.Ledger.checkoutsFast++;
             // 진열 카드면 진열대에서 빼서 장부에 기록. 그새 진열대에서 사라졌으면 가게 재고를 산 것으로 봄 (SalesRules)
             CardData bought = ctx.Sales.CompleteSale(ctx.Session, card, ctx.PopularToday, out int net) ? card : null;
+            Sfx.Play(SoundId.PosPay, pos != null ? pos.transform.position : transform.position);
             Clear(); // 손님이 물건을 가져감
             paid?.Invoke(bought, count, net);
         }

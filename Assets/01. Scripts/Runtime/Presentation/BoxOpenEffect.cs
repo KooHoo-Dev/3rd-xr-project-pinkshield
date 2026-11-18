@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using CardShop.Cards;
 using UnityEngine;
 
 namespace CardShop.Presentation
@@ -147,6 +148,7 @@ namespace CardShop.Presentation
                     {
                         torn[i] = true;
                         if (tearSound != null) AudioSource.PlayClipAtPoint(tearSound, pos, tearVolume);
+                        else Sfx.Play(SoundId.PackTear, pos); // 인스펙터 칸이 비면 SoundBank
                     }
 
                     float s = Mathf.Clamp01(tt / stripSeconds);

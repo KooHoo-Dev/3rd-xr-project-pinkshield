@@ -1,4 +1,5 @@
 using CardShop.Cards;
+using CardShop.Presentation;
 using UnityEngine;
 
 namespace CardShop.Cleanup
@@ -44,6 +45,7 @@ namespace CardShop.Cleanup
             if (IsDone || bin == null || (bin.IsPaused != null && bin.IsPaused()) || !bin.Contains(transform.position)) return;
             item.PlaceAt(transform.position, transform.rotation);
             item.SetGrabbable(false);
+            Sfx.Play(SoundId.TrashDrop, transform.position);
             gameObject.SetActive(false); // 통 안으로 사라짐
             Complete();
         }

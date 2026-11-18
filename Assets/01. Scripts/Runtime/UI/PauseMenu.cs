@@ -1,5 +1,7 @@
 using System.Collections;
+using CardShop.Cards;
 using CardShop.Core;
+using CardShop.Presentation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -98,6 +100,7 @@ namespace CardShop.UI
 
         void Show()
         {
+            Sfx.Play(SoundId.PauseOpen);
             ShowMain();
             Place();
             root.SetActive(true);

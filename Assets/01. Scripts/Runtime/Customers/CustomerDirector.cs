@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Logic;
+using CardShop.Presentation;
 using TMPro;
 using UnityEngine;
 
@@ -254,6 +255,10 @@ namespace CardShop.Customers
             if (agent == null || agent.Bubble == null) return;
             lines ??= new CustomerLines(lineSet != null ? lineSet.lines : null, context != null ? context.Random : null);
             agent.Bubble.Say(lines.Pick(moment, cardName), lineSet != null ? lineSet.bubbleSeconds : 2.8f);
+            // 말풍선과 함께 짧은 감탄 소리 (오, 아하, 와우 / 화내기) — SoundBank 칸이 비면 조용
+            SoundId voice = moment == CustomerMoment.Angry ? SoundId.CustomerAngry
+                : agent.IsFemale ? SoundId.CustomerVoiceFemale : SoundId.CustomerVoiceMale;
+            Sfx.Play(voice, agent.Bubble.transform.position);
         }
 
         void Remove(CustomerAgent agent)

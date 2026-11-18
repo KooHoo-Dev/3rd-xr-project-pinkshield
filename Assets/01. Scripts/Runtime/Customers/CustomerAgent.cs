@@ -75,6 +75,8 @@ namespace CardShop.Customers
         public bool SaidImpatient { get; set; }
         /// <summary>머리 위 말풍선 (CustomerDirector가 만듦, 없을 수 있음)</summary>
         public SpeechBubble Bubble { get; set; }
+        /// <summary>여성 외형 (감탄 소리 · 도둑 웃음을 남녀로 고를 때)</summary>
+        public bool IsFemale { get; set; }
 
         /// <param name="paused">일시정지 중인가 (이동 · 타이머 · 애니메이션을 멈춤)</param>
         public void Init(Func<bool> paused, Animator anim, float speed, float turnDegreesPerSecond)

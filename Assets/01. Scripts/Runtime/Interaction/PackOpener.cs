@@ -1,4 +1,5 @@
 using System.Collections;
+using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Logic;
 using CardShop.Presentation;
@@ -98,6 +99,7 @@ namespace CardShop.Interaction
 
         void Deny(string message, Vector3 at, XRBaseInputInteractor hand)
         {
+            Sfx.Play(SoundId.UiDeny, at);
             GameContext.Instance.Events.RaiseNotice(message);
             if (toast == null) toast = WorldToast.Create(transform, revealer.Font);
             toast.Show(message, at);

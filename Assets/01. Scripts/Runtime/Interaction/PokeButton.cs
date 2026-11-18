@@ -1,3 +1,5 @@
+using CardShop.Cards;
+using CardShop.Presentation;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -46,6 +48,7 @@ namespace CardShop.Interaction
             if (pressVisual != null) pressVisual.localPosition = restPos + Vector3.down * pressDepth;
             if (Time.unscaledTime - lastPress < cooldown) return;
             lastPress = Time.unscaledTime;
+            Sfx.Play(SoundId.UiClick, transform.position);
             pressed.Invoke();
         }
 

@@ -234,6 +234,7 @@ namespace CardShop.Presentation
                 pool.Detach(v);
                 stashing.Add(v);
             }
+            if (batch.Count > 0) Sfx.Play(SoundId.PileStash, batch[batch.Count - 1].transform.position);
             float seconds = stash.Send(batch);
             host.StartCoroutine(RestAfter(batch, seconds));
             return cards;
