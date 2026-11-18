@@ -74,9 +74,13 @@ namespace CardShop.Cleanup
             return scattered;
         }
 
+        /// <summary>일시정지 중이면 true (CleanupDirector가 넣음). 마감 시간이 멈춘 동안 청소를 받지 않음</summary>
+        public System.Func<bool> IsPaused { get; set; }
+
         /// <summary>가장 가까운 빈 칸이 놓은 위치에서 snapDistance 안이면 꽂습니다.</summary>
         public bool TryReturn(RackPack pack)
         {
+            if (IsPaused != null && IsPaused()) return false;
             int best = NearestEmptySlot(pack.transform.position);
             if (best < 0) return false;
             Seat(pack, best);
@@ -142,8 +146,9 @@ namespace CardShop.Cleanup
         void Seat(RackPack pack, int slot)
         {
             pack.Slot = slot;
-            pack.Held.PlaceAt(slots[slot].position, slots[slot].rotation);
+            // 잡기를 먼저 끔: 들고 있는 팩이면 강제로 놓이며 떨어지기 시작하는데, 그 뒤 PlaceAt이 떨어짐을 멈추고 칸에 꽂음
             pack.Held.SetGrabbable(false);
+            pack.Held.PlaceAt(slots[slot].position, slots[slot].rotation);
         }
 
         static Vector3 ClampInsideShop(Vector3 p)

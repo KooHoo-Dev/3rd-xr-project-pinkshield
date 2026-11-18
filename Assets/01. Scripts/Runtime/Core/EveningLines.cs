@@ -142,24 +142,6 @@ namespace CardShop.Core
         /// <summary>
         /// 한 줄에 "상황|문장" 형식. 빈 줄과 '#'로 시작하는 줄은 무시. 상황 이름은 EveningMood 이름(대소문자 무시).
         /// </summary>
-        public static Dictionary<EveningMood, List<string>> Parse(string raw)
-        {
-            var result = new Dictionary<EveningMood, List<string>>();
-            if (string.IsNullOrEmpty(raw)) return result;
-            foreach (string rawLine in raw.Split('\n'))
-            {
-                string line = rawLine.Trim();
-                if (line.Length == 0 || line[0] == '#') continue;
-                int bar = line.IndexOf('|');
-                if (bar <= 0) continue;
-                string moodName = line.Substring(0, bar).Trim();
-                string text = line.Substring(bar + 1).Trim();
-                if (text.Length == 0 || !System.Enum.TryParse(moodName, true, out EveningMood mood)) continue;
-                if (!System.Enum.IsDefined(typeof(EveningMood), mood)) continue;
-                if (!result.TryGetValue(mood, out List<string> list)) result[mood] = list = new List<string>();
-                list.Add(text);
-            }
-            return result;
-        }
+        public static Dictionary<EveningMood, List<string>> Parse(string raw) => LineParser.Parse<EveningMood>(raw);
     }
 }

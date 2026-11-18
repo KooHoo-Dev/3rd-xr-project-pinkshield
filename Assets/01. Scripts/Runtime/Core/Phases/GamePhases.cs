@@ -182,7 +182,7 @@ namespace CardShop.Core.Phases
         // 퇴근: 마지막 날은 집을 건너뛰고 바로 최종 정산(DayEnd → Final), 아니면 집으로.
         public override void OnAdvanceRequested()
         {
-            bool lastDay = Context.Session.Day >= Context.Campaign.DayCount;
+            bool lastDay = Context.Campaign.IsLastDay(Context.Session.Day);
             Flow.GoToFaded(lastDay ? GamePhaseId.DayEnd : GamePhaseId.Home);
         }
     }
@@ -218,7 +218,7 @@ namespace CardShop.Core.Phases
             int returned = Context.Sales.ReturnUnsoldOnFinalDay(Context.Session, Context.Campaign.DayCount);
             if (returned > 0) Log($"안 팔린 진열 카드 {returned}장 반환 (마지막 날)");
 
-            if (Context.Session.Day >= Context.Campaign.DayCount)
+            if (Context.Campaign.IsLastDay(Context.Session.Day))
             {
                 Flow.GoTo(GamePhaseId.Final);
                 return;

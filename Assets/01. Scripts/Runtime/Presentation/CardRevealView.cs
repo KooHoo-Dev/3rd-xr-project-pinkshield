@@ -10,12 +10,11 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 namespace CardShop.Presentation
 {
     /// <summary>
-    /// 공개 연출용 카드 상태. 앞/뒤 뒤집기는 물리와 무관하게 "Visual" 자식만 회전합니다(손에 든 채로도 뒤집힘).
+    /// 공개 연출용 카드 상태. 늘 앞면으로 놓입니다(뒤집기 연출은 DEC-004 수정으로 뺌). 흔들림은 "Visual" 자식만 움직여 물리와 무관합니다.
     /// </summary>
     [RequireComponent(typeof(CardView), typeof(XRGrabInteractable))]
     public sealed class CardRevealView : MonoBehaviour
     {
-        const float FlipSeconds = 0.25f;
         // NEW 배지: TMP 3D 글자 크기는 1당 약 10cm라 0.2면 글자 높이 2cm(카드 폭의 거의 전부)였음.
         // 0.35 → 0.2 → 0.045 (BUG-004: 현재의 20%)
         const float NewBadgeFontSize = 0.045f;
@@ -25,7 +24,6 @@ namespace CardShop.Presentation
         Rigidbody body;
         Transform visual;
         TextMeshPro newBadge;
-        bool faceDown;
         Coroutine flyRoutine;
 
         public CardData Card => view.Data;
@@ -33,7 +31,6 @@ namespace CardShop.Presentation
 
         /// <summary>지금 손에 잡혀 있는지.</summary>
         public bool IsHeld => grab != null && grab.isSelected;
-        public event Action<CardRevealView> Revealed;
         /// <summary>손에 잡았을 때 / 놓았을 때 (CardRevealer의 더미 정보 표시용).</summary>
         public event Action<CardRevealView> GrabStarted;
         public event Action<CardRevealView> GrabEnded;
@@ -45,7 +42,7 @@ namespace CardShop.Presentation
             body = GetComponent<Rigidbody>();
             visual = transform.Find("Visual");
             if (visual == null) Debug.LogWarning("[CardRevealView] 카드 프리팹에 Visual 자식이 없습니다. Build Card Prefab 을 다시 실행하세요.", this);
-            grab.selectEntered.AddListener(OnGrabbed);
+            grab.selectEntered.AddListener(_ => GrabStarted?.Invoke(this));
             grab.selectExited.AddListener(_ => GrabEnded?.Invoke(this));
             grab.throwOnDetach = false; // 공개용 카드는 키네마틱이라 던질 수 없음 (XRI 경고 방지)
             if (body != null)
@@ -56,8 +53,7 @@ namespace CardShop.Presentation
             }
         }
 
-        /// <param name="announce">앞면으로 놓을 때 바로 공개 이벤트를 낼지. 묶음 뒤쪽 카드는 맨 앞에 올 때 <see cref="Announce"/>로 냅니다.</param>
-        public void Show(CardData card, bool isNew, Vector3 position, Quaternion rotation, bool startFaceDown, bool announce = true, float scale = 1f)
+        public void Show(CardData card, bool isNew, Vector3 position, Quaternion rotation, float scale = 1f)
         {
             gameObject.SetActive(true);
             transform.localScale = Vector3.one * scale;
@@ -71,25 +67,8 @@ namespace CardShop.Presentation
             }
             Teleport(position, rotation);
             if (visual != null) visual.localPosition = Vector3.zero; // 흔들림 도중에 풀로 돌아간 경우
-            faceDown = startFaceDown;
-            if (visual != null) visual.localRotation = faceDown ? Quaternion.Euler(0f, 180f, 0f) : Quaternion.identity;
+            if (visual != null) visual.localRotation = Quaternion.identity;
             grab.enabled = true;
-            if (!faceDown && announce) Revealed?.Invoke(this);
-        }
-
-        /// <summary>뒷면이 보이는 카드를 앞면으로 뒤집습니다 (이미 앞면이면 아무 일 없음).</summary>
-        public void Reveal()
-        {
-            if (!faceDown) return;
-            faceDown = false;
-            if (visual != null) StartCoroutine(Flip());
-        }
-
-        /// <summary>맨 앞에 와서 공개: 뒷면이면 뒤집고 공개 이벤트를 냅니다.</summary>
-        public void Announce()
-        {
-            Reveal();
-            Revealed?.Invoke(this);
         }
 
         /// <summary>카드를 부르르 떨게 함 (레전더리 연출. 카메라 셰이크 대신 — VR 멀미 방지). Visual만 움직여 물리와 무관.</summary>
@@ -204,26 +183,6 @@ namespace CardShop.Presentation
             StopAllCoroutines();
             flyRoutine = null;
             gameObject.SetActive(false);
-        }
-
-        void OnGrabbed(SelectEnterEventArgs _)
-        {
-            GrabStarted?.Invoke(this);
-            if (!faceDown) return;
-            faceDown = false;
-            if (visual != null) StartCoroutine(Flip());
-            Revealed?.Invoke(this);
-        }
-
-        IEnumerator Flip()
-        {
-            Quaternion from = visual.localRotation, to = Quaternion.identity;
-            for (float t = 0f; t < 1f; t += Time.deltaTime / FlipSeconds)
-            {
-                visual.localRotation = Quaternion.Slerp(from, to, t);
-                yield return null;
-            }
-            visual.localRotation = to;
         }
     }
 }

@@ -49,6 +49,8 @@ namespace CardShop.Cleanup
             if (flow == null) return;
             context = flow.GetComponent<GameContext>();
             flow.Cleanup = this;
+            if (bin != null) bin.IsPaused = () => flow.IsPaused;
+            if (rack != null) rack.IsPaused = () => flow.IsPaused;
             if (context != null) context.Events.CustomerLeft += OnCustomerLeft;
         }
 
@@ -58,7 +60,7 @@ namespace CardShop.Cleanup
             if (context != null) context.Events.CustomerLeft -= OnCustomerLeft;
         }
 
-        void OnCustomerLeft(Vector3 browsePosition)
+        void OnCustomerLeft()
         {
             if (flow.CurrentPhase != GamePhaseId.Business) return;
 
@@ -141,7 +143,7 @@ namespace CardShop.Cleanup
             go.transform.SetParent(transform, false);
             go.transform.position = around; // 다른 청소 구역과 떨어뜨릴 때 이 자리를 씀
             var spot = go.AddComponent<MessyPackSpot>();
-            spot.Init(rack, scattered);
+            spot.Init(scattered);
             context.Events.RaiseNotice("진열대 팩이 바닥에 떨어졌어요. 왼쪽 판매 진열대 팩 꽂이에 다시 꽂아 주세요!");
             return spot;
         }

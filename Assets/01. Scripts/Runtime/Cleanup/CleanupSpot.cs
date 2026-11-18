@@ -10,7 +10,6 @@ namespace CardShop.Cleanup
     /// </summary>
     public abstract class CleanupSpot : MonoBehaviour
     {
-        public abstract CleanupKinds Kind { get; }
         public bool IsDone { get; private set; }
         public event Action<CleanupSpot> Completed;
 

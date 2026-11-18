@@ -14,14 +14,8 @@ namespace CardShop.DebugTools
     public sealed class DebugCheats : MonoBehaviour
     {
         [SerializeField] GameFlow flow;
-        [Tooltip("Release 빌드에서 함께 숨길 오브젝트 (디버그 패널 등)")]
-        [SerializeField] GameObject[] hideInRelease;
 
-        public void Configure(GameFlow gameFlow, GameObject[] hide)
-        {
-            flow = gameFlow;
-            hideInRelease = hide;
-        }
+        public void Configure(GameFlow gameFlow) => flow = gameFlow;
 
         /// <summary>이 빌드에 디버그 기능이 들어 있는가 (에디터 · Development 빌드)</summary>
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -89,7 +83,6 @@ namespace CardShop.DebugTools
 #else
         void Awake()
         {
-            foreach (GameObject go in hideInRelease) if (go != null) go.SetActive(false);
             gameObject.SetActive(false);
         }
 

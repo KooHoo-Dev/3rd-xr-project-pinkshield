@@ -217,24 +217,6 @@ namespace CardShop.Tests
             Assert.Greater(Vector3.Dot(first.rotation * Vector3.back, Vector3.back), 0.99f, "앞면(-Z)이 머리 쪽");
         }
 
-        // ---------------------------------------------------------- 아치 배치
-
-        [Test]
-        public void ArchPose_SymmetricAndFacingPlayer()
-        {
-            Vector3 head = new Vector3(0f, 1.6f, 0f);
-            Pose left = BoxOpenEffect.ArchPose(0, 10, head, Vector3.forward, 0.5f, 55f, 0.12f, 0.05f);
-            Pose right = BoxOpenEffect.ArchPose(9, 10, head, Vector3.forward, 0.5f, 55f, 0.12f, 0.05f);
-            Assert.Less(left.position.x, 0f, "첫 팩은 왼쪽");
-            Assert.Greater(right.position.x, 0f);
-            Assert.AreEqual(-left.position.x, right.position.x, 1e-4f, "좌우 대칭");
-            foreach (Pose p in new[] { left, right })
-            {
-                Vector3 toHead = Vector3.ProjectOnPlane(head - p.position, Vector3.up).normalized;
-                Assert.Greater(Vector3.Dot(p.rotation * Vector3.back, toHead), 0.99f, "팩 앞면(-Z)이 머리 쪽");
-            }
-        }
-
         // 결과판 · 더미 정보 문구 (RevealText): CardRevealer에서 떼어 낸 순수 문자열 함수
         [Test]
         public void BoxRow_SpecialPack_ShowsLabelAndEndsWithNewline()

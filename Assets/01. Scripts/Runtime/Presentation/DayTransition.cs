@@ -100,7 +100,7 @@ namespace CardShop.Presentation
                     parsedEvening ??= EveningLines.Parse(eveningLines != null ? eveningLines.lines : null);
                     return EveningLines.For(ctx.Session.Day, ctx.Session.Ledger, parsedEvening);
                 case GamePhaseId.Home: return "퇴근, 이제 쉴 시간이다.";
-                case GamePhaseId.Business when ctx != null:
+                case GamePhaseId.Business when ctx != null && ctx.Session.Previous != null: // 1일차는 '어제'가 없으니 아침 대사 없음
                     parsedLines ??= MorningLines.Parse(morningLines != null ? morningLines.lines : null);
                     return MorningLines.For(ctx.Session.Day, ctx.Campaign.DayCount, ctx.Session.Previous, parsedLines);
                 default: return null;

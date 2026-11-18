@@ -14,7 +14,6 @@ namespace CardShop.Cleanup
         HeldItem held;
         TrashBin bin;
 
-        public override CleanupKinds Kind => CleanupKinds.Trash;
 
         public void Init(TrashBin trashBin)
         {
@@ -42,7 +41,7 @@ namespace CardShop.Cleanup
         void OnReleased(HeldItem item)
         {
             if (bin != null) bin.EndCarry(transform);
-            if (IsDone || bin == null || !bin.Contains(transform.position)) return;
+            if (IsDone || bin == null || (bin.IsPaused != null && bin.IsPaused()) || !bin.Contains(transform.position)) return;
             item.PlaceAt(transform.position, transform.rotation);
             item.SetGrabbable(false);
             gameObject.SetActive(false); // 통 안으로 사라짐

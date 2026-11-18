@@ -15,7 +15,7 @@ namespace CardShop.Presentation
     /// <summary>
     /// 카드 공개 연출. 단일 팩과 상자(10팩)가 같은 진행기 <see cref="PackSequence"/> 하나를 씁니다 (시연 피드백 A4 · B1 · B2 · B3).
     /// 파이프라인: [개봉 연출] → [공개 대기열] → [결과].
-    /// - 개봉 연출: 단일 팩은 뜯김(PackTearEffect) 후 카드 묶음이 솟아오름. 상자는 눈앞 아치에서 10팩이 0.12초 간격으로 뜯김(BoxOpenEffect).
+    /// - 개봉 연출: 단일 팩은 뜯김(PackTearEffect) 후 카드 묶음이 솟아오름. 상자는 눈앞 한 줄에서 10팩이 차례로 뜯김(BoxOpenEffect).
     /// - 공개 대기열(RevealQueue): 오른손 트리거 1번 = 1장. 갓팩도 같은 한 장씩. 묶음은 뒷면이 보이다가 맨 앞에서 뒤집혀 공개 (등급 색 미리 노출 X).
     ///   트리거를 1.5초(fastForwardHoldSeconds) 꾹 누르면 전 등급 건너뛰기 (DEC-004): 남은 카드는 모두 더미로.
     ///   단 갓팩은 건너뛸 수 없음 (DEC-008): 갓팩 카드는 특수 효과와 함께 한 장씩 열고, 건너뛰면 마지막에 열어 봄.
@@ -86,11 +86,8 @@ namespace CardShop.Presentation
         [Tooltip("상자 카드 묶음 자리: 머리에서 정면으로 (m). 단일 팩을 눈앞에 들었을 때(TearGestureOpen)와 같게")]
         [SerializeField] float boxStackDistance = 0.45f;
         [SerializeField] float boxStackDrop = 0.08f;
-        [Tooltip("팩마다 윗부분이 뜯기는 간격 (초)")]
-        [SerializeField] float boxTearInterval = 0.12f;
-        [Tooltip("상자 팩 뜯는 소리 / 특수 팩(갓팩 · 레전더리 확정) 예고음. 비워 두면 없음")]
+        [Tooltip("상자 팩 뜯는 소리. 비워 두면 없음")]
         [SerializeField] AudioClip boxTearSound;
-        [SerializeField] AudioClip specialTearSound;
         [Tooltip("상자 더미에서 카드 한 장당 높이 (m). 50장이 쌓이므로 단일 팩보다 얇게")]
         [SerializeField] float boxPileThickness = 0.0008f;
         [Tooltip("상자 더미에 실제 카드로 남겨 두는 수 (위에서부터). 그 아래는 카드 옆면 덩어리 하나로 표시")]
@@ -212,9 +209,6 @@ namespace CardShop.Presentation
             set => stash = value;
         }
 
-        /// <summary>카드가 뒤집혀 공개될 때 (3일차 연출·사운드 연결 지점).</summary>
-        public event Action<CardRevealView> CardRevealed;
-
         /// <summary>더미가 보관함으로 보내졌을 때 (아래 카드부터). 데이터는 이미 보유 목록에 있으므로 표시용입니다.</summary>
         public event Action<IReadOnlyList<CardData>> PileStashed;
 
@@ -318,7 +312,7 @@ namespace CardShop.Presentation
                 if (tear != null)
                 {
                     tearingPack = tear.gameObject;
-                    float delay = tear.Play(Color.white, false); // 뜯는 순간 등급이 미리 드러나지 않게 (DEC-004)
+                    float delay = tear.Play(); // 뜯는 순간 등급이 미리 드러나지 않게 흰 빛 없이 (DEC-004)
                     if (delay > 0f) yield return new WaitForSeconds(delay);
                 }
                 Vector3 up = stack.rotation * Vector3.up;
@@ -333,8 +327,7 @@ namespace CardShop.Presentation
                 Transform head = Camera.main != null ? Camera.main.transform : null;
                 Vector3 headPos = head != null ? head.position : stack.position - stack.rotation * Vector3.forward * boxStackDistance;
                 Vector3 forward = stack.rotation * Vector3.forward;
-                float seconds = EnsureBoxEffect().Play(packs, headPos, forward, stack, boxTearInterval,
-                    PackBeamColor, boxTearSound, specialTearSound);
+                float seconds = EnsureBoxEffect().Play(packs.Count, headPos, forward, stack, boxTearSound);
                 yield return new WaitForSeconds(seconds);
                 FillStack(packs, queue, 0, stack, stackDepth, popIn: true);
                 yield return new WaitForSeconds(popInSeconds);
@@ -384,7 +377,8 @@ namespace CardShop.Presentation
                 yield break;
             }
 
-            yield return new WaitForSeconds(flySeconds); // 마지막 카드가 더미에 내려앉는 것까지
+            // 마지막 카드가 더미에 내려앉는 것까지 (건너뛰면 카드가 조금씩 늦게 출발하므로 그만큼 더 기다림 — 날아가는 중에 잡히지 않게)
+            yield return new WaitForSeconds(flySeconds + (skipped ? (packs[0].Cards.Length - 1) * skipFlyStagger : 0f));
             CompressPile();
 
             // 결과함 UI: 이번 팩 카드 더미 위, 월드 고정. 카드는 퇴근 전까지 테이블에 남아 있고 잡아서 볼 수 있음.
@@ -507,7 +501,6 @@ namespace CardShop.Presentation
         {
             CardRarity tier = card.rarity == CardRarity.Unique ? CardRarity.SuperRare : card.rarity; // 연출 등급 통일
             RarityRevealProfile.Entry fx = Profile.Get(tier);
-            view.Announce();
             if (fx.sound != null) AudioSource.PlayClipAtPoint(fx.sound, view.transform.position, fx.volume);
             int count = fx.hapticCount + (legendaryPack ? 1 : 0);
             if (hand != null) StartCoroutine(Haptic(hand, fx.hapticAmplitude, fx.hapticSeconds, count));
@@ -554,10 +547,9 @@ namespace CardShop.Presentation
                 {
                     PackResult p = packs[item.Pack];
                     v = Show(p.Cards[item.Card], p.IsNew[item.Card], stack.position + back * (stackSpacing * stackDepth), stack.rotation,
-                        false, announce: false, scale: curStackScale);
+                        curStackScale);
                     v.SetGrabbable(false);
                 }
-                else v.Reveal(); // 뒷면이던 카드는 날아가며 앞면으로
                 SendToPile(v, false, flyIndex++ * skipFlyStagger);
             }
             stackViews.Clear();
@@ -592,8 +584,8 @@ namespace CardShop.Presentation
                 // 떠오르기: 조금 아래에서 작게 시작
                 Vector3 start = popIn ? pos - (stack.rotation * Vector3.up) * 0.03f : pos;
                 // 앞면으로 쌓음 (뒤집기 연출은 눈이 아파 뺌, DEC-004 수정). 묶음 뒤 카드는 앞 카드에 가려 보이지 않음
-                CardRevealView v = Show(p.Cards[item.Card], p.IsNew[item.Card], start, stack.rotation, false,
-                    announce: false, scale: popIn ? curStackScale * 0.6f : curStackScale);
+                CardRevealView v = Show(p.Cards[item.Card], p.IsNew[item.Card], start, stack.rotation,
+                    popIn ? curStackScale * 0.6f : curStackScale);
                 v.SetGrabbable(false);
                 if (popIn) v.FlyTo(pos, stack.rotation, popInSeconds, curStackScale, arcHeight: 0f, grabbableOnArrive: false);
                 stackViews.Add(v);
@@ -685,6 +677,7 @@ namespace CardShop.Presentation
             stage = PackStage.Summary;
             yield return new WaitForSeconds(flySeconds); // 마지막 카드가 더미에 내려앉는 것까지 보여 줌
             RecycleRevealArea(); // 눈앞 묶음 · 더미 정리 (카드는 모두 보유 목록에 있음)
+            pileIndex = 0; // 상자 더미는 다 치웠으니, 이어서 여는 단일 팩은 카운터 바닥부터 쌓임
 
             TextMeshPro board = EnsureBoard();
             board.gameObject.SetActive(true);
@@ -707,7 +700,7 @@ namespace CardShop.Presentation
             for (int i = 0; i < best.Count; i++)
             {
                 PackResult p = packs[best[i].pack];
-                Show(p.Cards[best[i].card], p.IsNew[best[i].card], SlotPosition(i, best.Count), anchor.rotation, false, scale: counterScale);
+                Show(p.Cards[best[i].card], p.IsNew[best[i].card], SlotPosition(i, best.Count), anchor.rotation, counterScale);
             }
 
             // 끝: 결과판 · 하이라이트는 다음 상자 · 영업 시작 때 정리 (기존 동작)
@@ -739,9 +732,6 @@ namespace CardShop.Presentation
             if (rarity == CardRarity.Normal || styles == null) return Color.white;
             return styles.Get(rarity).accentColor;
         }
-
-        // 팩 틈 빛줄기: 등급이 미리 드러나지 않게 모든 팩 같은 흰색 (DEC-004)
-        static Color PackBeamColor(PackResult pack) => Color.white;
 
         /// <summary>
         /// 카운터의 카드 더미를 보관함으로 보냅니다(연출만, 데이터는 이미 보유 목록에 있음).
@@ -915,10 +905,10 @@ namespace CardShop.Presentation
         // 카운터 위 가로 한 줄의 index번째 자리 (상자 하이라이트)
         Vector3 SlotPosition(int index, int count) => anchor.position + anchor.right * ((index - (count - 1) * 0.5f) * spacing);
 
-        CardRevealView Show(CardData card, bool isNew, Vector3 position, Quaternion rotation, bool faceDown, bool announce = true, float scale = 1f)
+        CardRevealView Show(CardData card, bool isNew, Vector3 position, Quaternion rotation, float scale = 1f)
         {
             CardRevealView view = pool.Count > 0 ? pool.Pop() : Create();
-            view.Show(card, isNew, position, rotation, faceDown, announce, scale);
+            view.Show(card, isNew, position, rotation, scale);
             shown.Add(view);
             return view;
         }
@@ -936,7 +926,6 @@ namespace CardShop.Presentation
         {
             CardView card = Instantiate(cardPrefab, transform);
             var view = card.gameObject.AddComponent<CardRevealView>();
-            view.Revealed += v => CardRevealed?.Invoke(v);
             view.GrabStarted += OnCardGrabbed;
             view.GrabEnded += OnCardReleased;
             createdCount++;

@@ -51,7 +51,6 @@ namespace CardShop.Presentation
         bool dirty = true;
         int storing; // 날아가는 중인 카드 수 (그동안 표지 소켓을 잠금)
         CardRevealer revealer;
-        BinderStash installedStash;
         readonly HashSet<string> pendingStored = new HashSet<string>();
         readonly List<string> pendingOrder = new List<string>();
         bool atHome;
@@ -118,14 +117,9 @@ namespace CardShop.Presentation
             }
             dirty = true;
 
-            // 결과함의 "보관함에 넣기"를 바인더에 연결 (가게 더미 → 집 바인더)
+            // 결과함의 "보관함에 넣기"를 바인더에 연결 (가게 더미 → 집 바인더). 테이블에 쌓아 둔 카드 전체(오래된 것 포함)를 퇴근 때 알려 줌
             revealer = FindAnyObjectByType<CardRevealer>();
-            if (revealer != null)
-            {
-                installedStash = new BinderStash(this, revealer.Stash);
-                revealer.Stash = installedStash;
-                revealer.PileStashed += OnPileStashed; // 테이블에 쌓아 둔 카드 전체(오래된 것 포함)를 퇴근 때 알려 줌
-            }
+            if (revealer != null) revealer.PileStashed += OnPileStashed;
         }
 
         void OnDisable()
@@ -139,10 +133,7 @@ namespace CardShop.Presentation
                 context.Events.PhaseChanged -= OnPhaseChanged;
             }
             if (revealer != null) revealer.PileStashed -= OnPileStashed;
-            if (revealer != null && installedStash != null && ReferenceEquals(revealer.Stash, installedStash))
-                revealer.Stash = installedStash.Inner;
             revealer = null;
-            installedStash = null;
             Bind(null);
             context = null;
             storing = 0;
@@ -163,7 +154,7 @@ namespace CardShop.Presentation
         }
 
         /// <summary>
-        /// 결과함에서 "보관함에 넣기"로 보낸 카드들 (BinderStash가 호출). 가게에서는 더미가 사라지는 연출만 하고,
+        /// 결과함에서 "보관함에 넣기"로 보낸 카드들 (CardRevealer.PileStashed). 가게에서는 더미가 사라지는 연출만 하고,
         /// 집에 도착하면 이 카드들의 칸을 보여 주며 반짝입니다.
         /// </summary>
         void OnPileStashed(IReadOnlyList<CardData> cards)
@@ -373,15 +364,7 @@ namespace CardShop.Presentation
             }
         }
 
-        /// <summary>
-        /// 물리 카드를 자기 칸으로 날려 보내고 사라지게 합니다(데이터는 그대로). 표지 소켓이 쓰고,
-        /// 나중에 "보관함에 넣기"(시연 피드백 B2)도 같은 함수를 쓰면 됩니다.
-        /// </summary>
-        public void StoreCard(CardRevealView card)
-        {
-            if (card != null) StartCoroutine(Store(card));
-        }
-
+        // 물리 카드를 자기 칸으로 날려 보내고 사라지게 합니다(데이터는 그대로). 표지 소켓이 씀
         IEnumerator Store(CardRevealView card)
         {
             CardData data = card.Card;
@@ -394,7 +377,6 @@ namespace CardShop.Presentation
             Layout.TryGetSlot(data.id, out _, out int slotIndex);
             BinderSlotView slot = slots[slotIndex];
 
-            // Transform과 Rigidbody를 함께 옮김 (BUG-003: 한쪽만 옮기면 다음 물리 스텝에 옛 위치로 튐)
             var body = card.GetComponent<Rigidbody>();
             if (body != null)
             {
@@ -402,25 +384,10 @@ namespace CardShop.Presentation
                 body.useGravity = false;
             }
 
-            Vector3 fromPos = card.transform.position;
-            Quaternion fromRot = card.transform.rotation;
+            // 칸(UI)과 카드 모두 앞면이 -Z. 날기는 CardRevealView.FlyTo (Transform · Rigidbody를 함께 옮김, BUG-003)
             Vector3 fromScale = card.transform.localScale;
-            Vector3 toPos = slot.transform.position;
-            Quaternion toRot = slot.transform.rotation; // 칸(UI)과 카드 모두 앞면이 -Z
-            for (float t = 0f; t < 1f; t += Time.deltaTime / flySeconds)
-            {
-                float e = Mathf.SmoothStep(0f, 1f, t);
-                Vector3 pos = Vector3.Lerp(fromPos, toPos, e) + Vector3.up * (Mathf.Sin(t * Mathf.PI) * 0.08f);
-                Quaternion rot = Quaternion.Slerp(fromRot, toRot, e);
-                card.transform.SetPositionAndRotation(pos, rot);
-                if (body != null)
-                {
-                    body.position = pos;
-                    body.rotation = rot;
-                }
-                card.transform.localScale = Vector3.Lerp(fromScale, fromScale * 0.6f, e);
-                yield return null;
-            }
+            card.FlyTo(slot.transform.position, slot.transform.rotation, flySeconds, fromScale.x * 0.6f, arcHeight: 0.08f, grabbableOnArrive: false);
+            yield return new WaitForSeconds(flySeconds);
 
             card.Hide(); // 풀(CardRevealer)로 돌아갈 카드라 지우지 않고 끕니다
             card.transform.localScale = fromScale;

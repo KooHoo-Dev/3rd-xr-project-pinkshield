@@ -53,9 +53,6 @@ namespace CardShop.Logic
             return DisplayResult.Ok;
         }
 
-        /// <summary>보유한 카드를 진열합니다. 등급이 낮거나 빈 칸이 없거나 보유하지 않았으면 false.</summary>
-        public bool TryDisplay(GameSession s, string cardId) => Display(s, cardId) == DisplayResult.Ok;
-
         /// <summary>즉시 판매가: 기준가 × instantSellRate, 소수점 내림, 최소 1. 수수료 · 인기 속성 배율 없음(고정 가격).</summary>
         public int InstantPrice(CardData card) =>
             Mathf.Max(1, Mathf.FloorToInt(rarity.BasePrice(card.rarity) * economy.instantSellRate + 1e-4f));
@@ -84,15 +81,6 @@ namespace CardShop.Logic
             if (!s.SalesDisplay.Remove(cardId)) return false;
             s.Collection.Add(cardId);
             return true;
-        }
-
-        /// <summary>
-        /// 손님 한 명의 구매를 한 번에 처리 (고르기 + 결제 완료). 진열 카드를 샀으면 그 카드, 가게 재고면 null.
-        /// </summary>
-        public CardData ServeCustomer(GameSession s, CardElement popular)
-        {
-            CardData card = PickPurchase(s);
-            return CompleteSale(s, card, popular, out _) ? card : null;
         }
 
         /// <summary>

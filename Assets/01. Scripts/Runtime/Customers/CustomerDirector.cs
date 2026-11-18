@@ -193,7 +193,6 @@ namespace CardShop.Customers
             else
             {
                 // 구경 자리가 다 참: 남의 자리에 겹쳐 서지 않고 바로 줄 끝으로
-                agent.BrowsePosition = door.position;
                 JoinQueue(agent, fromBrowse: false);
             }
         }
@@ -268,7 +267,6 @@ namespace CardShop.Customers
             if (free.Count == 0) return null;
             int slot = free[context.Random.Range(0, free.Count)];
             agent.BrowseSlot = slot;
-            agent.BrowsePosition = browseSpots[slot].position;
             return browseSpots[slot];
         }
 
@@ -355,7 +353,6 @@ namespace CardShop.Customers
             checkoutAgent = null;
             agent.State = CustomerState.Leave; // 인사하는 동안은 맨 앞 칸을 계속 차지 (다음 손님이 겹쳐 들어오지 않게)
 
-            context.Events.RaiseCustomerServed(bought);
             if (bought != null)
             {
                 context.Events.RaiseNotice($"손님이 판매 등록한 「{bought.displayName}」을(를) 샀어요! (정산 때 +{net})");
@@ -401,7 +398,7 @@ namespace CardShop.Customers
 
             agent.WalkPath(path, null, () =>
             {
-                context.Events.RaiseCustomerLeft(agent.BrowsePosition);
+                context.Events.RaiseCustomerLeft();
                 Remove(agent);
             });
         }

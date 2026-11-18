@@ -35,12 +35,8 @@ namespace CardShop.Logic
     {
         public int Money { get; private set; }
 
-        /// <summary>(이전 값, 새 값)</summary>
-        public event Action<int, int> Changed;
-
         public Wallet(int money) => Money = money;
 
-        public bool CanAfford(int amount) => Money >= amount;
 
         public void Add(int amount)
         {
@@ -56,12 +52,7 @@ namespace CardShop.Logic
             return true;
         }
 
-        void Set(int value)
-        {
-            int old = Money;
-            Money = value;
-            if (old != value) Changed?.Invoke(old, value);
-        }
+        void Set(int value) => Money = value;
     }
 
     /// <summary>
@@ -113,7 +104,6 @@ namespace CardShop.Logic
             public string cardId;
             public int gross;      // 수수료 전
             public int net;        // 수령액
-            public int Commission => gross - net;
         }
 
         public int basePay;

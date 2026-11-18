@@ -55,7 +55,6 @@ namespace CardShop.Interaction
         int lastTick;
         Transform guideLine, cutLine;
 
-        public bool IsPresented => presented;
 
         void Awake()
         {

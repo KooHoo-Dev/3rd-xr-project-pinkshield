@@ -377,7 +377,7 @@ namespace CardShop.EditorTools
             if (font != null) label.font = font;
 
             var cheats = canvasGo.AddComponent<DebugCheats>();
-            cheats.Configure(flow, new GameObject[0]);
+            cheats.Configure(flow);
 
             // 버튼: 위에서부터 한 줄씩. 높이 56mm, 간격 20mm (시연 피드백 C2: 6mm였을 때 옆 버튼이 눌림)
             string[] names = { "다음 (Advance)", "퇴근 전으로 건너뛰기", "재화 +100", "다음 팩: 갓팩", "다음 팩: 레전더리 확정", "다음 팩: 유니크 히트", "눈높이 맞추기 (1.6m)", "일시정지 (테스트)" };

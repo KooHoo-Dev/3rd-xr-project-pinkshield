@@ -88,23 +88,6 @@ namespace CardShop.Core
         /// 한 줄에 "기분|문장" 형식. 빈 줄과 '#'로 시작하는 줄은 무시. 기분 이름은 MorningMood 이름(대소문자 무시).
         /// 알 수 없는 기분이나 문장이 빈 줄은 건너뜁니다. 문장 안의 {day}는 일차 숫자로 바뀝니다.
         /// </summary>
-        public static Dictionary<MorningMood, List<string>> Parse(string raw)
-        {
-            var result = new Dictionary<MorningMood, List<string>>();
-            if (string.IsNullOrEmpty(raw)) return result;
-            foreach (string rawLine in raw.Split('\n'))
-            {
-                string line = rawLine.Trim();
-                if (line.Length == 0 || line[0] == '#') continue;
-                int bar = line.IndexOf('|');
-                if (bar <= 0) continue;
-                string moodName = line.Substring(0, bar).Trim();
-                string text = line.Substring(bar + 1).Trim();
-                if (text.Length == 0 || !System.Enum.TryParse(moodName, true, out MorningMood mood)) continue;
-                if (!result.TryGetValue(mood, out List<string> list)) result[mood] = list = new List<string>();
-                list.Add(text);
-            }
-            return result;
-        }
+        public static Dictionary<MorningMood, List<string>> Parse(string raw) => LineParser.Parse<MorningMood>(raw);
     }
 }

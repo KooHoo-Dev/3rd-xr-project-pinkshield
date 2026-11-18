@@ -116,23 +116,6 @@ namespace CardShop.Core
         /// 한 줄에 "상황|문장". 빈 줄과 '#'로 시작하는 줄은 무시. 상황 이름은 CustomerMoment 이름(대소문자 무시).
         /// 알 수 없는 상황이나 문장이 빈 줄은 건너뜁니다.
         /// </summary>
-        public static Dictionary<CustomerMoment, List<string>> Parse(string raw)
-        {
-            var result = new Dictionary<CustomerMoment, List<string>>();
-            if (string.IsNullOrEmpty(raw)) return result;
-            foreach (string rawLine in raw.Split('\n'))
-            {
-                string line = rawLine.Trim();
-                if (line.Length == 0 || line[0] == '#') continue;
-                int bar = line.IndexOf('|');
-                if (bar <= 0) continue;
-                string name = line.Substring(0, bar).Trim();
-                string text = line.Substring(bar + 1).Trim();
-                if (text.Length == 0 || !Enum.TryParse(name, true, out CustomerMoment moment) || !Enum.IsDefined(typeof(CustomerMoment), moment)) continue;
-                if (!result.TryGetValue(moment, out List<string> list)) result[moment] = list = new List<string>();
-                list.Add(text);
-            }
-            return result;
-        }
+        public static Dictionary<CustomerMoment, List<string>> Parse(string raw) => LineParser.Parse<CustomerMoment>(raw);
     }
 }

@@ -157,6 +157,7 @@ namespace CardShop.Core
         /// </summary>
         public void RestartGame()
         {
+            if (isTransitioning) return; // 화면 전환 중이면 메뉴를 닫지 않고 그대로 둠 (전환이 끝난 뒤 다시 누를 수 있게)
             IsPaused = false;
             GoToFaded(GamePhaseId.Title, context.StartNewSession);
         }

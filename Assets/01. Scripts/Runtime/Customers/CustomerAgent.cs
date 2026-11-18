@@ -62,9 +62,6 @@ namespace CardShop.Customers
         public float WalkSpeed { get => walkSpeed; set => walkSpeed = Mathf.Max(0.1f, value); }
         /// <summary>지금 실제로 움직이는 속도 (m/s)</summary>
         public Vector3 Velocity => velocity;
-        public bool IsMoving => path != null;
-        /// <summary>진열대에서 구경한 자리 (퇴장 시 청소 구역 위치로 알림)</summary>
-        public Vector3 BrowsePosition { get; set; }
         public int BrowseSlot { get; set; } = -1;
         /// <summary>줄에 선 뒤 흐른 시간(초). 인내 시간 판정용</summary>
         public float QueueSeconds { get; set; }
@@ -122,7 +119,7 @@ namespace CardShop.Customers
             if (paused) return;
 
             float dt = Time.deltaTime;
-            if (State == CustomerState.Queue) QueueSeconds += dt;
+            if (State == CustomerState.Queue && InLine) QueueSeconds += dt; // 줄 끝에 도착한 뒤부터 (걸어오는 동안은 안 셈)
             if (path != null) Move(dt);
             else if (faceOnArrive.HasValue) TurnTo(faceOnArrive.Value, dt);
 

@@ -9,6 +9,14 @@
 - 다시 빌드할 때 배치 모드 진입점: `CardShop.EditorTools.Interior.InteriorBuilder.RebuildBlocksAndSceneFromCommandLine` (거리 보강 프리팹 + 씬 한 번에). 씬만이면 `CardShop.EditorTools.ShopSceneBuilder.Build`
 - 배치 모드 실행 뒤 `Assets/XR/Settings/OpenXRPackageSettings.asset`이 fileID 순서만 바뀌어 수정됨으로 뜸 → 되돌리면 됨(커밋 안 함)
 
+### 0-1) 코드 리뷰 + 리팩토링 1·2단계 (11-18 밤, Claude)
+게임 코드(Runtime) 전체를 리뷰하고 사용자가 고른 1·2단계를 진행함. 3단계(카드 더미 · 손님 줄을 순수 C#으로 빼서 테스트, `CardRevealer` 나누기)는 아직.
+- **고친 버그 9개**: 일시정지 중 찍기 · 봉투 · 청소가 되던 것(빠른 계산 보너스 꼼수), 상자 뒤 단일 팩 더미가 10cm 떠 쌓이던 것(`pileIndex`), 건너뛰기 안내 "유니크 이상" → "갓팩"(DEC-004), 1일차 아침 "어제는…" 대사, 화면 전환 중 "처음부터 다시"가 메뉴만 닫던 것, 들고 있던 진열 팩이 정리 때 슬롯 아래로 떨어지던 것, 걸어오는 동안 손님 인내심이 닳던 것, 인기 배율 1.3일 때 가격 1원 모자라던 것(테스트 추가), 건너뛴 카드가 날아가는 중에 잡히던 것
+- **지운 것 (약 −240줄)**: 카드 뒤집기 코드, 팩 · 상자 빛줄기 · 특수 팩 예고 · 아치 배치(DEC-004로 꺼져 있던 것), `BinderStash`(PileStashed와 중복), 듣는 곳 없는 이벤트(`PacksOpened` · `CustomerServed` · `Wallet.Changed`), 안 쓰는 속성들, 테스트 전용 `ServeCustomer` · `TryDisplay`, 디버그 `hideInRelease`
+- **합친 것**: 대사 읽기 3곳 → `Core/LineParser`, "마지막 날" 판단 → `CampaignConfig.IsLastDay`, 바인더 카드 날리기 → `CardRevealView.FlyTo` 재사용
+- 남겨 둔 것: `ActivatePackOpen`(설계서 7-2 예비 개봉 방식, 지울지는 사용자 결정), 눈높이 다시 맞추기 3곳(뒤처리가 서로 달라 합치지 않음)
+- **Play에서 볼 것**: 상자 연 뒤 단일 팩 → 카드가 카운터 바로 위에 쌓이는지, 상자 연출 시간이 0.05초 짧아진 것이 어색하지 않은지, 바인더 표지에 카드 꽂기(날아가는 모양), 일시정지 중 바코드가 안 찍히는지
+
 ### 1) 마지막 빌드 테스트 피드백 반영 (사용자가 외출 후 전달 예정)
 
 ### 2) Play / 실기기에서 볼 것

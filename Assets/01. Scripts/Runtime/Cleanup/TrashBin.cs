@@ -21,6 +21,9 @@ namespace CardShop.Cleanup
 
         public void Configure(DropHint dropHint) => hint = dropHint;
 
+        /// <summary>일시정지 중이면 true (CleanupDirector가 넣음). 마감 시간이 멈춘 동안 청소를 받지 않음</summary>
+        public System.Func<bool> IsPaused { get; set; }
+
         public bool Contains(Vector3 world)
         {
             Vector3 p = transform.InverseTransformPoint(world);

@@ -53,7 +53,6 @@ namespace CardShop.Interaction
             if (tear == null) tear = pack.gameObject.AddComponent<PackTearEffect>(); // 프리팹을 다시 만들기 전이면 기본값으로
 
             ctx.Events.RaiseNotice(cost == 0 ? "무료 팩 개봉!" : $"팩 개봉 (-{cost})");
-            ctx.Events.RaisePacksOpened(new[] { result });
             revealer.RevealPack(result, stackPose, tear); // 이전 카드 더미는 여기서 자동으로 보관함에
         }
 
@@ -87,7 +86,6 @@ namespace CardShop.Interaction
                 return;
             }
 
-            ctx.Events.RaisePacksOpened(results);
             revealer.RevealBox(results);
         }
 

@@ -106,6 +106,8 @@ namespace CardShop.Cards
         public int shelfSlotCount = 12;
 
         public int DayCount => days.Count;
+        /// <summary>마지막 날인가 (집을 건너뛰고 최종 결과로 감)</summary>
+        public bool IsLastDay(int day) => day >= DayCount;
 
         /// <summary>1부터 시작하는 일차.</summary>
         public DayEntry GetDay(int day) => days[Mathf.Clamp(day - 1, 0, days.Count - 1)];

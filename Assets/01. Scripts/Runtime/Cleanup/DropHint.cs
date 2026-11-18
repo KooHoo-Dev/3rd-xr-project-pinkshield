@@ -28,7 +28,6 @@ namespace CardShop.Cleanup
         bool shown;
         bool ready;
 
-        public bool Shown => shown;
 
         public void Configure(GameObject visualRoot, Renderer[] tintedRenderers, Transform bobbingMarker)
         {

@@ -33,8 +33,6 @@ namespace CardShop.Customers
         float checkoutSeconds; // 물건을 올린 뒤 흐른 시간 (일시정지 제외), 계산 평가용
         readonly List<ScannableItem> spawned = new List<ScannableItem>();
 
-        /// <summary>지금 계산 중인 손님이 있는가</summary>
-        public bool IsBusy => basket != null;
         /// <summary>지금 장바구니의 물건 수 (인내 시간 계산용)</summary>
         public int ItemCount => basket != null ? basket.Count : 0;
 
@@ -103,9 +101,12 @@ namespace CardShop.Customers
             return item;
         }
 
+        // 일시정지 중에는 계산 시간이 멈추므로 찍기 · 담기도 받지 않음 (멈춘 채 계산해 빠른 계산 보너스를 받는 일 방지)
+        bool Paused => flow != null && flow.IsPaused;
+
         void OnScanned(int index)
         {
-            if (basket == null || !basket.MarkScanned(index)) return;
+            if (Paused || basket == null || !basket.MarkScanned(index)) return;
             BasketLine line = basket.Lines[index];
             ScannableItem item = spawned[index];
             if (item != null) item.ShowLabel($"{line.Name}\n{line.Price}");
@@ -116,7 +117,7 @@ namespace CardShop.Customers
         // 물건을 놓은 곳이 봉투 위면 담기. 안 찍은 물건은 받지 않고 안내만 (물건은 스스로 제자리로 돌아감)
         void OnReleased(int index, ScannableItem item)
         {
-            if (basket == null || bag == null || item == null || !bag.Contains(item.transform.position)) return;
+            if (Paused || basket == null || bag == null || item == null || !bag.Contains(item.transform.position)) return;
             if (!basket.Lines[index].Scanned)
             {
                 Context.Events.RaiseNotice("먼저 바코드를 찍어 주세요.");

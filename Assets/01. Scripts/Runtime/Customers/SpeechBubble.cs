@@ -44,7 +44,6 @@ namespace CardShop.Customers
         float left;
         float duration;
 
-        public bool IsShowing => gameObject.activeSelf;
         /// <summary>일시정지 판단 (CustomerAgent가 넣어 줌)</summary>
         public System.Func<bool> IsPaused { get; set; }
 
@@ -130,7 +129,6 @@ namespace CardShop.Customers
             Follow();
         }
 
-        public void Hide() => gameObject.SetActive(false);
 
         // 글자 크기에 맞춰 구름을 배치. 원점 = 꼬리 끝(머리 바로 위), 위로 꼬리 → 몸통
         void Layout()

@@ -70,11 +70,18 @@ namespace CardShop.Tests
 
         [TearDown] public void TearDown() => f.Destroy();
 
+        // 손님 한 명: 고르기(PickPurchase) + 결제(CompleteSale). 진열 카드를 샀으면 그 카드, 가게 재고면 null
+        CardData Serve(SalesRules sales, CardElement popular)
+        {
+            CardData card = sales.PickPurchase(s);
+            return sales.CompleteSale(s, card, popular, out _) ? card : null;
+        }
+
         [Test]
         public void Display_TakesCardOutOfCollection_AndKeepsDexEntry()
         {
             s.Collection.Add("F-SR");
-            Assert.IsTrue(f.Sales(new ScriptedRandom()).TryDisplay(s, "F-SR"));
+            Assert.AreEqual(DisplayResult.Ok, f.Sales(new ScriptedRandom()).Display(s, "F-SR"));
             Assert.AreEqual(0, s.Collection.CountOf("F-SR"));
             Assert.IsTrue(s.Collection.IsDiscovered("F-SR"), "진열해도 도감은 유지");
             CollectionAssert.AreEqual(new[] { "F-SR" }, s.SalesDisplay);
@@ -84,10 +91,10 @@ namespace CardShop.Tests
         public void Display_RejectsUnownedCard_AndFullDisplay()
         {
             SalesRules sales = f.Sales(new ScriptedRandom());
-            Assert.IsFalse(sales.TryDisplay(s, "F-SR"), "보유하지 않은 카드");
+            Assert.AreEqual(DisplayResult.NotOwned, sales.Display(s, "F-SR"), "보유하지 않은 카드");
 
             for (int i = 0; i < 5; i++) s.Collection.Add("F-SR");
-            for (int i = 0; i < f.Economy.salesDisplaySlots; i++) Assert.IsTrue(sales.TryDisplay(s, "F-SR"));
+            for (int i = 0; i < f.Economy.salesDisplaySlots; i++) Assert.AreEqual(DisplayResult.Ok, sales.Display(s, "F-SR"));
             Assert.AreEqual(DisplayResult.DisplayFull, sales.Display(s, "F-SR"), "진열대 4칸이 다 참");
             Assert.AreEqual(1, s.Collection.CountOf("F-SR"), "실패하면 보유 목록에서 빠지지 않음");
         }
@@ -187,7 +194,7 @@ namespace CardShop.Tests
         {
             s.Collection.Add("F-SR");
             SalesRules sales = f.Sales(new ScriptedRandom());
-            sales.TryDisplay(s, "F-SR");
+            sales.Display(s, "F-SR");
 
             Assert.AreEqual(0, sales.ReturnUnsoldOnFinalDay(s, 7), "1일차 끝: 진열 유지");
             CollectionAssert.AreEqual(new[] { "F-SR" }, s.SalesDisplay);
@@ -204,9 +211,9 @@ namespace CardShop.Tests
             s.Collection.Add("F-SR");
             // 진열 0번 카드 선택, 0.34 < 수퍼레어 구매 확률 0.35 → 구매
             SalesRules sales = f.Sales(new ScriptedRandom().Int(0).Double(0.34));
-            sales.TryDisplay(s, "F-SR");
+            sales.Display(s, "F-SR");
 
-            CardData sold = sales.ServeCustomer(s, CardElement.Fire); // 인기 속성 불
+            CardData sold = Serve(sales, CardElement.Fire); // 인기 속성 불
             Assert.AreEqual("F-SR", sold.id);
             Assert.AreEqual(0, s.SalesDisplay.Count);
             Assert.AreEqual(1, s.Ledger.sales.Count);
@@ -221,9 +228,9 @@ namespace CardShop.Tests
             s.Collection.Add("F-SR");
             // 0.35는 구매 확률 0.35 이상 → 탈락
             SalesRules sales = f.Sales(new ScriptedRandom().Int(0).Double(0.35));
-            sales.TryDisplay(s, "F-SR");
+            sales.Display(s, "F-SR");
 
-            Assert.IsNull(sales.ServeCustomer(s, CardElement.None));
+            Assert.IsNull(Serve(sales, CardElement.None));
             Assert.AreEqual(1, s.SalesDisplay.Count, "안 팔린 카드는 진열대에 남음");
             Assert.AreEqual(0, s.Ledger.sales.Count);
             Assert.AreEqual(1, s.Ledger.customersServed, "가게 재고 결제도 손님 1명");
@@ -232,7 +239,7 @@ namespace CardShop.Tests
         [Test]
         public void Customer_WithEmptyDisplay_BuysShopStock()
         {
-            Assert.IsNull(f.Sales(new ScriptedRandom()).ServeCustomer(s, CardElement.None));
+            Assert.IsNull(Serve(f.Sales(new ScriptedRandom()), CardElement.None));
             Assert.AreEqual(1, s.Ledger.customersServed);
         }
 
@@ -242,8 +249,8 @@ namespace CardShop.Tests
             s.Collection.Add("F-SR");
             s.Collection.Add("F-U");
             SalesRules sales = f.Sales(new ScriptedRandom());
-            sales.TryDisplay(s, "F-SR");
-            sales.TryDisplay(s, "F-U");
+            sales.Display(s, "F-SR");
+            sales.Display(s, "F-U");
 
             Assert.AreEqual(2, sales.ReturnUnsold(s));
             Assert.AreEqual(0, s.SalesDisplay.Count);
@@ -256,7 +263,7 @@ namespace CardShop.Tests
         {
             s.Collection.Add("F-U");
             SalesRules sales = f.Sales(new ScriptedRandom());
-            sales.TryDisplay(s, "F-U");
+            sales.Display(s, "F-U");
             Assert.IsTrue(sales.TryUndisplay(s, "F-U"));
             Assert.AreEqual(1, s.Collection.CountOf("F-U"));
             Assert.IsFalse(sales.TryUndisplay(s, "F-U"), "진열대에 없으면 false");

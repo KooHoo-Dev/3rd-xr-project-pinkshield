@@ -10,13 +10,9 @@ namespace CardShop.Cleanup
     public sealed class MessyPackSpot : CleanupSpot
     {
         readonly List<RackPack> packs = new List<RackPack>();
-        PackRack rack;
 
-        public override CleanupKinds Kind => CleanupKinds.MessyPack;
-
-        public void Init(PackRack owner, List<RackPack> scattered)
+        public void Init(List<RackPack> scattered)
         {
-            rack = owner;
             packs.AddRange(scattered);
             foreach (RackPack p in packs) p.Returned += OnReturned;
             if (packs.Count == 0) Complete();
@@ -33,8 +29,7 @@ namespace CardShop.Cleanup
         public override void Discard()
         {
             foreach (RackPack p in packs) if (p != null) p.Returned -= OnReturned;
-            if (rack != null) rack.ResetAll();
-            base.Discard();
+            base.Discard(); // 꽂이는 CleanupDirector.EndDay가 한 번에 되돌림
         }
     }
 }

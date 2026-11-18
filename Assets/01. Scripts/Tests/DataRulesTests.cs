@@ -88,6 +88,15 @@ namespace CardShop.Tests
         }
 
         [Test]
+        public void GrossPrice_NoFloatRoundingLossWithOddMultiplier()
+        {
+            economy.popularMultiplier = 1.3f; // 20 × 1.3f = 25.9999… → 내림하면 25가 되던 버그
+            CardData card = Card(CardKind.Slime, CardElement.Fire, CardRarity.SuperRare);
+            Assert.AreEqual(26, rules.GrossPrice(card, CardElement.Fire));
+            Object.DestroyImmediate(card);
+        }
+
+        [Test]
         public void PopularElement_DoesNotApplyToFieldOrSnack()
         {
             CardData snack = Card(CardKind.Snack, CardElement.None, CardRarity.Unique);

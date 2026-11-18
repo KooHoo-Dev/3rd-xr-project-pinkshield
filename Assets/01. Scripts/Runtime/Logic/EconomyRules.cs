@@ -19,7 +19,7 @@ namespace CardShop.Logic
         public int GrossPrice(CardData card, CardElement popular)
         {
             float mult = IsPopular(card, popular) ? config.popularMultiplier : 1f;
-            return Mathf.FloorToInt(rarity.BasePrice(card.rarity) * mult);
+            return Mathf.FloorToInt(rarity.BasePrice(card.rarity) * mult + 1e-4f); // 20 × 1.3f = 25.9999… 가 25가 되지 않게 (SellPrice와 같음)
         }
 
         /// <summary>판매 수령액 = max(최소가, 내림(기준가 × 배율 × (1 − 수수료)))</summary>
