@@ -264,6 +264,14 @@ namespace CardShop.Customers
 
         public void StopSpawning() => clock.Stop();
 
+        /// <summary>디버그 치트: 영업 중이고 팩이 제자리면 지금 바로 등장 (일정표와 상관없이). 등장했으면 true.</summary>
+        public bool DebugSpawnNow()
+        {
+            if (flow == null || flow.CurrentPhase != GamePhaseId.Business || thief != null || !pack.AtHome) return false;
+            Spawn();
+            return thief != null;
+        }
+
         /// <summary>무료 팩 받침 위 자리 (퇴근 후 FreePackOffer가 열 수 있는 팩을 놓는 곳). 무료 팩이 없는 씬이면 false.</summary>
         public bool TryGetFreePackHome(out Pose pose)
         {

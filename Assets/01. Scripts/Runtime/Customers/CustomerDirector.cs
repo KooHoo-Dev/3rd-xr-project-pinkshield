@@ -272,6 +272,15 @@ namespace CardShop.Customers
 
         public void StopSpawning() => clock.Stop();
 
+        /// <summary>디버그 치트: 영업 중이면 손님 한 명을 지금 바로 (일정표와 상관없이). 나왔으면 true.</summary>
+        public bool DebugSpawnNow()
+        {
+            if (flow == null || flow.CurrentPhase != GamePhaseId.Business || !bodies.Ready) return false;
+            int before = agents.Count;
+            Spawn();
+            return agents.Count > before;
+        }
+
         public void DismissAll()
         {
             checkout.Clear();
