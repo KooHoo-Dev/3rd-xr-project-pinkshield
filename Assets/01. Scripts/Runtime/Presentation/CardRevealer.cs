@@ -29,8 +29,6 @@ namespace CardShop.Presentation
     {
         enum PackStage { None, Tearing, Flipping, Result, Summary }
 
-        static readonly Color SpecialGold = new Color(1f, 0.82f, 0.3f);
-
         [SerializeField] CardView cardPrefab;
         [Tooltip("카드가 놓일 기준점. 카드 앞면(-Z)이 플레이어를 향하도록 회전")]
         [SerializeField] Transform anchor;
@@ -147,7 +145,7 @@ namespace CardShop.Presentation
         TextMeshPro boxBoard;
         PackResultPanel resultPanel;
         BoxOpenEffect boxEffect;
-        RevealBurst burst;
+        RevealFx fx;                 // 등급 연출: 소리 · 진동 · 폭죽 · 흔들림
         Coroutine packRoutine;
         Coroutine warmRoutine;
         PackStage stage;
@@ -251,7 +249,7 @@ namespace CardShop.Presentation
         {
             EnsureBoxEffect();
             TriggerInput.Prewarm();
-            EnsureBurst();
+            Fx.Prewarm();
             if (warmRoutine == null && isActiveAndEnabled) warmRoutine = StartCoroutine(WarmPool());
         }
 
@@ -327,7 +325,7 @@ namespace CardShop.Presentation
                 CardRevealView front = stackViews[0];
                 CardData card = p.Cards[item.Card];
                 bool confirmed = p.Special == SpecialPackType.LegendaryPack && card.rarity == CardRarity.Legendary;
-                float pause = AnnounceCard(front, card, confirmed, hand);
+                float pause = Fx.Announce(front, card, confirmed, hand);
                 yield return TriggerInput.WaitForAdvance(hand, pause, !godPack, gaugePose);
                 stackViews.RemoveAt(0);
                 Pile.Send(front, isBox, 0f);
@@ -404,31 +402,6 @@ namespace CardShop.Presentation
                 cardPrefab != null ? cardPrefab.Styles : null);
         }
 
-        // 맨 앞 카드 공개: 뒷면이 뒤집히며 등급 연출. 수퍼레어~유니크는 같은 연출(DEC-004), 레전더리만 더 크게:
-        // 큰 폭죽 + 카드 흔들림 + 진동 (카메라 셰이크는 VR 멀미 우려로 쓰지 않음). 다음으로 넘길 수 있기까지의 멈춤(초)을 돌려줍니다.
-        float AnnounceCard(CardRevealView view, CardData card, bool legendaryPack, XRBaseInputInteractor hand)
-        {
-            CardRarity tier = card.rarity == CardRarity.Unique ? CardRarity.SuperRare : card.rarity; // 연출 등급 통일
-            RarityRevealProfile.Entry fx = Profile.Get(tier);
-            if (fx.sound != null) AudioSource.PlayClipAtPoint(fx.sound, view.transform.position, fx.volume);
-            int count = fx.hapticCount + (legendaryPack ? 1 : 0);
-            if (hand != null) StartCoroutine(Haptic(hand, fx.hapticAmplitude, fx.hapticSeconds, count));
-
-            // 카드 앞면을 가리지 않게 카드 1cm 뒤에서 퍼짐
-            Vector3 behind = view.transform.position + view.transform.forward * 0.01f;
-            if (card.rarity == CardRarity.Legendary)
-            {
-                EnsureBurst().Play(behind, view.transform.rotation, legendaryPack ? SpecialGold : RarityColor(CardRarity.Legendary),
-                    legendaryPack ? 0.34f : 0.3f, legendaryPack ? 1.5f : 1.3f);
-                view.Shake(legendaryShakeAmount, legendaryShakeSeconds);
-            }
-            else if (card.rarity >= CardRarity.SuperRare)
-            {
-                EnsureBurst().Play(behind, view.transform.rotation, SpecialGold, 0.11f, 0.7f);
-            }
-            return fx.pause + (legendaryPack ? legendaryPackExtraPause : 0f);
-        }
-
         // 건너뛰기: queue[from..]의 남은 카드를 전 등급 건너뜁니다 (DEC-004).
         // 단일 팩이면 모두 앞면으로 뒤집혀 더미로 날아가고(결과함에 5장이 모두 있어야 하므로), 상자면 더미 높이로만 셉니다(오브젝트 없음).
         List<RevealItem> ApplySkip(List<PackResult> packs, List<RevealItem> queue, int from, Pose stack, bool isBox)
@@ -465,14 +438,11 @@ namespace CardShop.Presentation
             return kept;
         }
 
-        // 갓팩 예고: 큰 금빛 폭죽 + 진동 + (있으면) 효과음. 카메라는 흔들지 않음 (VR 멀미 방지).
+        // 갓팩 예고: 큰 금빛 폭죽 + 진동 + (있으면) 효과음 뒤 잠깐 멈춤. 카메라는 흔들지 않음 (VR 멀미 방지).
         IEnumerator GodIntro(Pose stack, XRBaseInputInteractor hand)
         {
             context?.Events.RaiseNotice("갓팩!");
-            Vector3 center = stack.position + stack.rotation * Vector3.forward * 0.01f;
-            EnsureBurst().Play(center, stack.rotation, SpecialGold, 0.3f, 1.4f);
-            if (godPackSound != null) AudioSource.PlayClipAtPoint(godPackSound, center, 1f);
-            if (hand != null) StartCoroutine(Haptic(hand, 0.8f, 0.12f, 3));
+            Fx.GodIntro(stack, hand);
             yield return new WaitForSeconds(godIntroSeconds);
         }
 
@@ -565,13 +535,6 @@ namespace CardShop.Presentation
             return HeadPose.InFront(cam.transform, boxStackDistance, boxStackDrop);
         }
 
-        Color RarityColor(CardRarity rarity)
-        {
-            CardRarityStyles styles = cardPrefab != null ? cardPrefab.Styles : null;
-            if (rarity == CardRarity.Normal || styles == null) return Color.white;
-            return styles.Get(rarity).accentColor;
-        }
-
         /// <summary>
         /// 카운터의 카드 더미를 보관함으로 보냅니다(연출만, 데이터는 이미 보유 목록에 있음).
         /// 결과함 UI가 닫히고, 연출이 끝나면 카드 오브젝트는 풀로 돌아갑니다.
@@ -588,25 +551,6 @@ namespace CardShop.Presentation
         {
             if (IsBusy) Clear();
             else StashPile();
-        }
-
-        RarityRevealProfile Profile
-        {
-            get
-            {
-                if (revealProfile == null) revealProfile = ScriptableObject.CreateInstance<RarityRevealProfile>();
-                return revealProfile;
-            }
-        }
-
-        static IEnumerator Haptic(XRBaseInputInteractor hand, float amplitude, float seconds, int count)
-        {
-            for (int k = 0; k < count; k++)
-            {
-                if (k > 0) yield return new WaitForSeconds(seconds + 0.06f);
-                if (hand == null) yield break;
-                hand.SendHapticImpulse(amplitude, seconds);
-            }
         }
 
         // 결과판: 카드 위쪽에 카드와 같은 방향으로. 한글 폰트는 카드 프리팹의 글꼴을 빌려 씁니다.
@@ -648,11 +592,14 @@ namespace CardShop.Presentation
             HapticMax = holdHapticMax,
         });
 
-        RevealBurst EnsureBurst()
+        RevealFx Fx => fx ??= new RevealFx(this, () => cardPrefab != null ? cardPrefab.Styles : null, () => new RevealFx.Settings
         {
-            if (burst == null) burst = RevealBurst.Create(transform);
-            return burst;
-        }
+            Profile = revealProfile,
+            LegendaryShakeAmount = legendaryShakeAmount,
+            LegendaryShakeSeconds = legendaryShakeSeconds,
+            LegendaryPackExtraPause = legendaryPackExtraPause,
+            GodPackSound = godPackSound,
+        });
 
         /// <summary>모든 연출을 멈추고 카운터를 비웁니다(보관 연출 중인 카드도 바로 거둠).</summary>
         public void Clear()
@@ -670,7 +617,7 @@ namespace CardShop.Presentation
             tearingPack = null;
             if (boxBoard != null) boxBoard.gameObject.SetActive(false);
             if (boxEffect != null) boxEffect.Stop();
-            if (burst != null) burst.Stop();
+            Fx.Stop();
             RecycleRevealArea(keepPile);
             if (keepPile) Pool.RecycleAll(Pile.Contains);
             else
