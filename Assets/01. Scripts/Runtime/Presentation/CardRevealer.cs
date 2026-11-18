@@ -48,7 +48,6 @@ namespace CardShop.Presentation
         [SerializeField] float packFitRatio = 1.1f;
         [Tooltip("단일 팩: 팩 크기로 시작한 카드 묶음이 위로 솟으며 이 배율만큼 커짐 (VR 실기기 피드백: 개봉 카드가 다시 작아 보임 → 1.5배)")]
         [SerializeField] float singlePackRevealGrow = 1.5f;
-        float curStackScale = 1.5f; // 이번 개봉에 쓰는 묶음 크기 (단일 팩은 팩 크기에 맞춤, 상자는 stackScale)
         [Tooltip("넘긴 카드가 더미까지 날아가는 시간 (초)")]
         [SerializeField] float flySeconds = 0.35f;
         [Tooltip("등급별 멈춤·진동·소리. 비워 두면 설계 기본값")]
@@ -140,7 +139,7 @@ namespace CardShop.Presentation
         CounterPileView counterPile; // 카운터 카드 더미 (장부는 CounterPile, CounterPileTests)
         PackResultPanel pileInfo;
         Coroutine pileInfoHide;
-        readonly List<CardRevealView> stackViews = new List<CardRevealView>(); // 눈앞 묶음에 실체화된 카드 (맨 앞부터)
+        RevealStack revealStack;     // 눈앞 카드 묶음 (맨 앞 몇 장만 실체화)
         GameContext context;
         TextMeshPro boxBoard;
         PackResultPanel resultPanel;
@@ -268,7 +267,7 @@ namespace CardShop.Presentation
         IEnumerator PackSequence(List<PackResult> packs, Pose stack, PackTearEffect tear)
         {
             bool isBox = packs.Count > 1;
-            curStackScale = !isBox && tear != null ? tear.transform.lossyScale.y * packFitRatio : stackScale;
+            CardStack.Begin(stack, !isBox && tear != null ? tear.transform.lossyScale.y * packFitRatio : stackScale);
             stage = PackStage.Tearing;
             XRBaseInputInteractor hand = HandFinder.Find(InteractorHandedness.Right);
             rayUi.Suppress(hand); // 연출 중 오른손 트리거가 Ray UI 클릭까지 하지 않게
@@ -280,18 +279,15 @@ namespace CardShop.Presentation
             if (!isBox)
             {
                 // 카드 묶음은 팩 안(팩 앞면 뒤)에서 시작해 팩이 빠지는 동안 위로 솟습니다.
-                FillStack(packs, queue, 0, stack, stackDepth, popIn: false);
+                CardStack.Fill(packs, queue, 0, popIn: false);
                 if (tear != null)
                 {
                     tearingPack = tear.gameObject;
                     float delay = tear.Play(); // 뜯는 순간 등급이 미리 드러나지 않게 흰 빛 없이 (DEC-004)
                     if (delay > 0f) yield return new WaitForSeconds(delay);
                 }
-                Vector3 up = stack.rotation * Vector3.up;
-                curStackScale *= singlePackRevealGrow; // 팩에서 빠져나오며 커짐. 이후 넘기기 · 새로 채우는 카드도 이 크기
-                foreach (CardRevealView v in stackViews)
-                    v.FlyTo(v.transform.position + up * cardRise, stack.rotation, riseSeconds, curStackScale, arcHeight: 0f, grabbableOnArrive: false);
-                stack = new Pose(stack.position + up * cardRise, stack.rotation);
+                CardStack.Rise(cardRise, riseSeconds, singlePackRevealGrow); // 팩에서 빠져나오며 커짐. 이후 넘기기 · 새로 채우는 카드도 이 크기
+                stack = CardStack.Pose;
                 yield return new WaitForSeconds(riseSeconds);
             }
             else
@@ -301,7 +297,7 @@ namespace CardShop.Presentation
                 Vector3 forward = stack.rotation * Vector3.forward;
                 float seconds = EnsureBoxEffect().Play(packs.Count, headPos, forward, stack, boxTearSound);
                 yield return new WaitForSeconds(seconds);
-                FillStack(packs, queue, 0, stack, stackDepth, popIn: true);
+                CardStack.Fill(packs, queue, 0, popIn: true);
                 yield return new WaitForSeconds(popInSeconds);
             }
 
@@ -317,28 +313,27 @@ namespace CardShop.Presentation
             {
                 RevealItem item = queue[qi];
                 PackResult p = packs[item.Pack];
-                if (stackViews.Count == 0) FillStack(packs, queue, qi, stack, stackDepth, popIn: skipped);
+                if (CardStack.IsEmpty) CardStack.Fill(packs, queue, qi, popIn: skipped);
 
                 bool godPack = RevealQueue.IsGodPack(p);
                 if (godPack && item.Card == 0) yield return GodIntro(stack, hand); // 갓팩: 특수 효과 후 한 장씩 (DEC-008)
 
-                CardRevealView front = stackViews[0];
+                CardRevealView front = CardStack.Front;
                 CardData card = p.Cards[item.Card];
                 bool confirmed = p.Special == SpecialPackType.LegendaryPack && card.rarity == CardRarity.Legendary;
                 float pause = Fx.Announce(front, card, confirmed, hand);
                 yield return TriggerInput.WaitForAdvance(hand, pause, !godPack, gaugePose);
-                stackViews.RemoveAt(0);
-                Pile.Send(front, isBox, 0f);
+                Pile.Send(CardStack.TakeFront(), isBox, 0f);
                 qi++;
 
                 if (TriggerInput.Last == RevealInput.Result.Skip && !skipped)
                 {
-                    queue = ApplySkip(packs, queue, qi, stack, isBox);
+                    queue = CardStack.Skip(packs, queue, qi, isBox);
                     qi = 0;
                     skipped = true;
                     context?.Events.RaiseNotice(queue.Count > 0 ? "건너뛰기! 갓팩은 끝까지 열어 봐요" : "건너뛰기!");
                 }
-                else FillStack(packs, queue, qi, stack, stackDepth, popIn: false);
+                else CardStack.Fill(packs, queue, qi, popIn: false);
             }
             TriggerInput.HideGauge();
 
@@ -402,73 +397,12 @@ namespace CardShop.Presentation
                 cardPrefab != null ? cardPrefab.Styles : null);
         }
 
-        // 건너뛰기: queue[from..]의 남은 카드를 전 등급 건너뜁니다 (DEC-004).
-        // 단일 팩이면 모두 앞면으로 뒤집혀 더미로 날아가고(결과함에 5장이 모두 있어야 하므로), 상자면 더미 높이로만 셉니다(오브젝트 없음).
-        List<RevealItem> ApplySkip(List<PackResult> packs, List<RevealItem> queue, int from, Pose stack, bool isBox)
-        {
-            List<RevealItem> kept = RevealQueue.GodOnly(packs, queue, from);
-            Vector3 back = stack.rotation * Vector3.forward;
-            int flyIndex = 0;
-            for (int k = from; k < queue.Count; k++)
-            {
-                int s = k - from;
-                CardRevealView v = s < stackViews.Count ? stackViews[s] : null;
-                RevealItem item = queue[k];
-                if (RevealQueue.IsGodPack(packs[item.Pack]))
-                {
-                    if (v != null) Recycle(v); // 갓팩 카드는 마지막에 다시 하나씩 떠오르며 공개됨
-                    continue;
-                }
-                if (isBox)
-                {
-                    if (v != null) Recycle(v);
-                    Pile.CountSkipped(1); // 오브젝트 없이 더미 높이로만
-                    continue;
-                }
-                if (v == null)
-                {
-                    PackResult p = packs[item.Pack];
-                    v = Show(p.Cards[item.Card], p.IsNew[item.Card], stack.position + back * (stackSpacing * stackDepth), stack.rotation,
-                        curStackScale);
-                    v.SetGrabbable(false);
-                }
-                Pile.Send(v, false, flyIndex++ * skipFlyStagger);
-            }
-            stackViews.Clear();
-            return kept;
-        }
-
         // 갓팩 예고: 큰 금빛 폭죽 + 진동 + (있으면) 효과음 뒤 잠깐 멈춤. 카메라는 흔들지 않음 (VR 멀미 방지).
         IEnumerator GodIntro(Pose stack, XRBaseInputInteractor hand)
         {
             context?.Events.RaiseNotice("갓팩!");
             Fx.GodIntro(stack, hand);
             yield return new WaitForSeconds(godIntroSeconds);
-        }
-
-        // 맨 앞 depth장만 실체화 (Quest 성능). stackViews[k] = queue[from + k].
-        void FillStack(List<PackResult> packs, List<RevealItem> queue, int from, Pose stack, int depth, bool popIn)
-        {
-            Vector3 back = stack.rotation * Vector3.forward;
-            // 앞 카드가 빠졌으면 남은 카드를 한 칸씩 앞으로
-            for (int k = 0; k < stackViews.Count; k++)
-                stackViews[k].FlyTo(stack.position + back * (stackSpacing * k), stack.rotation, restackSeconds, curStackScale,
-                    arcHeight: 0f, grabbableOnArrive: false);
-
-            while (stackViews.Count < depth && from + stackViews.Count < queue.Count)
-            {
-                RevealItem item = queue[from + stackViews.Count];
-                PackResult p = packs[item.Pack];
-                Vector3 pos = stack.position + back * (stackSpacing * stackViews.Count);
-                // 떠오르기: 조금 아래에서 작게 시작
-                Vector3 start = popIn ? pos - (stack.rotation * Vector3.up) * 0.03f : pos;
-                // 앞면으로 쌓음 (뒤집기 연출은 눈이 아파 뺌, DEC-004 수정). 묶음 뒤 카드는 앞 카드에 가려 보이지 않음
-                CardRevealView v = Show(p.Cards[item.Card], p.IsNew[item.Card], start, stack.rotation,
-                    popIn ? curStackScale * 0.6f : curStackScale);
-                v.SetGrabbable(false);
-                if (popIn) v.FlyTo(pos, stack.rotation, popInSeconds, curStackScale, arcHeight: 0f, grabbableOnArrive: false);
-                stackViews.Add(v);
-            }
         }
 
         // 카드 옆면 머티리얼(CardPrefabBuilder의 "CardEdge")을 빌려 써서 더미 덩어리가 카드 옆면처럼 보이게
@@ -509,7 +443,7 @@ namespace CardShop.Presentation
             for (int i = 0; i < best.Count; i++)
             {
                 PackResult p = packs[best[i].pack];
-                Show(p.Cards[best[i].card], p.IsNew[best[i].card], SlotPosition(i, best.Count), anchor.rotation, counterScale);
+                Pool.Show(p.Cards[best[i].card], p.IsNew[best[i].card], SlotPosition(i, best.Count), anchor.rotation, counterScale);
             }
 
             // 끝: 결과판 · 하이라이트는 다음 상자 · 영업 시작 때 정리 (기존 동작)
@@ -630,8 +564,7 @@ namespace CardShop.Presentation
         // 눈앞 묶음과 상자 더미(실제 카드 + 덩어리)를 풀로 돌려보냅니다. 단일 팩 더미(pile)는 그대로.
         void RecycleRevealArea(bool keepBlock = false)
         {
-            foreach (CardRevealView v in stackViews) Recycle(v);
-            stackViews.Clear();
+            CardStack.Clear();
             Pile.ClearBox(keepBlock);
         }
 
@@ -649,12 +582,16 @@ namespace CardShop.Presentation
         // 카운터 위 가로 한 줄의 index번째 자리 (상자 하이라이트)
         Vector3 SlotPosition(int index, int count) => anchor.position + anchor.right * ((index - (count - 1) * 0.5f) * spacing);
 
-        CardRevealView Show(CardData card, bool isNew, Vector3 position, Quaternion rotation, float scale = 1f) =>
-            Pool.Show(card, isNew, position, rotation, scale);
-
-        void Recycle(CardRevealView view) => Pool.Recycle(view);
-
         CardRevealPool Pool => cardPool ??= new CardRevealPool(Create);
+
+        RevealStack CardStack => revealStack ??= new RevealStack(Pool, Pile, () => new RevealStack.Settings
+        {
+            Spacing = stackSpacing,
+            Depth = stackDepth,
+            RestackSeconds = restackSeconds,
+            PopInSeconds = popInSeconds,
+            SkipFlyStagger = skipFlyStagger,
+        });
 
         CounterPileView Pile => counterPile ??= new CounterPileView(this, Pool, EdgeMaterial, () => new CounterPileView.Settings
         {
