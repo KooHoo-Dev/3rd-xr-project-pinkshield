@@ -59,6 +59,14 @@ namespace CardShop.EditorTools.Interior
         [MenuItem("Tools/CardShop/Interior/Rebuild Street Blocks Prefab", priority = 64)]
         static void RebuildBlocksMenu() { if (Confirm("ShopStreetBlocks")) Save(BuildBlocks(), BlocksPath); }
 
+        /// <summary>배치 모드(-executeMethod): 확인 창 없이 거리 보강 프리팹을 다시 만들고 Build Shop Scene까지 실행</summary>
+        public static void RebuildBlocksAndSceneFromCommandLine()
+        {
+            ExternalArt.EnsureUrpMaterials();
+            Save(BuildBlocks(), BlocksPath);
+            ShopSceneBuilder.Build();
+        }
+
         static void Save(GameObject root, string path)
         {
             if (root == null) return;
