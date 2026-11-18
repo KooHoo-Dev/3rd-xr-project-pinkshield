@@ -17,6 +17,7 @@ namespace CardShop.Cards.EditorTools
         public const string Score = ConfigsDir + "/ScoreConfig.asset";
         public const string RevealProfile = ConfigsDir + "/RarityRevealProfile.asset";
         public const string MorningLines = ConfigsDir + "/MorningLineSet.asset";
+        public const string EveningLines = ConfigsDir + "/EveningLineSet.asset";
         public const string ShopItems = ConfigsDir + "/ShopItemConfig.asset";
         public const string CustomerLines = ConfigsDir + "/CustomerLineSet.asset";
 

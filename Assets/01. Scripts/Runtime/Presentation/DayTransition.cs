@@ -30,6 +30,9 @@ namespace CardShop.Presentation
         [Tooltip("아침 혼잣말 목록(전날 카드팩 결과별). 비워 두면 기본 문장")]
         [SerializeField] MorningLineSet morningLines;
         Dictionary<MorningMood, List<string>> parsedLines;
+        [Tooltip("퇴근 혼잣말 목록(오늘 일 · 카드팩 결과별). 비워 두면 기본 문장")]
+        [SerializeField] EveningLineSet eveningLines;
+        Dictionary<EveningMood, List<string>> parsedEvening;
         [SerializeField] float fadeSeconds = 1.3f;
         [Tooltip("완전히 어두운 채로 머무는 시간. 순간이동처럼 느껴지지 않게 시간이 흐르는 틈을 줌")]
         [SerializeField] float holdSeconds = 0.8f;
@@ -76,6 +79,10 @@ namespace CardShop.Presentation
             GameContext ctx = GameContext.Instance;
             switch (phase)
             {
+                case GamePhaseId.Home when ctx != null:
+                    // 4차 기기 피드백: 한 문장뿐이던 퇴근 메시지를 오늘 일 · 카드팩 결과에 따라 두 줄로
+                    parsedEvening ??= EveningLines.Parse(eveningLines != null ? eveningLines.lines : null);
+                    return EveningLines.For(ctx.Session.Day, ctx.Session.Ledger, parsedEvening);
                 case GamePhaseId.Home: return "퇴근, 이제 쉴 시간이다.";
                 case GamePhaseId.Business when ctx != null:
                     parsedLines ??= MorningLines.Parse(morningLines != null ? morningLines.lines : null);

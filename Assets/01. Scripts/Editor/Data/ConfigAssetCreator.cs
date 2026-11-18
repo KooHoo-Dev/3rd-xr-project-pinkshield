@@ -21,6 +21,7 @@ namespace CardShop.Cards.EditorTools
             Ensure<ScoreConfig>(DataPaths.Score);
             Ensure<RarityRevealProfile>(DataPaths.RevealProfile);
             Ensure<MorningLineSet>(DataPaths.MorningLines);
+            Ensure<EveningLineSet>(DataPaths.EveningLines);
             Ensure<ShopItemConfig>(DataPaths.ShopItems);
             Ensure<CustomerLineSet>(DataPaths.CustomerLines);
             AssetDatabase.SaveAssets();

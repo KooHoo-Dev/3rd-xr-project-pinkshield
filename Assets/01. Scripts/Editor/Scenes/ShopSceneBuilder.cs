@@ -173,6 +173,22 @@ namespace CardShop.EditorTools
                 changed++;
             }
             if (changed == 0) Debug.LogWarning("[ShopSceneBuilder] ControllerInputActionManager를 못 찾아 부드러운 회전을 켜지 못했습니다.");
+
+            // 4차 기기 피드백: 레이저로 물건을 쥐면 스틱이 '쥔 물건 당기기 · 돌리기'로 넘어가고
+            // ControllerInputActionManager가 회전 · 이동을 통째로 꺼서, 물건을 든 채 방향을 못 바꿨음.
+            // 이 게임은 스틱으로 물건을 조작하지 않으므로 조작 입력을 끕니다 → 쥐고도 회전 · 이동 가능.
+            int attach = 0;
+            foreach (MonoBehaviour mb in rig.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (mb == null || mb.GetType().Name != "InteractionAttachController") continue;
+                var so = new SerializedObject(mb);
+                SerializedProperty manipulate = so.FindProperty("m_UseManipulationInput");
+                if (manipulate == null) continue;
+                manipulate.boolValue = false;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                attach++;
+            }
+            if (attach == 0) Debug.LogWarning("[ShopSceneBuilder] InteractionAttachController를 못 찾아 '쥐고도 회전'을 켜지 못했습니다.");
         }
 
         // ------------------------------------------------------------------ 게임
@@ -434,6 +450,7 @@ namespace CardShop.EditorTools
             so.FindProperty("homeSpawn").objectReferenceValue = spawn;
             so.FindProperty("font").objectReferenceValue = font;
             so.FindProperty("morningLines").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MorningLineSet>(DataPaths.MorningLines);
+            so.FindProperty("eveningLines").objectReferenceValue = AssetDatabase.LoadAssetAtPath<EveningLineSet>(DataPaths.EveningLines);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // 페이즈별 조명 분위기

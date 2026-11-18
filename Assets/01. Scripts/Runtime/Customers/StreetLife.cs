@@ -54,6 +54,9 @@ namespace CardShop.Customers
             public Animator animator;
             public float speed;
             public int direction;
+            public Transform[] wheels;      // 차 바퀴 (PolygonCity 차는 바퀴가 따로 있음, 이름에 _Wheel_)
+            public Vector3[] wheelCenters;  // 바퀴 가운데 (차 기준 로컬)
+            public float wheelRadius;
         }
 
         readonly List<Mover> cars = new List<Mover>();
@@ -103,6 +106,7 @@ namespace CardShop.Customers
                 Mover m = list[i];
                 if (m.t == null) { list.RemoveAt(i); continue; }
                 m.t.position += Vector3.right * (m.direction * m.speed * dt);
+                SpinWheels(m, m.speed * dt);
                 if (m.t.position.x * m.direction > endX)
                 {
                     Destroy(m.t.gameObject);
@@ -132,7 +136,9 @@ namespace CardShop.Customers
             // 모델 원점이 바닥이 아닐 수 있어 바퀴 바닥을 도로 윗면에 맞춤
             Bounds b = Bounds(go);
             go.transform.position += Vector3.up * (roadY - b.min.y);
-            cars.Add(new Mover { t = go.transform, speed = Range(carSpeed), direction = lane.direction });
+            var car = new Mover { t = go.transform, speed = Range(carSpeed), direction = lane.direction };
+            FindWheels(ref car);
+            cars.Add(car);
         }
 
         void SpawnWalker(float? startX)
@@ -169,6 +175,36 @@ namespace CardShop.Customers
             foreach (Mover m in list)
                 if (m.t != null && Mathf.Abs(m.t.position.z - lane.z) < 0.1f && Mathf.Abs(m.t.position.x - x) < gap) return true;
             return false;
+        }
+
+        // 4차 기기 피드백: 바퀴가 안 굴러 차가 미끄러지듯 보였음. 바퀴 오브젝트를 찾아 달린 거리만큼 굴림
+        static void FindWheels(ref Mover car)
+        {
+            var wheels = new List<Transform>();
+            foreach (Transform c in car.t.GetComponentsInChildren<Transform>())
+                if (c.name.Contains("_Wheel_") && !c.name.Contains("Steering")) wheels.Add(c);
+            if (wheels.Count == 0) return;
+            car.wheels = wheels.ToArray();
+            car.wheelCenters = new Vector3[wheels.Count];
+            float radius = 0f;
+            for (int i = 0; i < wheels.Count; i++)
+            {
+                Renderer r = wheels[i].GetComponent<Renderer>();
+                Vector3 center = r != null ? r.bounds.center : wheels[i].position;
+                car.wheelCenters[i] = car.t.InverseTransformPoint(center);
+                if (r != null) radius = Mathf.Max(radius, r.bounds.extents.y);
+            }
+            car.wheelRadius = radius > 0.05f ? radius : 0.35f;
+        }
+
+        // 앞으로 distance(m) 굴러감: 차 오른쪽 축 기준, 바퀴 윗부분이 앞으로 가는 방향
+        static void SpinWheels(Mover car, float distance)
+        {
+            if (car.wheels == null) return;
+            float degrees = distance / car.wheelRadius * Mathf.Rad2Deg;
+            Vector3 axle = car.t.right;
+            for (int i = 0; i < car.wheels.Length; i++)
+                if (car.wheels[i] != null) car.wheels[i].RotateAround(car.t.TransformPoint(car.wheelCenters[i]), axle, degrees);
         }
 
         static void Strip(GameObject go)
