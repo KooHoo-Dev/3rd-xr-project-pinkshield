@@ -87,9 +87,14 @@ namespace CardShop.Customers
                 : null;
             if (prefab == null || itemSpots == null || itemSpots.Length == 0) return null;
 
+            // 자리 Transform의 위치 = 물건 바닥이 닿는 면. 씬에서 자리를 옮기면 물건도 그 자리 · 높이에 놓임.
+            // 물건이 자리보다 많으면 같은 자리 위로 앞 물건 높이만큼 쌓음
             Transform spot = itemSpots[i % itemSpots.Length];
-            Vector3 stack = Vector3.up * (0.03f * (i / itemSpots.Length));
-            ScannableItem item = Instantiate(prefab, spot.position + stack, spot.rotation, transform);
+            float stack = 0f;
+            for (int k = i - itemSpots.Length; k >= 0; k -= itemSpots.Length)
+                if (spawned[k] != null) stack += spawned[k].Height + 0.002f;
+            ScannableItem item = Instantiate(prefab, spot.position, spot.rotation, transform);
+            item.PlaceOn(spot.position + spot.up * stack, spot.rotation);
             if (line.Card != null)
             {
                 var view = item.GetComponentInChildren<CardView>();

@@ -148,6 +148,9 @@ namespace CardShop.Tests
             var so = new SerializedObject(director);
             Assert.Greater(so.FindProperty("browseSpots").arraySize, 0, "구경 자리 없음");
             Assert.Greater(so.FindProperty("queueSlots").arraySize, 0, "계산대 줄 자리 없음");
+            // 줄 동선 통로 · 말풍선 대사 (2026-11-18 기기 테스트 피드백)
+            foreach (string point in new[] { "entryTurn", "aisleLow", "counterExit", "lineSet", "bubbleFont" })
+                Assert.IsNotNull(so.FindProperty(point).objectReferenceValue, $"CustomerDirector.{point} 미연결 (Build Shop Scene 다시 실행)");
 
             var roster = (CardShop.Cards.CustomerRoster)so.FindProperty("roster").objectReferenceValue;
             Assert.Greater(roster.entries.Count, 0, "손님 외형 목록이 비어 있음");
@@ -165,6 +168,19 @@ namespace CardShop.Tests
             Assert.IsNotNull(scanner, "바코드 스캐너 없음");
             var scannerSo = new SerializedObject(scanner);
             Assert.IsNotNull(scannerSo.FindProperty("tip").objectReferenceValue, "스캐너 tip 미연결");
+
+            // 거리 · 집 (기기 테스트 피드백 M1 · M3): 집은 집 페이즈에만, 거리 · 차 · 행인은 그 밖에만
+            var zones = Object.FindAnyObjectByType<CardShop.Presentation.ZoneVisibility>();
+            Assert.IsNotNull(zones, "ZoneVisibility 없음");
+            var zso = new SerializedObject(zones);
+            Assert.Greater(zso.FindProperty("homeOnly").arraySize, 0, "집 실내가 ZoneVisibility에 없음");
+            for (int i = 0; i < zso.FindProperty("outsideOnly").arraySize; i++)
+                Assert.IsNotNull(zso.FindProperty("outsideOnly").GetArrayElementAtIndex(i).objectReferenceValue, $"ZoneVisibility.outsideOnly[{i}] 미연결");
+            var life = Object.FindAnyObjectByType<CardShop.Customers.StreetLife>();
+            Assert.IsNotNull(life, "StreetLife 없음");
+            var lso = new SerializedObject(life);
+            Assert.Greater(lso.FindProperty("carPrefabs").arraySize, 0, "지나가는 차 프리팹 없음");
+            Assert.IsNotNull(lso.FindProperty("roster").objectReferenceValue, "행인 외형(CustomerRoster) 미연결");
 
             var pay = GameObject.Find("Button_Pay");
             Assert.IsNotNull(pay, "결제 버튼 없음");

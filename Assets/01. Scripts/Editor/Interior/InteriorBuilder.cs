@@ -21,6 +21,8 @@ namespace CardShop.EditorTools.Interior
         public const string ShopPath = DecorFactory.PrefabDir + "/ShopInterior.prefab";
         public const string StreetPath = DecorFactory.PrefabDir + "/ShopStreet.prefab";
         public const string HomePath = DecorFactory.PrefabDir + "/HomeInterior.prefab";
+        /// <summary>거리 보강 (2026-11-18 기기 테스트 피드백 M2): 가게 같은 편 건물 줄 · 거리 연장 · 거리 양 끝 막음. ShopStreet와 따로 둬서 손으로 고친 ShopStreet를 덮어쓰지 않음</summary>
+        public const string BlocksPath = DecorFactory.PrefabDir + "/ShopStreetBlocks.prefab";
         const string WindowViewBase = "Assets/05. Shaders/WindowView/WindowView_Street.mat";
 
         static readonly Vector3 Up = new Vector3(0f, 1f, 0f);
@@ -51,7 +53,11 @@ namespace CardShop.EditorTools.Interior
             if (AssetDatabase.LoadAssetAtPath<GameObject>(ShopPath) == null) Save(BuildShop(), ShopPath);
             if (AssetDatabase.LoadAssetAtPath<GameObject>(StreetPath) == null) Save(BuildStreet(), StreetPath);
             if (AssetDatabase.LoadAssetAtPath<GameObject>(HomePath) == null) Save(BuildHome(), HomePath);
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(BlocksPath) == null) Save(BuildBlocks(), BlocksPath);
         }
+
+        [MenuItem("Tools/CardShop/Interior/Rebuild Street Blocks Prefab", priority = 64)]
+        static void RebuildBlocksMenu() { if (Confirm("ShopStreetBlocks")) Save(BuildBlocks(), BlocksPath); }
 
         static void Save(GameObject root, string path)
         {
@@ -313,6 +319,110 @@ namespace CardShop.EditorTools.Interior
             Placer.Place(props, ExternalArt.City("Vehicles/SM_Veh_Car_Taxi_01"), new Vector3(14f, roadY, roadZ1 + 1.2f), Placer.Bottom, -90f, name: "ParkedCar");
             Placer.Place(props, ExternalArt.City("Vehicles/SM_Veh_Car_Small_01"), new Vector3(-19f, roadY, roadZ1 + 1.2f), Placer.Bottom, -90f, name: "ParkedCar");
             return root;
+        }
+
+        // ------------------------------------------------------------------ 거리 보강 (M2)
+
+        /// <summary>거리 끝: 이 x 너머는 건물로 막음. 지나가는 차 · 행인은 이 건물 안에서 나타나고 사라짐(StreetLife.endX)</summary>
+        public const float StreetEndX = 49.5f;
+
+        static readonly string[] BlockShops = { "SM_Bld_Shop_01", "SM_Bld_Shop_02", "SM_Bld_Shop_04", "SM_Bld_Shop_05", "SM_Bld_Shop_06" };
+        static readonly string[] BlockFlats = { "SM_Bld_Apartment_01", "SM_Bld_Apartment_02", "SM_Bld_Apartment_03" };
+
+        /// <summary>
+        /// 거리 보강 (기기테스트_피드백_설계 6장 M2). 예전 거리는 x ±27.5에서 끝나고 가게 같은 편에는 가게 + 오른쪽 이웃뿐이라
+        /// 인도에 서면 "세트장 끝"과 그 너머(예전 집 자리)가 보였습니다.
+        /// - 도로 · 인도 · 맞은편 건물 줄을 x ±47.5까지 연장
+        /// - 가게 같은 편 좌우를 건물로 채움 (가게와 1.5m 골목)
+        /// - 거리 양 끝(x ±49.5)을 도로를 가로지르는 건물로 막음
+        /// </summary>
+        static GameObject BuildBlocks()
+        {
+            if (ExternalArt.CityRoot == null) return null;
+            var root = new GameObject("ShopStreetBlocks");
+            Transform ground = Placer.Group(root.transform, "Ground").transform;
+            Transform near = Placer.Group(root.transform, "NearSide").transform;
+            Transform far = Placer.Group(root.transform, "FarSide").transform;
+            Transform ends = Placer.Group(root.transform, "StreetEnds").transform;
+
+            const float sidewalkZ = L.FrontZ + 2.5f, roadZ0 = L.FrontZ + 7.5f, roadZ1 = L.FrontZ + 12.5f, farWalkZ = L.FrontZ + 17.5f, farFront = L.FrontZ + 20f;
+            const float roadY = -0.15f;
+
+            // 거리 연장: ShopStreet 타일(-25 ~ 25) 바깥 30 ~ 50 (50 칸은 거리 끝 건물 밑으로 들어가 틈이 안 보이게)
+            for (int s = -1; s <= 1; s += 2)
+                for (int k = 6; k <= 10; k++)
+                {
+                    float x = s * k * 5f;
+                    Placer.Place(ground, ExternalArt.City("Environments/SM_Env_Sidewalk_01"), new Vector3(x, 0f, sidewalkZ), Up, 180f, name: "Sidewalk_Near");
+                    Placer.Place(ground, ExternalArt.City("Environments/SM_Env_Road_01"), new Vector3(x, roadY, roadZ0), Up, name: "Road");
+                    Placer.Place(ground, ExternalArt.City("Environments/SM_Env_Road_01"), new Vector3(x, roadY, roadZ1), Up, 180f, name: "Road");
+                    Placer.Place(ground, ExternalArt.City("Environments/SM_Env_Sidewalk_01"), new Vector3(x, 0f, farWalkZ), Up, 0f, name: "Sidewalk_Far");
+                    // 맞은편 건물 줄 연장 (ShopStreet와 같은 방식)
+                    if (k <= 9) Stack(far, new Vector3(x, 0f, farFront), new Vector3(0f, -1f, -1f), 180f, k * 3 + s);
+                }
+
+            // 가게 같은 편 오른쪽: ShopStreet의 이웃 건물(가게 오른쪽 1.5m 골목, 옆으로 돌려 놓음) 바로 오른쪽부터
+            float rightCursor = L.MaxX + 1.5f + NeighborWidth();
+            for (int i = 0; rightCursor < StreetEndX - 2f && i < 20; i++)
+            {
+                Bounds b = Stack(near, new Vector3(rightCursor, 0f, L.FrontZ), new Vector3(-1f, -1f, 1f), 0f, i);
+                if (b.size.x < 1f) break;
+                rightCursor = b.max.x;
+            }
+            // 왼쪽: 가게 왼쪽 벽에서 1.5m 골목을 두고 왼쪽으로
+            float leftCursor = L.MinX - 1.5f;
+            for (int i = 0; leftCursor > -StreetEndX + 2f && i < 20; i++)
+            {
+                Bounds b = Stack(near, new Vector3(leftCursor, 0f, L.FrontZ), new Vector3(1f, -1f, 1f), 0f, i + 7);
+                if (b.size.x < 1f) break;
+                leftCursor = b.min.x;
+            }
+
+            // 거리 양 끝: 앞면이 거리 안쪽을 보는 건물을 z 방향으로 이어 붙여 도로 · 인도를 막음
+            for (int s = -1; s <= 1; s += 2)
+            {
+                float z = L.FrontZ - 2f;
+                for (int i = 0; z < farFront + 4f && i < 10; i++)
+                {
+                    // 왼쪽 끝(s=-1)은 앞면이 +X(yaw 90), 오른쪽 끝은 -X(yaw -90)
+                    Bounds b = Stack(ends, new Vector3(s * StreetEndX, 0f, z), new Vector3(-s, -1f, -1f), -90f * s, i + (s > 0 ? 3 : 0));
+                    if (b.size.z < 1f) break;
+                    z = b.max.z;
+                }
+            }
+            return root;
+        }
+
+        // 1층 가게 + 위층 1~2개 + 지붕. align · yaw는 1층 기준. 1층의 월드 경계를 돌려줌 (다음 건물 자리 계산용)
+        static Bounds Stack(Transform parent, Vector3 target, Vector3 align, float yaw, int seed)
+        {
+            var group = new GameObject("Block").transform;
+            group.SetParent(parent, false);
+            GameObject shop = Placer.Place(group, ExternalArt.City("Buildings/" + BlockShops[Mod(seed, BlockShops.Length)]), target, align, yaw, name: "Shop");
+            if (shop == null) return new Bounds(target, Vector3.zero);
+            Bounds groundFloor = Placer.WorldBounds(shop);
+            float top = groundFloor.max.y;
+            int floors = 1 + Mod(seed * 7, 2);
+            Vector3 floorAlign = new Vector3(align.x, -1f, align.z);
+            for (int f = 0; f < floors; f++)
+            {
+                GameObject flat = Placer.Place(group, ExternalArt.City("Buildings/" + BlockFlats[Mod(seed + f, BlockFlats.Length)]), new Vector3(target.x, top, target.z), floorAlign, yaw, name: "Floor");
+                if (flat != null) top = Placer.WorldBounds(flat).max.y;
+            }
+            Placer.Place(group, ExternalArt.City("Buildings/SM_Bld_Apartment_Roof_01"), new Vector3(target.x, top, target.z), floorAlign, yaw, name: "Roof");
+            return groundFloor;
+        }
+
+        static int Mod(int a, int n) => ((a % n) + n) % n;
+
+        // ShopStreet의 Neighbor_Right(SM_Bld_Apartment_01, yaw -90)가 x 방향으로 차지하는 폭: 임시로 놓아 재고 지움
+        static float NeighborWidth()
+        {
+            var temp = new GameObject("Measure");
+            GameObject n = Placer.Place(temp.transform, ExternalArt.City("Buildings/SM_Bld_Apartment_01"), Vector3.zero, new Vector3(-1f, -1f, 1f), -90f);
+            float w = n != null ? Placer.WorldBounds(n).size.x : 10f;
+            Object.DestroyImmediate(temp);
+            return w;
         }
 
         // ------------------------------------------------------------------ 집 (로컬 좌표, Home 루트 아래에 놓임)

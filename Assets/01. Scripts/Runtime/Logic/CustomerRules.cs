@@ -66,14 +66,16 @@ namespace CardShop.Logic
     /// </summary>
     public static class CustomerSchedule
     {
+        /// <param name="waves">손님 물결 설정 (기기테스트_피드백_설계 P1). null이면 예전처럼 고르게 분산</param>
         /// <returns>영업 시작부터 잰 등장 시각(초), 오름차순</returns>
-        public static float[] Build(CampaignConfig.DayEntry day, float spawnWindowRatio, IRandomSource random)
+        public static float[] Build(CampaignConfig.DayEntry day, float spawnWindowRatio, IRandomSource random, CampaignConfig.WaveSettings waves = null)
         {
             int min = day.customerMin, max = day.customerMax < day.customerMin ? day.customerMin : day.customerMax;
             int count = random.Range(min, max + 1);
             if (count <= 0) return new float[0];
 
             float window = day.businessSeconds * spawnWindowRatio;
+            if (waves != null) return Waves(count, window, waves, random);
             float slot = window / count;
             var times = new float[count];
             for (int i = 0; i < count; i++)
@@ -84,5 +86,42 @@ namespace CardShop.Logic
             }
             return times;
         }
+
+        /// <summary>
+        /// 손님 물결 (P1): 2~3명이 몇 초 간격으로 몰려오고, 그 손님들을 계산할 만큼의 시간 + 한산한 시간이 지난 뒤 다음 물결.
+        /// 한산한 시간에 청소 · 도둑 대처를 할 수 있게 하되, 계산이 느리면 다음 물결과 겹쳐 긴장이 생깁니다(사건 조율은 하지 않음).
+        /// 전체가 등장 구간(window)을 넘으면 비율대로 줄여 구간 안에 넣습니다.
+        /// </summary>
+        public static float[] Waves(int count, float window, CampaignConfig.WaveSettings w, IRandomSource random)
+        {
+            var times = new float[count];
+            int minSize = w.waveSize.x < 1 ? 1 : w.waveSize.x;
+            int maxSize = w.waveSize.y < minSize ? minSize : w.waveSize.y;
+
+            float waveStart = 0f;
+            int i = 0;
+            while (i < count)
+            {
+                int size = random.Range(minSize, maxSize + 1);
+                if (size > count - i) size = count - i;
+                float t = waveStart;
+                for (int k = 0; k < size; k++, i++)
+                {
+                    if (k > 0) t += Between(w.inWaveGapSeconds, random);
+                    times[i] = t;
+                }
+                // 다음 물결: 이번 물결 첫 손님부터 (계산 예상 시간 × 인원) + 한산한 시간
+                waveStart += size * w.secondsPerCustomer + Between(w.lullSeconds, random);
+                if (waveStart < t) waveStart = t;
+            }
+
+            float last = times[count - 1];
+            if (last > window && last > 0f)
+                for (int k = 0; k < count; k++) times[k] *= window / last;
+            return times;
+        }
+
+        static float Between(UnityEngine.Vector2 range, IRandomSource random) =>
+            range.x + (float)random.NextDouble() * (range.y > range.x ? range.y - range.x : 0f);
     }
 }

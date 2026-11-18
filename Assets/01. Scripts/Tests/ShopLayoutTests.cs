@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CardShop.Core;
+using CardShop.Logic;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -43,15 +44,119 @@ namespace CardShop.Tests
             }
         }
 
+        // ------------------------------------------------------------------ 손님 길 (CustomerRoutes)
+
+        /// <summary>하루 손님 최대 6명(CampaignConfig) → 줄은 최대 6칸(0~5번)까지 확인</summary>
+        const int MaxQueue = 6;
+        /// <summary>손님 몸 반지름 정도. 지나가는 길이 줄 선 손님 중심에서 이보다 가까우면 몸이 겹쳐 보임</summary>
+        const float BodyGap = 0.45f;
+
+        static CustomerRoutes Routes => new CustomerRoutes(ShopLayout.OutsidePos, ShopLayout.DoorOutsidePos, ShopLayout.DoorInsidePos,
+            ShopLayout.EntryTurnPos, ShopLayout.AisleLowPos, ShopLayout.CounterExitPos);
+
+        static Vector3 Slot(int index) => CustomerRoutes.SlotPosition(ShopLayout.QueuePositions, Vector3.back, index);
+
+        // 손님이 걸을 수 있는 모든 길 (시작점 포함)
+        static IEnumerable<(string name, Vector3[] path)> AllPaths()
+        {
+            CustomerRoutes r = Routes;
+            foreach (Vector3 browse in ShopLayout.BrowsePositions)
+            {
+                yield return ($"입장 → 구경 {browse}", Prepend(ShopLayout.OutsidePos, r.EnterToBrowse(browse)));
+                for (int k = 0; k < MaxQueue; k++)
+                    yield return ($"구경 {browse} → 줄 {k}번", Prepend(browse, r.BrowseToQueue(browse, Slot(k))));
+            }
+            for (int k = 0; k < MaxQueue; k++)
+            {
+                yield return ($"입장 → 바로 줄 {k}번", Prepend(ShopLayout.OutsidePos, r.EnterToQueue(Slot(k))));
+                if (k > 0) yield return ($"줄 {k}번에서 떠남", Prepend(Slot(k), r.LeaveFromQueue(Slot(k), Slot(0))));
+            }
+            yield return ("결제 후 퇴장", Prepend(Slot(0), r.LeaveFromCounter()));
+        }
+
+        static Vector3[] Prepend(Vector3 first, Vector3[] rest)
+        {
+            var all = new Vector3[rest.Length + 1];
+            all[0] = first;
+            rest.CopyTo(all, 1);
+            return all;
+        }
+
+        static float DistanceToPath(Vector3 point, Vector3[] path, int fromSegment = 0)
+        {
+            float best = float.MaxValue;
+            Vector2 p = XZ(point);
+            for (int i = fromSegment; i + 1 < path.Length; i++)
+            {
+                Vector2 a = XZ(path[i]), b = XZ(path[i + 1]);
+                Vector2 ab = b - a;
+                float t = ab.sqrMagnitude < 1e-6f ? 0f : Mathf.Clamp01(Vector2.Dot(p - a, ab) / ab.sqrMagnitude);
+                best = Mathf.Min(best, Vector2.Distance(p, a + ab * t));
+            }
+            return best;
+        }
+
         [Test]
         public void CustomerPaths_DoNotCrossWalls()
         {
-            Vector3 outside = ShopLayout.OutsidePos, doorOut = ShopLayout.DoorOutsidePos, door = ShopLayout.DoorInsidePos;
-            foreach (Vector3 browse in ShopLayout.BrowsePositions)
+            foreach ((string name, Vector3[] path) in AllPaths()) AssertPathClear(name, path);
+        }
+
+        [Test]
+        public void CustomerPaths_DoNotWalkThroughCounterOrStands()
+        {
+            const float body = 0.2f;
+            var blocks = new[]
             {
-                AssertPathClear("입장", outside, doorOut, door, browse);
-                foreach (Vector3 queue in ShopLayout.QueuePositions)
-                    AssertPathClear("구경 → 줄 → 퇴장", browse, queue, door, doorOut, outside);
+                ("카운터", Footprint(ShopLayout.CounterCenter, ShopLayout.CounterSize + new Vector3(2f * body, 0f, 2f * body))),
+                ("팩 테이블", Footprint(ShopLayout.PackTablePos, ShopLayout.PackTableSize + new Vector3(2f * body, 0f, 2f * body))),
+                ("판매 진열대", Footprint(ShopLayout.StandPos, ShopLayout.StandSize + new Vector3(2f * body, 0f, 2f * body))),
+            };
+            foreach ((string name, Vector3[] path) in AllPaths())
+                for (int i = 0; i + 1 < path.Length; i++)
+                    for (float t = 0f; t <= 1f; t += 0.02f)
+                    {
+                        Vector2 p = Vector2.Lerp(XZ(path[i]), XZ(path[i + 1]), t);
+                        foreach ((string block, Rect rect) in blocks)
+                            Assert.IsFalse(rect.Contains(p), $"{name}: {path[i]} → {path[i + 1]} 구간이 {block}을(를) 지납니다 ({p})");
+                    }
+        }
+
+        [Test]
+        public void QueueSlots_AreSpacedApart()
+        {
+            for (int i = 0; i < MaxQueue; i++)
+                for (int j = i + 1; j < MaxQueue; j++)
+                    Assert.GreaterOrEqual(Vector3.Distance(Slot(i), Slot(j)), 0.6f, $"줄 {i}번 · {j}번 칸이 너무 붙어 손님이 겹칩니다");
+            for (int i = 0; i < MaxQueue; i++)
+                Assert.IsTrue(ShopLayout.InsideShop(Slot(i), 0.3f), $"줄 {i}번 칸 {Slot(i)} 가 벽에 너무 붙음");
+        }
+
+        [Test]
+        public void JoiningCustomer_ApproachesTheLineFromBehind()
+        {
+            // 줄 끝(k번)으로 오는 손님의 길이 이미 줄 선 손님(0 ~ k-1번)을 뚫고 지나가지 않음
+            CustomerRoutes r = Routes;
+            for (int k = 0; k < MaxQueue; k++)
+                for (int ahead = 0; ahead < k; ahead++)
+                {
+                    foreach (Vector3 browse in ShopLayout.BrowsePositions)
+                        Assert.GreaterOrEqual(DistanceToPath(Slot(ahead), Prepend(browse, r.BrowseToQueue(browse, Slot(k)))), BodyGap,
+                            $"구경 → 줄 {k}번 길이 {ahead}번 손님을 지나감");
+                    Assert.GreaterOrEqual(DistanceToPath(Slot(ahead), r.EnterToQueue(Slot(k))), BodyGap, $"입장 → 줄 {k}번 길이 {ahead}번 손님을 지나감");
+                }
+        }
+
+        [Test]
+        public void EnteringAndPaidCustomers_DoNotWalkThroughTheLine()
+        {
+            CustomerRoutes r = Routes;
+            for (int k = 0; k < MaxQueue; k++)
+            {
+                foreach (Vector3 browse in ShopLayout.BrowsePositions)
+                    Assert.GreaterOrEqual(DistanceToPath(Slot(k), r.EnterToBrowse(browse)), BodyGap, $"입장 길이 줄 {k}번 손님을 지나감");
+                if (k > 0)
+                    Assert.GreaterOrEqual(DistanceToPath(Slot(k), Prepend(Slot(0), r.LeaveFromCounter())), BodyGap, $"결제 후 나가는 길이 줄 {k}번 손님을 지나감");
             }
         }
 
@@ -61,6 +166,8 @@ namespace CardShop.Tests
             Assert.IsFalse(ShopLayout.InsideShop(ShopLayout.OutsidePos), "밖 지점이 가게 안에 있음");
             Assert.IsFalse(ShopLayout.InsideShop(ShopLayout.DoorOutsidePos), "문 바깥 지점이 가게 안에 있음");
             Assert.IsTrue(ShopLayout.InsideShop(ShopLayout.DoorInsidePos, 0.2f), "문 안 지점이 가게 밖이거나 벽에 붙음");
+            foreach (Vector3 p in new[] { ShopLayout.EntryTurnPos, ShopLayout.AisleLowPos, ShopLayout.CounterExitPos })
+                Assert.IsTrue(ShopLayout.InsideShop(p, 0.3f), $"통로 지점 {p} 가 벽에 너무 붙음");
             foreach (Vector3 p in ShopLayout.BrowsePositions) Assert.IsTrue(ShopLayout.InsideShop(p, 0.3f), $"구경 자리 {p} 가 벽에 너무 붙음");
             foreach (Vector3 p in ShopLayout.QueuePositions) Assert.IsTrue(ShopLayout.InsideShop(p, 0.3f), $"줄 자리 {p} 가 벽에 너무 붙음");
         }

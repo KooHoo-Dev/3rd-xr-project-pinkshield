@@ -32,16 +32,16 @@ namespace CardShop.EditorTools
         // 포스기: 스캐너 왼쪽. 결제 버튼은 포스기 바로 앞(플레이어 쪽) (계산시스템_확장_설계 6장)
         static readonly Vector3 PosTerminalPos = new Vector3(-0.56f, CounterTop, 0.62f);
         static readonly Vector3 PayButtonPos = new Vector3(-0.38f, CounterTop, 0.47f);
-        // 손님이 물건을 올리는 자리 4칸 (카운터 손님 쪽 가장자리 근처, 플레이어 손이 닿는 거리). 장바구니 최대 4개
-        static readonly Vector3[] ItemSpotPositions =
+        // 손님이 물건을 올리는 자리 4칸. 장바구니 최대 4개. 자리 y = 카운터 윗면(물건 바닥이 여기에 닿게 CheckoutCounter가 맞춤).
+        // 기기 테스트 피드백(카드가 낮아 가려짐): 손님 쪽 끝(z 0.78)에서 플레이어 쪽(z 0.72)으로, 봉투에 가리지 않게 왼쪽으로 당김
+        static readonly Vector3 ItemSpotsCenter = new Vector3(0.02f, CounterTop, 0.72f);
+        static readonly Vector3[] ItemSpotOffsets =
         {
-            new Vector3(-0.13f, CounterTop + 0.002f, 0.78f),
-            new Vector3(0.05f, CounterTop + 0.002f, 0.78f),
-            new Vector3(0.23f, CounterTop + 0.002f, 0.78f),
-            new Vector3(0.41f, CounterTop + 0.002f, 0.78f),
+            new Vector3(-0.27f, 0f, 0f), new Vector3(-0.09f, 0f, 0f), new Vector3(0.09f, 0f, 0f), new Vector3(0.27f, 0f, 0f),
         };
-        // 종이봉투: 카운터 오른쪽 끝, 상자 열기 · 퇴근 버튼(x 0.35 · 0.55)보다 오른쪽 (계산시스템_확장_설계 6장: 한 팔 거리 안)
-        static readonly Vector3 PaperBagPos = new Vector3(0.82f, CounterTop, 0.6f);
+        // 종이봉투: 플레이어 오른손 앞 (기기 테스트 피드백: x 0.82 · z 0.6은 서 있는 자리에서 안이 안 보임 → 가까이).
+        // 물건 자리 오른쪽 (상자 열기 · 퇴근 버튼은 카운터 왼쪽 끝 x -0.98 · -0.8)
+        static readonly Vector3 PaperBagPos = new Vector3(0.52f, CounterTop, 0.5f);
         // 스캐너 제자리: 손잡이를 세워 둠, 머리는 손님 쪽(+Z)
         static readonly Vector3 ScannerHomePos = new Vector3(-0.15f, CounterTop + 0.051f, 0.55f);
 
@@ -52,9 +52,14 @@ namespace CardShop.EditorTools
 
             var root = new GameObject("Customers").transform;
 
-            Transform outside = Point(root, "Outside", OutsidePos, Quaternion.LookRotation(Vector3.back));
-            Transform doorOutside = Point(root, "DoorOutside", DoorOutsidePos, Quaternion.LookRotation(Vector3.back));
-            Transform door = Point(root, "Door", DoorPos, Quaternion.LookRotation(Vector3.back));
+            // 손님 지점은 모두 PlacementKey: 씬에서 옮기면 Build Shop Scene을 다시 실행해도 그 자리가 유지되고, 손님도 그 자리로 걸음
+            Transform outside = Point(root, "Outside", OutsidePos, Quaternion.LookRotation(Vector3.back), "Customers/Outside");
+            Transform doorOutside = Point(root, "DoorOutside", DoorOutsidePos, Quaternion.LookRotation(Vector3.back), "Customers/DoorOutside");
+            Transform door = Point(root, "Door", DoorPos, Quaternion.LookRotation(Vector3.back), "Customers/Door");
+            // 통로 (CustomerRoutes): 줄 · 진열대를 가로지르지 않게
+            Transform entryTurn = Point(root, "EntryTurn", ShopLayout.EntryTurnPos, Quaternion.identity, "Customers/EntryTurn");
+            Transform aisleLow = Point(root, "AisleLow", ShopLayout.AisleLowPos, Quaternion.identity, "Customers/AisleLow");
+            Transform counterExit = Point(root, "CounterExit", ShopLayout.CounterExitPos, Quaternion.identity, "Customers/CounterExit");
 
             // 진열대 모델은 인테리어 프리팹(SalesStand)에 있음
             Label(root, "판매 진열대", StandPos + new Vector3(0f, StandSize.y + 0.15f, -0.15f), font);
@@ -65,12 +70,12 @@ namespace CardShop.EditorTools
             {
                 Vector3 look = standFront - BrowsePos[i];
                 look.y = 0f;
-                browse[i] = Point(root, $"Browse_{i}", BrowsePos[i], Quaternion.LookRotation(look.normalized));
+                browse[i] = Point(root, $"Browse_{i}", BrowsePos[i], Quaternion.LookRotation(look.normalized), $"Customers/Browse_{i}");
             }
 
             var queue = new Transform[QueuePos.Length];
             for (int i = 0; i < QueuePos.Length; i++)
-                queue[i] = Point(root, $"Queue_{i}", QueuePos[i], Quaternion.LookRotation(Vector3.back)); // 플레이어 쪽
+                queue[i] = Point(root, $"Queue_{i}", QueuePos[i], Quaternion.LookRotation(Vector3.back), $"Customers/Queue_{i}"); // 플레이어 쪽
 
             // 바코드 계산: 물건 자리 · 스캐너 (플레이 피드백)
             CustomerItemBuilder.Build(font);
@@ -79,7 +84,8 @@ namespace CardShop.EditorTools
             {
                 var scanner = (GameObject)PrefabUtility.InstantiatePrefab(scannerPrefab);
                 scanner.transform.SetPositionAndRotation(ScannerHomePos, Quaternion.identity);
-                Label(root, "스캐너\n(잡고 트리거)", ScannerHomePos + new Vector3(0f, 0.17f, 0f), font, 0.25f);
+                PlacementKey.Mark(scanner, "Counter/Scanner");
+                Label(root, "스캐너\n(잡고 트리거)", ScannerHomePos + new Vector3(0f, 0.17f, 0f), font, 0.25f, "Counter/ScannerLabel");
             }
 
             CheckoutCounter counter = CreateCheckout(root, flow, font);
@@ -92,6 +98,11 @@ namespace CardShop.EditorTools
             so.FindProperty("outside").objectReferenceValue = outside;
             so.FindProperty("doorOutside").objectReferenceValue = doorOutside;
             so.FindProperty("door").objectReferenceValue = door;
+            so.FindProperty("entryTurn").objectReferenceValue = entryTurn;
+            so.FindProperty("aisleLow").objectReferenceValue = aisleLow;
+            so.FindProperty("counterExit").objectReferenceValue = counterExit;
+            so.FindProperty("lineSet").objectReferenceValue = AssetDatabase.LoadAssetAtPath<CustomerLineSet>(DataPaths.CustomerLines);
+            so.FindProperty("bubbleFont").objectReferenceValue = font;
             SetArray(so.FindProperty("browseSpots"), browse);
             SetArray(so.FindProperty("queueSlots"), queue);
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -103,16 +114,23 @@ namespace CardShop.EditorTools
         {
             var go = new GameObject("Checkout");
             go.transform.SetParent(root);
-            var spots = new Transform[ItemSpotPositions.Length];
+            PlacementKey.Mark(go, "Counter/Checkout"); // 계산대 묶음 전체를 옮기면 물건 자리 · 포스기 · 봉투 · 결제 버튼이 함께 따라감
+
+            // 물건 자리 묶음: 묶음을 옮기면 4칸이 함께, 칸 하나만 옮기면 그 칸만
+            Transform spotGroup = Point(go.transform, "ItemSpots", ItemSpotsCenter, Quaternion.identity, "Counter/ItemSpots");
+            var spots = new Transform[ItemSpotOffsets.Length];
             for (int i = 0; i < spots.Length; i++)
-                spots[i] = Point(go.transform, $"ItemSpot_{i}", ItemSpotPositions[i], Quaternion.identity);
+                spots[i] = Point(spotGroup, $"ItemSpot_{i}", ItemSpotsCenter + ItemSpotOffsets[i], Quaternion.identity, $"Counter/ItemSpot_{i}");
 
             // 카드팩 품목에 계산대용 팩 프리팹을 채움 (SO는 손으로 고친 값을 지키고 빈 칸만 채움)
             var shopItems = AssetDatabase.LoadAssetAtPath<ShopItemConfig>(DataPaths.ShopItems);
             FillShopItems(shopItems);
 
+            // 봉투는 자기 Transform 기준으로 담기 판정 · 쌓기를 하므로(PaperBag) 씬에서 옮기면 담기는 자리도 함께 따라감
             PosTerminal pos = CreatePosTerminal(go.transform, font);
+            PlacementKey.Mark(pos.gameObject, "Counter/PosTerminal");
             PaperBag bag = CreatePaperBag(go.transform, font);
+            PlacementKey.Mark(bag.gameObject, "Counter/PaperBag");
 
             var counter = go.AddComponent<CheckoutCounter>();
             var so = new SerializedObject(counter);
@@ -126,6 +144,7 @@ namespace CardShop.EditorTools
 
             PokeButton pay = ShopSceneBuilder.CreatePokeButton("Button_Pay", PayButtonPos, "결제", new Color(0.4f, 0.9f, 0.45f));
             pay.transform.SetParent(go.transform, true);
+            PlacementKey.Mark(pay.gameObject, "Counter/Button_Pay");
             UnityEventTools.AddPersistentListener(pay.pressed, counter.TryPay);
             return counter;
         }
@@ -182,8 +201,8 @@ namespace CardShop.EditorTools
             var kraft = new Material(Shader.Find("Universal Render Pipeline/Lit")) { color = new Color(0.72f, 0.56f, 0.38f) };
             kraft.SetFloat("_Smoothness", 0.1f);
             PosBox(root.transform, "Bottom", new Vector3(0f, -wall / 2f, 0f), new Vector3(inner.x + 2f * wall, wall, inner.z + 2f * wall), Quaternion.identity, kraft, false);
-            // 플레이어 쪽(-Z) 벽은 낮게: 안이 들여다보이고 넣기 쉬움
-            float front = inner.y * 0.6f;
+            // 플레이어 쪽(-Z) 벽은 낮게: 안이 들여다보이고 넣기 쉬움 (기기 테스트 피드백으로 0.6 → 0.4)
+            float front = inner.y * 0.4f;
             PosBox(root.transform, "WallFront", new Vector3(0f, front / 2f, -(inner.z + wall) / 2f), new Vector3(inner.x + 2f * wall, front, wall), Quaternion.identity, kraft, false);
             PosBox(root.transform, "WallBack", new Vector3(0f, inner.y / 2f, (inner.z + wall) / 2f), new Vector3(inner.x + 2f * wall, inner.y, wall), Quaternion.identity, kraft, false);
             PosBox(root.transform, "WallLeft", new Vector3(-(inner.x + wall) / 2f, inner.y / 2f, 0f), new Vector3(wall, inner.y, inner.z), Quaternion.identity, kraft, false);
@@ -243,17 +262,20 @@ namespace CardShop.EditorTools
             if (!keepCollider) Object.DestroyImmediate(go.GetComponent<Collider>());
         }
 
-        static Transform Point(Transform parent, string name, Vector3 pos, Quaternion rot)
+        /// <param name="placementKey">주면 PlacementKey를 붙여, 씬에서 옮긴 자리를 Build Shop Scene 재실행 뒤에도 지킴</param>
+        static Transform Point(Transform parent, string name, Vector3 pos, Quaternion rot, string placementKey = null)
         {
             var t = new GameObject(name).transform;
             t.SetParent(parent);
             t.SetPositionAndRotation(pos, rot);
+            if (placementKey != null) PlacementKey.Mark(t.gameObject, placementKey);
             return t;
         }
 
-        internal static void Label(Transform parent, string text, Vector3 pos, TMP_FontAsset font, float size = 0.5f)
+        internal static void Label(Transform parent, string text, Vector3 pos, TMP_FontAsset font, float size = 0.5f, string placementKey = null)
         {
             var go = new GameObject("Label", typeof(RectTransform));
+            if (placementKey != null) PlacementKey.Mark(go, placementKey);
             go.transform.SetParent(parent);
             go.transform.position = pos;
             go.transform.rotation = Quaternion.identity; // 글자 앞면이 -Z(플레이어 쪽)
