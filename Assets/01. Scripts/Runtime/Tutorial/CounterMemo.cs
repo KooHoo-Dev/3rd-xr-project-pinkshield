@@ -11,10 +11,10 @@ namespace CardShop.Tutorial
     /// </summary>
     public sealed class CounterMemo : MonoBehaviour
     {
-        static readonly Vector2 PaperSize = new Vector2(0.16f, 0.11f);
+        static readonly Vector2 PaperSize = new Vector2(0.2f, 0.13f);
         static readonly Color PaperColor = new Color(1f, 0.96f, 0.72f);
         static readonly Color InkColor = new Color(0.2f, 0.17f, 0.25f);
-        const float FontSize = 0.11f;   // TMP 3D 단위 (WorldToast 0.25의 절반 정도, 가까이서 읽는 쪽지)
+        const float FontSize = 0.1f;    // TMP 3D 단위 (WorldToast 0.25의 절반 정도, 가까이서 읽는 쪽지)
         const float Margin = 0.012f;    // 종이 가장자리 여백 (m)
         const float TextLift = 0.001f;  // 글자를 종이보다 읽는 쪽(-Z)으로 띄움 (겹침 깜빡임 방지)
 

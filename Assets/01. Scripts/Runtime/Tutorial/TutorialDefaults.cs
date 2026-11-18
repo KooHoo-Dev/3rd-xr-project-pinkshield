@@ -138,7 +138,7 @@ namespace CardShop.Tutorial
         /// <summary>일차별 카운터 메모 (0번 = 1일차). 빈 칸은 메모 없음 (튜토리얼_설계 5-7).</summary>
         public static List<string> Memos() => new List<string>
         {
-            "알바 수칙\n청소 한 곳 +5, 못 하면 -3\n7일 평가 B 이상 = 정직원!",
+            "첫날 환영해!\n알바 수칙은 뒤쪽 벽에\n붙여 놨어. — 사장",
             "손님들이 팩 꽂이를 흐트러뜨려.\n떨어진 팩은 빈 칸에 꽂아 줘.\n— 사장",
             "요즘 복면 쓴 녀석이\n무료 팩을 노린대.\n빗자루는 카운터 옆! — 사장",
             "",

@@ -77,6 +77,14 @@ namespace CardShop.Tutorial
         /// <summary>헤드셋을 다시 썼을 때 등: 대상 없는 말풍선을 다시 눈앞으로</summary>
         public void Reposition() => bubble?.Reposition();
 
+        /// <summary>지금 단계의 대상 Transform들을 into에 담습니다 (먼저 비움). 잠그기에서 남길 물건.</summary>
+        public void CollectTargets(List<Transform> into)
+        {
+            into.Clear();
+            foreach (HighlightTarget t in targets)
+                if (t != null) into.Add(t.transform);
+        }
+
         /// <summary>held가 지금 단계의 대상(또는 그 일부)인가</summary>
         public bool IsTarget(Transform held)
         {

@@ -23,6 +23,8 @@ namespace CardShop.Tutorial
         [SerializeField] float idleHintSeconds = 4f;
         [Tooltip("[안내 다시 보기]로 띄운 말풍선이 보이는 시간 (초)")]
         [SerializeField] float replaySeconds = 5f;
+        [Tooltip("엉뚱한 물건을 잡았을 때: 알려 주기(기본) / 잠그기")]
+        [SerializeField] OutsideGrabMode outsideGrab = OutsideGrabMode.Notify;
         [Tooltip("카운터 메모 자리 (월드)")]
         [SerializeField] Vector3 memoPosition = new Vector3(0.45f, ShopLayout.CounterTop + 0.002f, 0.55f);
 
@@ -39,15 +41,18 @@ namespace CardShop.Tutorial
         BinderView binder;
         CheckoutCounter counter;
         readonly TutorialGrabWatcher grabs = new TutorialGrabWatcher();
-        readonly List<Transform> held = new List<Transform>();
+        readonly List<TutorialSignal> grabSignals = new List<TutorialSignal>();
+        System.Func<Transform, bool> isTarget;
         readonly Dictionary<string, string> values = new Dictionary<string, string>();
 
         bool sessionOn = true;      // 이번 판에 튜토리얼을 쓰는가 (새 게임 때 TutorialSwitch 값)
         bool enteredPending;        // 페이즈가 바뀌었고, 화면 전환이 끝나면 PhaseEntered를 보냄
         bool bonusFreePack;         // 선물 팩을 못 받음 → 1일차 퇴근 후 무료 팩 +1 (9장 Q5)
         bool hintShown, wrongSaid, visible;
-        bool heldGift, heldBroom, heldScanner;
         float replayUntil = -1f;
+        TutorialLightDim dim;
+        InteractionLock locker;
+        readonly List<Transform> keep = new List<Transform>();
         readonly TutorialHomeWatch home = new TutorialHomeWatch();
 
         public bool IntroDone => !sessionOn || progress == null || progress.Skipped || !progress.HasPendingIn(GamePhaseId.Intro, Day);
@@ -80,8 +85,11 @@ namespace CardShop.Tutorial
             var font = revealer != null ? revealer.Font : null;
 
             view = gameObject.AddComponent<TutorialView>();
+            isTarget = view.IsTarget;
             view.Configure(font);
             idle = gameObject.AddComponent<IdleHint>();
+            dim = gameObject.AddComponent<TutorialLightDim>();
+            locker = gameObject.AddComponent<InteractionLock>();
             memo = CounterMemo.Create(transform, font);
             memo.Place(new Pose(memoPosition, Quaternion.LookRotation(Vector3.down, Vector3.forward)));
             memo.Hide();
@@ -189,6 +197,7 @@ namespace CardShop.Tutorial
             }
 
             flow.IsHeld = Running && progress.NeedsHold; // 정지 단계 동안만 게임 시간이 멈춤 (8-3)
+            dim.Dimmed = flow.IsHeld; // 정지 중에만 조명을 살짝 낮춤
             SetVisible(!waiting && (progress.Active != null || Time.unscaledTime < replayUntil));
             if (waiting || !Running) return;
 
@@ -211,33 +220,15 @@ namespace CardShop.Tutorial
         void WatchGrabs()
         {
             TutorialStep s = progress.Active;
-            grabs.Collect(held);
-            bool gotGift = false, broom = false, scanner = false, wrong = false;
-            foreach (Transform t in held)
-            {
-                var pack = t.GetComponentInParent<PackView>();
-                if (pack != null && pack.IsGift) gotGift = true;
-                if (t.GetComponentInParent<Broom>() != null) broom = true;
-                if (t.GetComponentInParent<BarcodeScanner>() != null) scanner = true;
-                if (s != null && s.kind != TutorialStepKind.Say && !view.IsTarget(t) && !IsHelper(t)) wrong = true;
-            }
-            if (gotGift && !heldGift) progress.Notify(TutorialSignal.GiftPackGrabbed);
-            if (broom && !heldBroom) progress.Notify(TutorialSignal.BroomGrabbed);
-            if (scanner && !heldScanner) progress.Notify(TutorialSignal.ScannerGrabbed);
-            heldGift = gotGift; heldBroom = broom; heldScanner = scanner;
-
+            bool checkWrong = s != null && s.kind != TutorialStepKind.Say;
+            bool wrong = grabs.Scan(grabSignals, checkWrong ? isTarget : null);
+            foreach (TutorialSignal g in grabSignals) progress.Notify(g);
             // 막지 않고 알려 주기 (확정 결정): 한 단계에 한 번만 말하고 대상을 깜빡임
-            if (wrong && !wrongSaid && s != null)
-            {
-                wrongSaid = true;
-                view.ChangeText(Format(s.line) + "\n<size=80%><color=#FFD27F>그건 나중에! 지금은 이것부터.</color></size>");
-                view.Flash();
-            }
+            if (!wrong || wrongSaid || s == null) return;
+            wrongSaid = true;
+            view.ChangeText(Format(s.line) + "\n<size=80%><color=#FFD27F>그건 나중에! 지금은 이것부터.</color></size>");
+            view.Flash();
         }
-
-        // 계산 정지 중에는 스캐너 · 계산대 물건 · 봉투를 함께 쓰므로 엉뚱한 물건으로 치지 않음
-        static bool IsHelper(Transform t) =>
-            t.GetComponentInParent<CheckoutCounter>() != null || t.GetComponentInParent<BarcodeScanner>() != null;
 
         void WatchHome()
         {
@@ -267,9 +258,15 @@ namespace CardShop.Tutorial
             if (visible) ShowStep(s);
         }
 
-        void OnEndedOrCanceled(TutorialStep s) { if (progress.Active == null && Time.unscaledTime >= replayUntil) view.Hide(); }
+        void OnEndedOrCanceled(TutorialStep s) { locker.Unlock(); if (progress.Active == null && Time.unscaledTime >= replayUntil) view.Hide(); }
 
-        void ShowStep(TutorialStep s) => view.Show(s, Format(s.line));
+        void ShowStep(TutorialStep s)
+        {
+            view.Show(s, Format(s.line));
+            if (outsideGrab != OutsideGrabMode.Lock || s != progress.Active || s.kind == TutorialStepKind.Say) return;
+            view.CollectTargets(keep);
+            locker.Lock(keep); // 단계가 끝나거나 건너뛰면 Unlock
+        }
 
         string Format(string line) => TutorialLineFormatter.Format(line, values);
 
@@ -280,6 +277,7 @@ namespace CardShop.Tutorial
         {
             progress.SkipAll();
             flow.IsHeld = false;
+            locker.Unlock();
             replayUntil = -1f;
             view.Hide();
             memo.Hide();

@@ -27,6 +27,24 @@ namespace CardShop.Presentation
         [SerializeField] Color homeAmbient = new Color(0.42f, 0.36f, 0.32f);
 
         GameContext subscribed;
+        GamePhaseId current = GamePhaseId.Title;
+        float multiplier = 1f;
+
+        /// <summary>
+        /// 밝기 배수 (1 = 그대로). 튜토리얼 정지 중 가게를 살짝 어둡게 해 대상 하이라이트를 돋보이게 합니다 (튜토리얼_설계 5-3).
+        /// 페이즈 조명에 곱하므로 페이즈가 바뀌어도 배수는 유지됩니다.
+        /// </summary>
+        public float Multiplier
+        {
+            get => multiplier;
+            set
+            {
+                value = Mathf.Clamp(value, 0f, 2f);
+                if (Mathf.Approximately(value, multiplier)) return;
+                multiplier = value;
+                Apply(current);
+            }
+        }
 
         void OnEnable()
         {
@@ -45,6 +63,7 @@ namespace CardShop.Presentation
 
         void Apply(GamePhaseId phase)
         {
+            current = phase;
             Color color = dayColor;
             float intensity = dayIntensity;
             Color ambient = dayAmbient;
@@ -57,11 +76,11 @@ namespace CardShop.Presentation
                 case GamePhaseId.Home:
                     color = homeColor; intensity = homeIntensity; ambient = homeAmbient; break;
             }
-            if (sun != null) { sun.color = color; sun.intensity = intensity; }
+            if (sun != null) { sun.color = color; sun.intensity = intensity * multiplier; }
             if (driveAmbient)
             {
                 RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-                RenderSettings.ambientLight = ambient;
+                RenderSettings.ambientLight = ambient * multiplier;
             }
             if (homeLight != null) homeLight.SetActive(phase == GamePhaseId.Home);
         }
