@@ -16,7 +16,7 @@ namespace CardShop.Cleanup
         [SerializeField] GameObject visual;
         [Tooltip("색이 바뀌는 부분 (고리 · 표식 · 빈 칸 윤곽)")]
         [SerializeField] Renderer[] tinted;
-        [Tooltip("위아래로 흔들리는 표식 (없어도 됨)")]
+        [Tooltip("위아래로 흔들리는 표식. 비워 두면 흔들지 않음 (꽂이 빈 칸 윤곽)")]
         [SerializeField] Transform bobber;
         [SerializeField] Color idleColor = new Color(1f, 0.78f, 0.2f);
         [SerializeField] Color readyColor = new Color(0.3f, 1f, 0.45f);

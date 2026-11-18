@@ -19,9 +19,9 @@ namespace CardShop.Cleanup
         [SerializeField] RackPack[] packs;
         [Tooltip("빈 칸에서 이 거리 안에 놓으면 꽂힘 (m)")]
         [SerializeField] float snapDistance = 0.18f;
-        [Tooltip("칸마다 빈 칸 윤곽 (slots와 같은 순서, 없어도 됨)")]
+        [Tooltip("칸마다 빈 칸 윤곽 (slots와 같은 순서). 비워 두면 윤곽 없음")]
         [SerializeField] DropHint[] slotHints;
-        [Tooltip("팩을 들고 있을 때 꽂이 위에 뜨는 안내 (없어도 됨)")]
+        [Tooltip("팩을 들고 있을 때 꽂이 위에 뜨는 안내. 비워 두면 안내 없음")]
         [SerializeField] DropHint rackHint;
         [Tooltip("바닥에 떨어진 팩 높이 (눕혔을 때 두께의 절반, m)")]
         [SerializeField] float floorHeight = 0.006f;
