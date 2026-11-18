@@ -208,6 +208,25 @@ namespace CardShop.Tests
             }
         }
 
+        // 카드 도둑 길(ThiefRules)도 창가 구매 대기 줄과 계산대 줄을 스치지 않음
+        [Test]
+        public void ThiefPaths_StayClearOfWaitLineAndQueue()
+        {
+            CustomerRoutes r = Routes;
+            Vector3 steal = ShopLayout.AisleLowPos + new Vector3(-0.3f, 0f, 0f);
+            Vector3[] approach = ThiefRules.ApproachPath(r, steal);
+            Vector3 escape = ThiefRules.EscapePoint(r.DoorOutside, 6.4f, 22f, true);
+            Vector3[] flee = ThiefRules.FleePath(r, escape);
+            for (int w = 0; w < MaxWait; w++)
+            {
+                Assert.GreaterOrEqual(DistanceToPath(Wait(w), approach), BodyGap, $"도둑 입장 길이 대기 {w}번 손님을 지나감");
+                Assert.GreaterOrEqual(DistanceToPath(Wait(w), flee, 0), BodyGap, $"도둑 도망 길이 대기 {w}번 손님을 지나감");
+            }
+            for (int k = 0; k < 3; k++) // 곧은 줄 3칸 (꺾인 칸은 문 쪽이라 도둑이 지나감 — 비켜 걷기로 피함)
+                Assert.GreaterOrEqual(DistanceToPath(Slot(k), approach), BodyGap, $"도둑 입장 길이 줄 {k}번 손님을 지나감");
+            AssertPathClear("도둑 입장", approach);
+        }
+
         [Test]
         public void BrowsePaths_DoNotWalkThroughTheOtherBuyer()
         {

@@ -49,16 +49,19 @@ namespace CardShop.Logic
         public static Vector3 EscapePoint(Vector3 doorOutside, float sidewalkZ, float distance, bool left) =>
             new Vector3(doorOutside.x + (left ? -distance : distance), 0f, sidewalkZ);
 
-        /// <summary>밖 → 훔칠 자리. 손님 입장 통로(문 → 꺾는 곳 → 통로 아래 끝)를 그대로 따름.</summary>
+        // 문 안에서 계산대 줄 뒤 길로 들어서는 곳 (카운터 오른쪽 출구 x). 창가 구매 대기 줄을 스치지 않게 (11-19 손님 동선)
+        static Vector3 LaneEntry(CustomerRoutes routes) => new Vector3(routes.CounterExit.x, 0f, routes.EntryTurn.z);
+
+        /// <summary>밖 → 훔칠 자리. 문 → 계산대 줄 뒤 길 → 꺾는 곳 → 통로 아래 끝.</summary>
         public static Vector3[] ApproachPath(CustomerRoutes routes, Vector3 stealSpot) => new[]
         {
-            routes.DoorOutside, routes.Door, routes.EntryTurn, routes.AisleLow, stealSpot,
+            routes.DoorOutside, routes.Door, LaneEntry(routes), routes.EntryTurn, routes.AisleLow, stealSpot,
         };
 
         /// <summary>훔칠 자리 → 인도 끝. 입장 통로를 거꾸로 달려 문을 나간 뒤 인도 가운데로 나와 옆으로.</summary>
         public static Vector3[] FleePath(CustomerRoutes routes, Vector3 escape) => new[]
         {
-            routes.AisleLow, routes.EntryTurn, routes.Door, routes.DoorOutside,
+            routes.AisleLow, routes.EntryTurn, LaneEntry(routes), routes.Door, routes.DoorOutside,
             new Vector3(routes.DoorOutside.x, 0f, escape.z), escape,
         };
 
@@ -71,7 +74,7 @@ namespace CardShop.Logic
             Vector3 street = new Vector3(routes.DoorOutside.x, 0f, farEscape.z);
             if (!insideShop) return new[] { new Vector3(from.x, 0f, farEscape.z), farEscape };
             if (from.z < routes.EntryTurn.z - 0.3f && from.x < routes.EntryTurn.x + 0.3f)
-                return new[] { new Vector3(routes.AisleLow.x, 0f, from.z), routes.EntryTurn, routes.Door, routes.DoorOutside, street, farEscape };
+                return new[] { new Vector3(routes.AisleLow.x, 0f, from.z), routes.EntryTurn, LaneEntry(routes), routes.Door, routes.DoorOutside, street, farEscape };
             return new[] { routes.Door, routes.DoorOutside, street, farEscape };
         }
     }
