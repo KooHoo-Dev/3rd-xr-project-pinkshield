@@ -18,6 +18,15 @@
 - **합친 것**: 대사 읽기 3곳 → `Core/LineParser`, "마지막 날" 판단 → `CampaignConfig.IsLastDay`, 바인더 카드 날리기 → `CardRevealView.FlyTo` 재사용
 - 남겨 둔 것: `ActivatePackOpen`(설계서 7-2 예비 개봉 방식, 지울지는 사용자 결정), 눈높이 다시 맞추기 3곳(뒤처리가 서로 달라 합치지 않음)
 
+### 0-2) 사용자 이동 중 혼자 한 일 (11-18 밤, Claude)
+- **분리 회귀 검토**: 오늘 나눈 `CardRevealer`를 분리 전(`7556d58`)과 길마다 비교 → 의도하지 않은 동작 변화 없음. 잠재 문제 1건 수정(`CounterPile.TakeAll`이 날아가는 상자 카드 장부까지 지우던 것, 지금은 닿지 않는 경로), 인스펙터 실시간 조정이 부품에 반영되는지 테스트로 고정(`SettingsLiveTuningTests`)
+- **일차 진행 테스트 4개** (`DayProgressTests`): 마지막 날 판단 · 하루 넘기기 · 마지막 날에만 진열 카드 반환
+- 손님 이동 계산 매 프레임 할당 제거(`CustomerSteering`), 컴파일 경고 0개 확인. EditMode **204/204**
+- **결정 필요 (사용자)**:
+  - [큰 클래스 나누기 제안](../Assets/98.%20Doc/큰_클래스_나누기_제안.md): ThiefDirector → CustomerDirector → BinderView 순서 제안 (300줄 규칙이라 코드는 안 건드림)
+  - 설정 묶음에서 같은 값이 두 곳이 됨: 결과함 높이 · 글자 크기(`resultPanelHeight/FontSize` ↔ `pileInfoSettings.Height/FontSize`), 카운터 카드 크기(`pileSettings.CounterScale` ↔ `boardSettings.CardScale`). 지금 값은 같음. 한 값으로 묶을지, 따로 조정할 수 있게 둘지
+  - 보관함 연출 교체 지점(`CardRevealer.Stash` 공개 속성)을 쓰는 곳이 없어 지움 → 바인더 연출을 따로 넣을 계획이 있으면 `CounterPileView`에 다시 열면 됨
+
 ### 1) 마지막 빌드 테스트 피드백 반영 (사용자가 외출 후 전달 예정)
 
 ### 2) Play / 실기기에서 볼 것
