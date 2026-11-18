@@ -13,17 +13,16 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 namespace CardShop.Presentation
 {
     /// <summary>
-    /// 카드 공개 연출. 단일 팩과 상자(10팩)가 같은 진행기 <see cref="PackSequence"/> 하나를 씁니다 (시연 피드백 A4 · B1 · B2 · B3).
-    /// 파이프라인: [개봉 연출] → [공개 대기열] → [결과].
-    /// - 개봉 연출: 단일 팩은 뜯김(PackTearEffect) 후 카드 묶음이 솟아오름. 상자는 눈앞 한 줄에서 10팩이 차례로 뜯김(BoxOpenEffect).
-    /// - 공개 대기열(RevealQueue): 오른손 트리거 1번 = 1장. 갓팩도 같은 한 장씩. 묶음은 뒷면이 보이다가 맨 앞에서 뒤집혀 공개 (등급 색 미리 노출 X).
-    ///   트리거를 1.5초(fastForwardHoldSeconds) 꾹 누르면 전 등급 건너뛰기 (DEC-004): 남은 카드는 모두 더미로.
-    ///   단 갓팩은 건너뛸 수 없음 (DEC-008): 갓팩 카드는 특수 효과와 함께 한 장씩 열고, 건너뛰면 마지막에 열어 봄.
-    /// - 결과: 단일 팩은 카운터 더미 위 결과함(PackResultPanel). 개봉한 카드는 퇴근 전까지 카운터에 계속 쌓아 두고(잡아서 볼 수 있음),
-    ///   퇴근하면 한꺼번에 보관함(ICardStash)으로 갑니다. 오래된 카드는 옆면 덩어리로 줄여 Quest 성능을 지킵니다 (pileVisibleCards).
-    ///   상자는 결과판(팩마다 5점 줄) + 하이라이트 카드 5장 (다음 상자 · 퇴근 · 영업 시작 때 정리).
-    /// 카드 오브젝트는 풀에서 재사용하고, 묶음은 맨 앞 몇 장(stackDepth)만 실체화합니다(Quest 성능). 풀은 퇴근 후 페이즈에 미리 데웁니다.
-    /// 카드 데이터는 개봉 시점에 이미 보유 목록에 들어가 있어, 여기의 연출은 보여 주기만 합니다(건너뛰거나 끊겨도 데이터는 같음).
+    /// 카드 공개 연출의 진행 순서. 단일 팩과 상자(10팩)가 같은 진행기 <see cref="PackSequence"/> 하나를 씁니다 (시연 피드백 A4 · B1 · B2 · B3).
+    /// 파이프라인: ① 개봉 연출 → ② 공개 대기열 → ③ 결과.
+    /// - ① 단일 팩은 뜯김(PackTearEffect) 후 카드 묶음이 솟아오름. 상자는 눈앞 한 줄에서 10팩이 차례로 뜯김(BoxOpenEffect).
+    /// - ② 오른손 트리거 1번 = 1장, 꾹 누르면 전 등급 건너뛰기 (DEC-004). 갓팩은 건너뛸 수 없음 (DEC-008).
+    /// - ③ 단일 팩은 카운터 더미 위 결과함. 개봉한 카드는 퇴근 전까지 카운터에 쌓아 두고, 퇴근하면 보관함으로. 상자는 결과판 + 하이라이트.
+    /// 이 클래스는 순서 · 페이즈 반응 · 정리만 맡고, 일은 부품이 합니다 (AI-005: 거대 클래스 방지).
+    ///   <see cref="RevealStack"/> 눈앞 묶음 · <see cref="RevealInput"/> 넘기기 입력 · <see cref="RevealFx"/> 등급 연출 ·
+    ///   <see cref="CounterPileView"/> 카운터 더미 · <see cref="BoxResultBoard"/> 상자 결과판 · <see cref="PileInfoPopup"/> 더미 정보 판 ·
+    ///   <see cref="CardRevealPool"/> 카드 재사용. 부품은 이 클래스를 모르고, 숫자는 부품마다 인스펙터 묶음(Settings)으로 둡니다.
+    /// 카드 데이터는 개봉 시점에 이미 보유 목록에 들어가 있어, 연출은 보여 주기만 합니다(건너뛰거나 끊겨도 데이터는 같음).
     /// </summary>
     public sealed class CardRevealer : MonoBehaviour
     {
@@ -32,51 +31,8 @@ namespace CardShop.Presentation
         [SerializeField] CardView cardPrefab;
         [Tooltip("카드가 놓일 기준점. 카드 앞면(-Z)이 플레이어를 향하도록 회전")]
         [SerializeField] Transform anchor;
-        [SerializeField] float spacing = 0.095f;
-        [Tooltip("카운터에 놓인 카드 크기 배율 (시연 피드백 A1: 카드가 작아 보임)")]
-        [SerializeField] float counterScale = 1.3f;
-        [SerializeField] int boxHighlightCount = 5;
-        [Tooltip("상자 결과판에 팩 한 줄이 추가되는 간격(초)")]
-        [SerializeField] float boxRowInterval = 0.25f;
-
-        [Header("한 장씩 넘기기")]
-        [Tooltip("묶음에서 카드 사이 간격 (m)")]
-        [SerializeField] float stackSpacing = 0.003f;
-        [Tooltip("눈앞 카드 묶음 크기 배율 (팩 크기 배율과 같게)")]
-        [SerializeField] float stackScale = 1.5f;
-        [Tooltip("단일 팩: 카드 묶음 크기 = 눈앞 팩 크기 × 이 값. 카드(63×88mm)가 팩 몸통(75×102mm) 안에 맞게 — 팩과 카드 크기 이질감 제거")]
-        [SerializeField] float packFitRatio = 1.1f;
-        [Tooltip("단일 팩: 팩 크기로 시작한 카드 묶음이 위로 솟으며 이 배율만큼 커짐 (VR 실기기 피드백: 개봉 카드가 다시 작아 보임 → 1.5배)")]
-        [SerializeField] float singlePackRevealGrow = 1.5f;
-        [Tooltip("넘긴 카드가 더미까지 날아가는 시간 (초)")]
-        [SerializeField] float flySeconds = 0.35f;
-        [Tooltip("등급별 멈춤·진동·소리. 비워 두면 설계 기본값")]
-        [SerializeField] RarityRevealProfile revealProfile;
-        [Tooltip("묶음에서 실제로 만들어 두는 카드 수 (맨 앞부터). 나머지는 넘길 때마다 풀에서 꺼냄 (Quest 성능)")]
-        [SerializeField, Min(1)] int stackDepth = 3;
-        [Tooltip("앞 카드가 빠진 뒤 뒤 카드들이 앞으로 당겨지는 시간 (초)")]
-        [SerializeField] float restackSeconds = 0.12f;
-        [Header("등급 연출 (DEC-004: 수퍼레어~유니크 통일, 레전더리만 더 크게 — 카메라 셰이크 대신 카드 흔들림 + 진동)")]
-        [Tooltip("레전더리 카드가 부르르 떨리는 크기 (m)와 시간 (초)")]
-        [SerializeField] float legendaryShakeAmount = 0.004f;
-        [SerializeField] float legendaryShakeSeconds = 0.9f;
-        [Tooltip("레전더리 확정 팩의 레전더리 카드는 평소보다 이만큼 더 멈춤 (초) + 진동 1번 더")]
-        [SerializeField] float legendaryPackExtraPause = 0.6f;
-
-        [Header("빠르게 넘기기 (1.5초 꾹)")]
-        [Tooltip("오른손 트리거를 이 시간 이상 누르고 있으면 건너뛰기 (초). 실기기에서 조정")]
-        [SerializeField] float fastForwardHoldSeconds = 1.5f;
-        [Tooltip("이보다 짧은 눌림(넘기기 탭)에는 게이지를 보이지 않음 (초)")]
-        [SerializeField] float holdGaugeGrace = 0.25f;
-        [Tooltip("꾹 누르는 동안 진동 세기: 처음 → 끝")]
-        [SerializeField, Range(0f, 1f)] float holdHapticMin = 0.05f;
-        [SerializeField, Range(0f, 1f)] float holdHapticMax = 0.5f;
-        [Tooltip("게이지 자리: 카드 묶음 기준(묶음 회전) 오프셋 (m). 기본은 묶음 바로 아래")]
-        [SerializeField] Vector3 gaugeOffset = new Vector3(0f, -0.1f, 0f);
-        [Tooltip("상자: 카드 묶음이 떠오르는 시간 (초)")]
-        [SerializeField] float popInSeconds = 0.3f;
-        [Tooltip("건너뛴 카드들이 더미로 날아갈 때 카드 사이 시차 (초, 단일 팩)")]
-        [SerializeField] float skipFlyStagger = 0.04f;
+        [Tooltip("퇴근 후 페이즈가 되면 미리 만들어 두는 카드 수 (상자 개봉 때 끊김 방지)")]
+        [SerializeField] int warmPoolCount = 12;
 
         [Header("상자 일괄 개봉 (B3)")]
         [Tooltip("상자 카드 묶음 자리: 머리에서 정면으로 (m). 단일 팩을 눈앞에 들었을 때(TearGestureOpen)와 같게")]
@@ -84,27 +40,6 @@ namespace CardShop.Presentation
         [SerializeField] float boxStackDrop = 0.08f;
         [Tooltip("상자 팩 뜯는 소리. 비워 두면 없음")]
         [SerializeField] AudioClip boxTearSound;
-        [Tooltip("상자 더미에서 카드 한 장당 높이 (m). 50장이 쌓이므로 단일 팩보다 얇게")]
-        [SerializeField] float boxPileThickness = 0.0008f;
-        [Tooltip("상자 더미에 실제 카드로 남겨 두는 수 (위에서부터). 그 아래는 카드 옆면 덩어리 하나로 표시")]
-        [SerializeField, Min(1)] int boxPileVisible = 3;
-        [Tooltip("퇴근 후 페이즈가 되면 미리 만들어 두는 카드 수 (상자 개봉 때 끊김 방지)")]
-        [SerializeField] int warmPoolCount = 12;
-
-        [Header("팩에서 솟아오르기 (A4)")]
-        [Tooltip("뜯긴 팩에서 카드 묶음이 위로 솟는 거리 (m)")]
-        [SerializeField] float cardRise = 0.07f;
-        [SerializeField] float riseSeconds = 0.45f;
-
-        [Header("카드 더미 (B1)")]
-        [Tooltip("더미 맨 아래 카드 자리: 기준점(anchor)에서 월드 좌표로 얼마나 떨어졌는지. 기본은 카운터 윗면 바로 위")]
-        [SerializeField] Vector3 pileOffset = new Vector3(0f, -0.199f, 0f);
-        [Tooltip("카드 한 장이 쌓일 때마다 높아지는 정도 (m). 카드 두께 1.2mm × 크기 배율보다 살짝 크게")]
-        [SerializeField] float pileThickness = 0.002f;
-        [Tooltip("장마다 비뚤어지는 최대 각도 (도)")]
-        [SerializeField] float pileJitterAngle = 7f;
-        [Tooltip("장마다 어긋나는 최대 거리 (m)")]
-        [SerializeField] float pileJitterOffset = 0.004f;
 
         [Header("결과함 UI (B2)")]
         [Tooltip("더미 바닥에서 결과함 UI 아래쪽까지 높이 (m)")]
@@ -113,43 +48,34 @@ namespace CardShop.Presentation
         [SerializeField] float resultFontSize = 0.2f;
         [SerializeField] float resultPopSeconds = 0.25f;
 
-        [Header("갓팩 (건너뛰기 불가, 특수 효과 후 한 장씩 — DEC-008)")]
-        [SerializeField] float godIntroSeconds = 1f;
-        [Tooltip("갓팩 예고 효과음 (비워 두면 없음)")]
-        [SerializeField] AudioClip godPackSound;
+        [Header("부품별 설정")]
+        [Tooltip("눈앞 카드 묶음 (크기 · 간격 · 솟아오르기)")]
+        [SerializeField] RevealStack.Settings stackSettings = new RevealStack.Settings();
+        [Tooltip("넘기기 입력 (꾹 누르기 시간 · 게이지 · 진동)")]
+        [SerializeField] RevealInput.Settings inputSettings = new RevealInput.Settings();
+        [Tooltip("등급 연출 (DEC-004: 수퍼레어~유니크 통일, 레전더리만 더 크게)")]
+        [SerializeField] RevealFx.Settings fxSettings = new RevealFx.Settings();
+        [Tooltip("카운터 카드 더미 (B1: 쌓기 · 옆면 덩어리 · 보관함 연출)")]
+        [SerializeField] CounterPileView.Settings pileSettings = new CounterPileView.Settings();
+        [Tooltip("상자 결과판 · 하이라이트 카드")]
+        [SerializeField] BoxResultBoard.Settings boardSettings = new BoxResultBoard.Settings();
+        [Tooltip("더미 카드를 잡으면 뜨는 정보 판")]
+        [SerializeField] PileInfoPopup.Settings pileInfoSettings = new PileInfoPopup.Settings();
 
-        [Header("카드 더미 정보 (더미 카드를 잡으면 표시)")]
-        [Tooltip("더미 정보 판이 결과함에서 옆으로 떨어지는 거리 (m)")]
-        [SerializeField] float pileInfoOffset = 0.36f;
-        [Tooltip("카드를 놓은 뒤 정보 판이 사라지기까지 (초)")]
-        [SerializeField] float pileInfoHoldSeconds = 4f;
-
-        [Header("테이블 더미 (퇴근 전까지 쌓아 둠)")]
-        [Tooltip("카운터에 실제 카드 오브젝트로 두는 수 (최근 것부터). 이보다 오래된 카드는 옆면 덩어리 하나로 줄여 성능(오브젝트 · TMP · 잡기 컴포넌트)을 아낌")]
-        [SerializeField, Min(5)] int pileVisibleCards = 15;
-        [Tooltip("카운터에 쌓아 둘 수 있는 카드 수(덩어리 포함). 넘으면 쌓인 카드를 보관함으로 옮기고 새로 쌓음")]
-        [SerializeField, Min(10)] int pileMaxCards = 60;
-
-        [Header("임시 보관함 연출 (바인더 전)")]
-        [SerializeField] float stashRise = 0.5f;
-        [SerializeField] float stashSeconds = 0.45f;
-        [SerializeField] float stashStagger = 0.05f;
-
-        CardRevealPool cardPool;     // 카드 오브젝트 재사용
-        CounterPileView counterPile; // 카운터 카드 더미 (장부는 CounterPile, CounterPileTests)
-        PileInfoPopup pileInfo;      // 더미 카드를 잡으면 테이블 카드 전체 요약
-        RevealStack revealStack;     // 눈앞 카드 묶음 (맨 앞 몇 장만 실체화)
-        GameContext context;
-        BoxResultBoard boxBoard;     // 상자 결과판 + 하이라이트 카드
+        CardRevealPool cardPool;
+        RevealStack revealStack;
+        RevealInput input;
+        RevealFx fx;
+        CounterPileView counterPile;
+        BoxResultBoard boxBoard;
+        PileInfoPopup pileInfo;
         PackResultPanel resultPanel;
         BoxOpenEffect boxEffect;
-        RevealFx fx;                 // 등급 연출: 소리 · 진동 · 폭죽 · 흔들림
+        GameContext context;
         Coroutine packRoutine;
         Coroutine warmRoutine;
         PackStage stage;
         GameObject tearingPack;
-        ICardStash stash;
-        RevealInput input;           // 트리거 한 번 = 다음, 꾹 누르기 = 건너뛰기 (게이지 · 진동)
 
         // 연출 중 오른손 레이의 UI 클릭을 잠시 끔 (트리거 하나가 넘기기 · 넣기 · UI 클릭을 동시에 하지 않게)
         readonly RayUiSuppressor rayUi = new RayUiSuppressor();
@@ -173,16 +99,6 @@ namespace CardShop.Presentation
             }
         }
 
-        /// <summary>
-        /// "보관함에 넣기" 연출. 바인더가 생기면 여기에 바인더(ICardStash 구현)를 넣습니다.
-        /// 비워 두면 더미가 위로 날아가 사라지는 임시 연출(FlyAwayCardStash).
-        /// </summary>
-        public ICardStash Stash
-        {
-            get => stash ??= new FlyAwayCardStash(stashRise, stashSeconds, stashStagger);
-            set => stash = value;
-        }
-
         /// <summary>더미가 보관함으로 보내졌을 때 (아래 카드부터). 데이터는 이미 보유 목록에 있으므로 표시용입니다.</summary>
         public event Action<IReadOnlyList<CardData>> PileStashed;
 
@@ -190,7 +106,7 @@ namespace CardShop.Presentation
         {
             cardPrefab = prefab;
             anchor = cardAnchor;
-            revealProfile = profile;
+            fxSettings.Profile = profile;
         }
 
         void OnEnable()
@@ -221,7 +137,7 @@ namespace CardShop.Presentation
         public void RevealPack(PackResult pack, Pose stackPose, PackTearEffect tear = null)
         {
             // 이전 더미는 퇴근 전까지 테이블에 그대로 둠. 너무 많이 쌓였을 때만 보관함으로 옮김.
-            if (Pile.CardCount >= pileMaxCards)
+            if (Pile.IsFull)
             {
                 StashPile();
                 context?.Events.RaiseNotice("카드 더미가 가득 차서 보관함으로 옮겼어요");
@@ -230,7 +146,7 @@ namespace CardShop.Presentation
             packRoutine = StartCoroutine(PackSequence(new List<PackResult> { pack }, stackPose, tear));
         }
 
-        /// <summary>상자 10팩: 일괄 개봉 연출 → 50장 한 장씩(1.5초 꾹 = 건너뛰기) → 결과판 + 하이라이트.</summary>
+        /// <summary>상자 10팩: 일괄 개봉 연출 → 50장 한 장씩(꾹 = 건너뛰기) → 결과판 + 하이라이트.</summary>
         public void RevealBox(PackResult[] packs)
         {
             if (packs == null || packs.Length == 0) return;
@@ -266,12 +182,12 @@ namespace CardShop.Presentation
         IEnumerator PackSequence(List<PackResult> packs, Pose stack, PackTearEffect tear)
         {
             bool isBox = packs.Count > 1;
-            CardStack.Begin(stack, !isBox && tear != null ? tear.transform.lossyScale.y * packFitRatio : stackScale);
             stage = PackStage.Tearing;
             XRBaseInputInteractor hand = HandFinder.Find(InteractorHandedness.Right);
             rayUi.Suppress(hand); // 연출 중 오른손 트리거가 Ray UI 클릭까지 하지 않게
             TriggerInput.Begin(); // 자르기 제스처로 트리거를 누른 채 열렸을 수 있어 한 번 뗄 때까지 꾹 누르기를 세지 않음
-            Pile.Begin(PileBase(), isBox);
+            Pile.Begin(anchor, isBox);
+            CardStack.Begin(stack, !isBox && tear != null ? tear.transform.lossyScale.y : (float?)null);
             List<RevealItem> queue = RevealQueue.BuildAll(packs);
 
             // ① 개봉 연출
@@ -285,9 +201,9 @@ namespace CardShop.Presentation
                     float delay = tear.Play(); // 뜯는 순간 등급이 미리 드러나지 않게 흰 빛 없이 (DEC-004)
                     if (delay > 0f) yield return new WaitForSeconds(delay);
                 }
-                CardStack.Rise(cardRise, riseSeconds, singlePackRevealGrow); // 팩에서 빠져나오며 커짐. 이후 넘기기 · 새로 채우는 카드도 이 크기
+                float rise = CardStack.Rise(); // 팩에서 빠져나오며 커짐. 이후 넘기기 · 새로 채우는 카드도 이 크기
                 stack = CardStack.Pose;
-                yield return new WaitForSeconds(riseSeconds);
+                yield return new WaitForSeconds(rise);
             }
             else
             {
@@ -297,15 +213,16 @@ namespace CardShop.Presentation
                 float seconds = EnsureBoxEffect().Play(packs.Count, headPos, forward, stack, boxTearSound);
                 yield return new WaitForSeconds(seconds);
                 CardStack.Fill(packs, queue, 0, popIn: true);
-                yield return new WaitForSeconds(popInSeconds);
+                yield return new WaitForSeconds(CardStack.PopInSeconds);
             }
 
-            // ② 공개 대기열: 트리거 1번 = 1칸, 1.5초 꾹 = 건너뛰기
+            // ② 공개 대기열: 트리거 1번 = 1칸, 꾹 = 건너뛰기
             stage = PackStage.Flipping;
+            float hold = TriggerInput.HoldSeconds;
             context?.Events.RaiseNotice(isBox
-                ? $"오른손 트리거로 한 장씩 넘기세요 ({queue.Count}칸) · {fastForwardHoldSeconds:0.#}초 꾹: 건너뛰기"
-                : $"오른손 트리거로 한 장씩 넘기세요 · {fastForwardHoldSeconds:0.#}초 꾹: 건너뛰기");
-            var gaugePose = new Pose(stack.position + stack.rotation * gaugeOffset, stack.rotation);
+                ? $"오른손 트리거로 한 장씩 넘기세요 ({queue.Count}칸) · {hold:0.#}초 꾹: 건너뛰기"
+                : $"오른손 트리거로 한 장씩 넘기세요 · {hold:0.#}초 꾹: 건너뛰기");
+            Pose gaugePose = TriggerInput.GaugePose(stack);
             bool skipped = false;
             int qi = 0;
             while (qi < queue.Count)
@@ -315,12 +232,15 @@ namespace CardShop.Presentation
                 if (CardStack.IsEmpty) CardStack.Fill(packs, queue, qi, popIn: skipped);
 
                 bool godPack = RevealQueue.IsGodPack(p);
-                if (godPack && item.Card == 0) yield return GodIntro(stack, hand); // 갓팩: 특수 효과 후 한 장씩 (DEC-008)
+                if (godPack && item.Card == 0) // 갓팩: 특수 효과 후 한 장씩 (DEC-008)
+                {
+                    context?.Events.RaiseNotice("갓팩!");
+                    yield return new WaitForSeconds(Fx.GodIntro(stack, hand));
+                }
 
-                CardRevealView front = CardStack.Front;
                 CardData card = p.Cards[item.Card];
                 bool confirmed = p.Special == SpecialPackType.LegendaryPack && card.rarity == CardRarity.Legendary;
-                float pause = Fx.Announce(front, card, confirmed, hand);
+                float pause = Fx.Announce(CardStack.Front, card, confirmed, hand);
                 yield return TriggerInput.WaitForAdvance(hand, pause, !godPack, gaugePose);
                 Pile.Send(CardStack.TakeFront(), isBox, 0f);
                 qi++;
@@ -339,63 +259,40 @@ namespace CardShop.Presentation
             // ③ 결과
             if (isBox)
             {
-                yield return BoxSummary(packs, skipped);
+                yield return BoxSummary(packs);
                 yield break;
             }
 
             // 마지막 카드가 더미에 내려앉는 것까지 (건너뛰면 카드가 조금씩 늦게 출발하므로 그만큼 더 기다림 — 날아가는 중에 잡히지 않게)
-            yield return new WaitForSeconds(flySeconds + (skipped ? (packs[0].Cards.Length - 1) * skipFlyStagger : 0f));
+            yield return new WaitForSeconds(Pile.FlySeconds + (skipped ? CardStack.SkipDelay(packs[0].Cards.Length) : 0f));
             Pile.Compress(); // 실제 카드로 두는 수를 넘으면 오래된 카드부터 옆면 덩어리로
 
             // 결과함 UI: 이번 팩 카드 더미 위, 월드 고정. 카드는 퇴근 전까지 테이블에 남아 있고 잡아서 볼 수 있음.
             stage = PackStage.Result;
             float packBase = Pile.HeightAt(Pile.NextIndex - packs[0].Cards.Length);
-            EnsureResultPanel().Show(packs[0], cardPrefab != null ? cardPrefab.Styles : null,
+            EnsureResultPanel().Show(packs[0], Styles,
                 Pile.BasePose.position + Vector3.up * (packBase + resultPanelHeight), anchor.rotation, resultFontSize, resultPopSeconds);
             foreach (CardRevealView v in Pile.Cards) v.SetGrabbable(true);
             rayUi.Restore(); // 연출 중 꺼 둔 오른손 레이 UI 복귀 (결과 단계에서는 트리거를 쓰지 않음)
             packRoutine = null;
         }
 
-        // 갓팩 예고: 큰 금빛 폭죽 + 진동 + (있으면) 효과음 뒤 잠깐 멈춤. 카메라는 흔들지 않음 (VR 멀미 방지).
-        IEnumerator GodIntro(Pose stack, XRBaseInputInteractor hand)
-        {
-            context?.Events.RaiseNotice("갓팩!");
-            Fx.GodIntro(stack, hand);
-            yield return new WaitForSeconds(godIntroSeconds);
-        }
-
-        // 카드 옆면 머티리얼(CardPrefabBuilder의 "CardEdge")을 빌려 써서 더미 덩어리가 카드 옆면처럼 보이게
-        Material EdgeMaterial()
-        {
-            if (cardPrefab == null) return null;
-            foreach (Renderer r in cardPrefab.GetComponentsInChildren<Renderer>(true))
-                foreach (Material m in r.sharedMaterials)
-                    if (m != null && m.name.StartsWith("CardEdge")) return m;
-            return null;
-        }
-
-        // 상자 결과판: 팩마다 5점 줄 → 합계 → 하이라이트 카드 (단일 팩 결과함과 같은 어두운 띠 · 등급 색)
-        IEnumerator BoxSummary(List<PackResult> packs, bool skipped)
+        // 상자 결과판: 팩마다 5점 줄 → 합계 → 하이라이트 카드. 결과판 · 하이라이트는 다음 상자 · 영업 시작 때 정리
+        IEnumerator BoxSummary(List<PackResult> packs)
         {
             stage = PackStage.Summary;
-            yield return new WaitForSeconds(flySeconds); // 마지막 카드가 더미에 내려앉는 것까지 보여 줌
-            RecycleRevealArea(); // 눈앞 묶음 · 더미 정리 (카드는 모두 보유 목록에 있음). 이어서 여는 단일 팩은 카운터 바닥부터 쌓임
+            yield return new WaitForSeconds(Pile.FlySeconds); // 마지막 카드가 더미에 내려앉는 것까지 보여 줌
+            RecycleRevealArea(); // 눈앞 묶음 · 상자 더미 정리 (카드는 모두 보유 목록에 있음). 이어서 여는 단일 팩은 카운터 바닥부터 쌓임
 
             yield return BoxBoard.Show(packs);
             int total = packs.Sum(p => p.Cards.Length);
             int newCount = packs.Sum(p => p.IsNew.Count(n => n));
             context?.Events.RaiseNotice($"상자 개봉: {packs.Count}팩 {total}장, 새 카드 {newCount}장");
 
-            // 끝: 결과판 · 하이라이트는 다음 상자 · 영업 시작 때 정리 (기존 동작)
             stage = PackStage.None;
             rayUi.Restore();
             packRoutine = null;
         }
-
-        // ------------------------------------------------------------------ 보관 · 정리
-
-        Pose PileBase() => new Pose(anchor.position + pileOffset, CardPileLayout.FlatRotation(anchor.forward));
 
         // 상자 카드 묶음 자리: 단일 팩을 눈앞에 들었을 때와 같은 곳(머리 정면 45cm, 8cm 아래). 카메라가 없으면 카운터 위.
         Pose BoxStackPose()
@@ -410,6 +307,8 @@ namespace CardShop.Presentation
             return HeadPose.InFront(cam.transform, boxStackDistance, boxStackDrop);
         }
 
+        // ------------------------------------------------------------------ 보관 · 정리
+
         /// <summary>
         /// 카운터의 카드 더미를 보관함으로 보냅니다(연출만, 데이터는 이미 보유 목록에 있음).
         /// 결과함 UI가 닫히고, 연출이 끝나면 카드 오브젝트는 풀로 돌아갑니다.
@@ -417,7 +316,7 @@ namespace CardShop.Presentation
         public void StashPile()
         {
             EndPackRoutine();
-            List<CardData> cards = Pile.Stash(Stash);
+            List<CardData> cards = Pile.Stash();
             if (cards != null) PileStashed?.Invoke(cards);
         }
 
@@ -427,35 +326,6 @@ namespace CardShop.Presentation
             if (IsBusy) Clear();
             else StashPile();
         }
-
-        PackResultPanel EnsureResultPanel()
-        {
-            if (resultPanel == null) resultPanel = PackResultPanel.Create(transform, Font);
-            return resultPanel;
-        }
-
-        BoxOpenEffect EnsureBoxEffect()
-        {
-            if (boxEffect == null) boxEffect = BoxOpenEffect.Create(transform, 10);
-            return boxEffect;
-        }
-
-        RevealInput TriggerInput => input ??= new RevealInput(() => SkipHoldGauge.Create(transform, Font), () => new RevealInput.Settings
-        {
-            HoldSeconds = fastForwardHoldSeconds,
-            GaugeGrace = holdGaugeGrace,
-            HapticMin = holdHapticMin,
-            HapticMax = holdHapticMax,
-        });
-
-        RevealFx Fx => fx ??= new RevealFx(this, () => cardPrefab != null ? cardPrefab.Styles : null, () => new RevealFx.Settings
-        {
-            Profile = revealProfile,
-            LegendaryShakeAmount = legendaryShakeAmount,
-            LegendaryShakeSeconds = legendaryShakeSeconds,
-            LegendaryPackExtraPause = legendaryPackExtraPause,
-            GodPackSound = godPackSound,
-        });
 
         /// <summary>모든 연출을 멈추고 카운터를 비웁니다(보관 연출 중인 카드도 바로 거둠).</summary>
         public void Clear()
@@ -483,14 +353,14 @@ namespace CardShop.Presentation
             }
         }
 
-        // 눈앞 묶음과 상자 더미(실제 카드 + 덩어리)를 풀로 돌려보냅니다. 단일 팩 더미(pile)는 그대로.
+        // 눈앞 묶음과 상자 더미(실제 카드 + 덩어리)를 풀로 돌려보냅니다. 단일 팩 더미는 그대로.
         void RecycleRevealArea(bool keepBlock = false)
         {
             CardStack.Clear();
             Pile.ClearBox(keepBlock);
         }
 
-        // 진행을 끝냄: 코루틴 정지, 결과함 · 게이지 닫기, 오른손 레이 UI 되돌리기
+        // 진행을 끝냄: 코루틴 정지, 결과함 · 정보 판 · 게이지 닫기, 오른손 레이 UI 되돌리기
         void EndPackRoutine()
         {
             if (packRoutine != null) { StopCoroutine(packRoutine); packRoutine = null; }
@@ -501,8 +371,6 @@ namespace CardShop.Presentation
             rayUi.Restore();
         }
 
-        CardRevealPool Pool => cardPool ??= new CardRevealPool(Create);
-
         // 더미 카드를 잡으면 정보 판 (카드를 넘기는 중에는 띄우지 않음)
         void OnCardGrabbed(CardRevealView v)
         {
@@ -510,44 +378,20 @@ namespace CardShop.Presentation
             PileInfo.OnGrabbed(v);
         }
 
+        // ------------------------------------------------------------------ 부품 (처음 쓸 때 만듦)
+
         CardRarityStyles Styles => cardPrefab != null ? cardPrefab.Styles : null;
 
-        PileInfoPopup PileInfo => pileInfo ??= new PileInfoPopup(this, anchor, Pile, () => Font, () => Styles, () => new PileInfoPopup.Settings
-        {
-            SideOffset = pileInfoOffset,
-            HoldSeconds = pileInfoHoldSeconds,
-            Height = resultPanelHeight,
-            FontSize = resultFontSize,
-        });
+        CardRevealPool Pool => cardPool ??= new CardRevealPool(Create);
+        RevealStack CardStack => revealStack ??= new RevealStack(Pool, Pile, stackSettings);
+        RevealInput TriggerInput => input ??= new RevealInput(() => SkipHoldGauge.Create(transform, Font), inputSettings);
+        RevealFx Fx => fx ??= new RevealFx(this, () => Styles, fxSettings);
+        CounterPileView Pile => counterPile ??= new CounterPileView(this, Pool, EdgeMaterial, pileSettings);
+        BoxResultBoard BoxBoard => boxBoard ??= new BoxResultBoard(transform, anchor, Pool, () => Font, () => Styles, boardSettings);
+        PileInfoPopup PileInfo => pileInfo ??= new PileInfoPopup(this, anchor, Pile, () => Font, () => Styles, pileInfoSettings);
 
-        BoxResultBoard BoxBoard => boxBoard ??= new BoxResultBoard(transform, anchor, Pool, () => Font, () => Styles, () => new BoxResultBoard.Settings
-        {
-            RowInterval = boxRowInterval,
-            HighlightCount = boxHighlightCount,
-            Spacing = spacing,
-            CardScale = counterScale,
-        });
-
-        RevealStack CardStack => revealStack ??= new RevealStack(Pool, Pile, () => new RevealStack.Settings
-        {
-            Spacing = stackSpacing,
-            Depth = stackDepth,
-            RestackSeconds = restackSeconds,
-            PopInSeconds = popInSeconds,
-            SkipFlyStagger = skipFlyStagger,
-        });
-
-        CounterPileView Pile => counterPile ??= new CounterPileView(this, Pool, EdgeMaterial, () => new CounterPileView.Settings
-        {
-            CounterScale = counterScale,
-            FlySeconds = flySeconds,
-            PileThickness = pileThickness,
-            BoxPileThickness = boxPileThickness,
-            JitterAngle = pileJitterAngle,
-            JitterOffset = pileJitterOffset,
-            PileVisibleCards = pileVisibleCards,
-            BoxPileVisible = boxPileVisible,
-        });
+        PackResultPanel EnsureResultPanel() => resultPanel != null ? resultPanel : resultPanel = PackResultPanel.Create(transform, Font);
+        BoxOpenEffect EnsureBoxEffect() => boxEffect != null ? boxEffect : boxEffect = BoxOpenEffect.Create(transform, 10);
 
         CardRevealView Create()
         {
@@ -556,6 +400,16 @@ namespace CardShop.Presentation
             view.GrabStarted += OnCardGrabbed;
             view.GrabEnded += _ => PileInfo.OnReleased();
             return view;
+        }
+
+        // 카드 옆면 머티리얼(CardPrefabBuilder의 "CardEdge")을 빌려 써서 더미 덩어리가 카드 옆면처럼 보이게
+        Material EdgeMaterial()
+        {
+            if (cardPrefab == null) return null;
+            foreach (Renderer r in cardPrefab.GetComponentsInChildren<Renderer>(true))
+                foreach (Material m in r.sharedMaterials)
+                    if (m != null && m.name.StartsWith("CardEdge")) return m;
+            return null;
         }
     }
 }

@@ -15,26 +15,38 @@ namespace CardShop.Presentation
     {
         public enum Result { Next, Skip }
 
-        /// <summary>CardRevealer 인스펙터 값 (씬에 저장된 값을 그대로 쓰기 위해 CardRevealer에 둠).</summary>
-        public struct Settings
+        /// <summary>인스펙터에서 조정하는 값 (CardRevealer 인스펙터에 이 묶음으로 보임).</summary>
+        [Serializable]
+        public sealed class Settings
         {
-            public float HoldSeconds;      // 이 시간 이상 누르면 건너뛰기
-            public float GaugeGrace;       // 이보다 짧은 눌림(탭)에는 게이지를 보이지 않음
-            public float HapticMin;        // 꾹 누르는 동안 진동 세기: 처음
-            public float HapticMax;        //                          끝
+            [Tooltip("오른손 트리거를 이 시간 이상 누르고 있으면 건너뛰기 (초). 실기기에서 조정")]
+            public float HoldSeconds = 1.5f;
+            [Tooltip("이보다 짧은 눌림(넘기기 탭)에는 게이지를 보이지 않음 (초)")]
+            public float GaugeGrace = 0.25f;
+            [Tooltip("꾹 누르는 동안 진동 세기: 처음 → 끝")]
+            [Range(0f, 1f)] public float HapticMin = 0.05f;
+            [Range(0f, 1f)] public float HapticMax = 0.5f;
+            [Tooltip("게이지 자리: 카드 묶음 기준(묶음 회전) 오프셋 (m). 기본은 묶음 바로 아래")]
+            public Vector3 GaugeOffset = new Vector3(0f, -0.1f, 0f);
         }
 
         readonly Func<SkipHoldGauge> createGauge;
-        readonly Func<Settings> settings;
+        readonly Settings settings;
         SkipHoldGauge gauge;
         HoldToSkipTimer timer;
 
         /// <param name="createGauge">게이지를 처음 쓸 때 만드는 방법 (글꼴 · 부모는 CardRevealer가 앎)</param>
-        public RevealInput(Func<SkipHoldGauge> createGauge, Func<Settings> settings)
+        public RevealInput(Func<SkipHoldGauge> createGauge, Settings settings)
         {
             this.createGauge = createGauge;
             this.settings = settings;
         }
+
+        /// <summary>꾹 눌러야 하는 시간 (안내 문구용).</summary>
+        public float HoldSeconds => settings.HoldSeconds;
+
+        /// <summary>카드 묶음 자리에 맞춘 게이지 자리.</summary>
+        public Pose GaugePose(Pose stack) => new Pose(stack.position + stack.rotation * settings.GaugeOffset, stack.rotation);
 
         /// <summary>마지막 <see cref="WaitForAdvance"/>의 결과.</summary>
         public Result Last { get; private set; }
@@ -42,7 +54,7 @@ namespace CardShop.Presentation
         /// <summary>개봉을 시작할 때. 자르기 제스처로 트리거를 누른 채 열렸을 수 있어, 한 번 뗄 때까지 꾹 누르기를 세지 않음.</summary>
         public void Begin()
         {
-            Settings s = settings();
+            Settings s = settings;
             timer = new HoldToSkipTimer(s.HoldSeconds, s.GaugeGrace);
             timer.RequireRelease();
         }
@@ -63,7 +75,7 @@ namespace CardShop.Presentation
         public IEnumerator WaitForAdvance(XRBaseInputInteractor hand, float pause, bool allowSkip, Pose gaugePose)
         {
             if (timer == null) Begin();
-            Settings s = settings();
+            Settings s = settings;
             float readyAt = Time.time + pause;
             float autoAt = readyAt + 1f;
             float nextPulse = 0f;

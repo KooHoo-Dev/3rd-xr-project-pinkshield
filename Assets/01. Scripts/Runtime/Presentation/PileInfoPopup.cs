@@ -14,13 +14,18 @@ namespace CardShop.Presentation
     /// </summary>
     public sealed class PileInfoPopup
     {
-        /// <summary>CardRevealer 인스펙터 값 (씬에 저장된 값을 그대로 쓰기 위해 CardRevealer에 둠).</summary>
-        public struct Settings
+        /// <summary>인스펙터에서 조정하는 값 (CardRevealer 인스펙터에 이 묶음으로 보임).</summary>
+        [Serializable]
+        public sealed class Settings
         {
-            public float SideOffset;     // 결과함에서 옆으로 떨어지는 거리 (m)
-            public float HoldSeconds;    // 카드를 놓은 뒤 사라지기까지 (초)
-            public float Height;         // 더미 맨 위에서 판 아래쪽까지 높이 (m)
-            public float FontSize;       // TMP 3D 글자 크기 (1 ≈ 10cm)
+            [Tooltip("정보 판이 결과함에서 옆으로 떨어지는 거리 (m)")]
+            public float SideOffset = 0.36f;
+            [Tooltip("카드를 놓은 뒤 정보 판이 사라지기까지 (초)")]
+            public float HoldSeconds = 4f;
+            [Tooltip("더미 맨 위에서 판 아래쪽까지 높이 (m)")]
+            public float Height = 0.07f;
+            [Tooltip("TMP 3D 글자 크기 (1 ≈ 10cm)")]
+            public float FontSize = 0.2f;
         }
 
         readonly MonoBehaviour host; // 잠시 뒤 숨기기(코루틴) · 판 부모
@@ -28,12 +33,12 @@ namespace CardShop.Presentation
         readonly CounterPileView pile;
         readonly Func<TMP_FontAsset> font;
         readonly Func<CardRarityStyles> styles;
-        readonly Func<Settings> settings;
+        readonly Settings settings;
         PackResultPanel panel;
         Coroutine hideRoutine;
 
         public PileInfoPopup(MonoBehaviour host, Transform anchor, CounterPileView pile,
-            Func<TMP_FontAsset> font, Func<CardRarityStyles> styles, Func<Settings> settings)
+            Func<TMP_FontAsset> font, Func<CardRarityStyles> styles, Settings settings)
         {
             this.host = host;
             this.anchor = anchor;
@@ -47,7 +52,7 @@ namespace CardShop.Presentation
         public void OnGrabbed(CardRevealView held)
         {
             if (!pile.Contains(held)) return;
-            Settings s = settings();
+            Settings s = settings;
             StopHide();
             if (panel == null) panel = PackResultPanel.Create(host.transform, font());
             float top = pile.HeightAt(pile.NextIndex);
@@ -60,7 +65,7 @@ namespace CardShop.Presentation
         {
             if (panel == null || !panel.IsShown || !host.isActiveAndEnabled) return;
             StopHide();
-            hideRoutine = host.StartCoroutine(HideAfter(settings().HoldSeconds));
+            hideRoutine = host.StartCoroutine(HideAfter(settings.HoldSeconds));
         }
 
         public void Hide()

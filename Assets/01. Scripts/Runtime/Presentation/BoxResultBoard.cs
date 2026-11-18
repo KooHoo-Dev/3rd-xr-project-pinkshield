@@ -17,13 +17,18 @@ namespace CardShop.Presentation
     /// </summary>
     public sealed class BoxResultBoard
     {
-        /// <summary>CardRevealer 인스펙터 값 (씬에 저장된 값을 그대로 쓰기 위해 CardRevealer에 둠).</summary>
-        public struct Settings
+        /// <summary>인스펙터에서 조정하는 값 (CardRevealer 인스펙터에 이 묶음으로 보임).</summary>
+        [Serializable]
+        public sealed class Settings
         {
-            public float RowInterval;     // 팩 한 줄이 추가되는 간격 (초)
-            public int HighlightCount;    // 하이라이트 카드 수
-            public float Spacing;         // 하이라이트 카드 사이 간격 (m)
-            public float CardScale;       // 카운터에 놓인 카드 크기 배율
+            [Tooltip("결과판에 팩 한 줄이 추가되는 간격 (초)")]
+            public float RowInterval = 0.25f;
+            [Tooltip("카운터 위에 놓는 하이라이트 카드 수")]
+            public int HighlightCount = 5;
+            [Tooltip("하이라이트 카드 사이 간격 (m)")]
+            public float Spacing = 0.095f;
+            [Tooltip("하이라이트 카드 크기 배율 (카운터 더미 카드와 같게)")]
+            public float CardScale = 1.3f;
         }
 
         readonly Transform parent;
@@ -31,11 +36,11 @@ namespace CardShop.Presentation
         readonly CardRevealPool pool;
         readonly Func<TMP_FontAsset> font;
         readonly Func<CardRarityStyles> styles;
-        readonly Func<Settings> settings;
+        readonly Settings settings;
         TextMeshPro board;
 
         public BoxResultBoard(Transform parent, Transform anchor, CardRevealPool pool,
-            Func<TMP_FontAsset> font, Func<CardRarityStyles> styles, Func<Settings> settings)
+            Func<TMP_FontAsset> font, Func<CardRarityStyles> styles, Settings settings)
         {
             this.parent = parent;
             this.anchor = anchor;
@@ -48,7 +53,7 @@ namespace CardShop.Presentation
         /// <summary>팩 줄을 하나씩 채우고(코루틴) 합계 · 하이라이트 카드를 놓습니다.</summary>
         public IEnumerator Show(IReadOnlyList<PackResult> packs)
         {
-            Settings s = settings();
+            Settings s = settings;
             CardRarityStyles st = styles();
             TextMeshPro text = Board();
             text.gameObject.SetActive(true);

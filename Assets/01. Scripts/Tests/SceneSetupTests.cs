@@ -40,20 +40,40 @@ namespace CardShop.Tests
 
         // 검사 대상: CardShop 클래스가 직접 선언한 필드만 (XRI 부모 클래스 필드 · UnityEvent 내부 값은 제외).
         // 비워 둬도 되는 필드: AudioClip, 또는 Tooltip에 "비우면/비워 두면"이라고 적힌 필드.
+        // 필드를 경로대로 따라가며(부품 설정 묶음 "fxSettings.GodPackSound" 같은 중첩 포함) 마지막 필드가 비워도 되는지 봅니다.
         static bool IsOptional(System.Type type, string propertyPath)
         {
             if (propertyPath.Contains("m_PersistentCalls")) return true;
-            string root = propertyPath.Split('.')[0];
+            FieldInfo field = null;
+            System.Type current = type;
+            string[] parts = propertyPath.Split('.');
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (parts[i] == "Array") { i++; current = ElementType(field.FieldType); continue; } // 배열 칸: Array.data[n]
+                field = FindField(current, parts[i]);
+                if (field == null) return true; // 모르는 필드(유니티 내부 등)는 검사하지 않음
+                current = field.FieldType;
+            }
+            if (field == null) return true;
+            if (typeof(AudioClip).IsAssignableFrom(field.FieldType)) return true;
+            var tip = field.GetCustomAttribute<TooltipAttribute>();
+            return tip != null && (tip.tooltip.Contains("비워") || tip.tooltip.Contains("비우면"));
+        }
+
+        // CardShop 코드에 선언된 필드만 (XRI 등 상속받은 바깥 필드는 검사하지 않음)
+        static FieldInfo FindField(System.Type type, string name)
+        {
             for (System.Type t = type; t != null && t.Namespace != null && t.Namespace.StartsWith("CardShop"); t = t.BaseType)
             {
-                FieldInfo f = t.GetField(root, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
-                if (f == null) continue;
-                if (typeof(AudioClip).IsAssignableFrom(f.FieldType)) return true;
-                var tip = f.GetCustomAttribute<TooltipAttribute>();
-                return tip != null && (tip.tooltip.Contains("비워") || tip.tooltip.Contains("비우면"));
+                FieldInfo f = t.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+                if (f != null) return f;
             }
-            return true;
+            return null;
         }
+
+        static System.Type ElementType(System.Type collection) =>
+            collection.IsArray ? collection.GetElementType()
+            : collection.IsGenericType ? collection.GetGenericArguments()[0] : collection;
 
         /// <summary>
         /// 계산 확장 4 · 5단계: 계산대에 봉투가 연결되어 있고, 팔리는 품목 프리팹은 모두 찍고(ScannableItem) 잡을 수 있음(잡기 + 물리 없는 Rigidbody).
@@ -114,7 +134,7 @@ namespace CardShop.Tests
             Assert.IsNotNull(revealer, "CardRevealer 없음");
             var revealerSo = new SerializedObject(revealer);
             Assert.IsNotNull(revealerSo.FindProperty("cardPrefab").objectReferenceValue, "카드 프리팹 미연결");
-            Assert.IsNotNull(revealerSo.FindProperty("revealProfile").objectReferenceValue, "등급별 연출 프로필 미연결");
+            Assert.IsNotNull(revealerSo.FindProperty("fxSettings.Profile").objectReferenceValue, "등급별 연출 프로필 미연결");
 
             CardShop.Interaction.PokeButton[] buttons = Object.FindObjectsByType<CardShop.Interaction.PokeButton>(FindObjectsSortMode.None);
             Assert.GreaterOrEqual(buttons.Length, 2, "상자·퇴근 버튼");

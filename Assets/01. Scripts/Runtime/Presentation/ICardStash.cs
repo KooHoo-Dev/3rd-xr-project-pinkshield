@@ -5,7 +5,7 @@ namespace CardShop.Presentation
     /// <summary>
     /// "보관함에 넣기" 연결 지점 (시연 피드백 B2, 보관함 = 바인더).
     /// 카드 데이터는 개봉 시점에 이미 보유 목록(Collection)에 들어가 있으므로, 여기서는 **연출만** 합니다.
-    /// 바인더가 생기면 이 인터페이스를 구현해 <see cref="CardRevealer.Stash"/>에 넣으면 됩니다.
+    /// 바인더가 생기면 이 인터페이스를 구현해 CounterPileView에 넣으면 됩니다.
     /// 그 전에는 <see cref="FlyAwayCardStash"/>(더미가 위로 날아가 사라짐)가 기본입니다.
     /// </summary>
     public interface ICardStash

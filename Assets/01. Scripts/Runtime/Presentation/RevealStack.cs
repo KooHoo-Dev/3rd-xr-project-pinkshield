@@ -13,22 +13,37 @@ namespace CardShop.Presentation
     /// </summary>
     public sealed class RevealStack
     {
-        /// <summary>CardRevealer 인스펙터 값 (씬에 저장된 값을 그대로 쓰기 위해 CardRevealer에 둠).</summary>
-        public struct Settings
+        /// <summary>인스펙터에서 조정하는 값 (CardRevealer 인스펙터에 이 묶음으로 보임).</summary>
+        [Serializable]
+        public sealed class Settings
         {
-            public float Spacing;          // 묶음에서 카드 사이 간격 (m)
-            public int Depth;              // 실제로 만들어 두는 카드 수 (맨 앞부터)
-            public float RestackSeconds;   // 앞 카드가 빠진 뒤 뒤 카드들이 당겨지는 시간
-            public float PopInSeconds;     // 떠오르며 나타나는 시간 (상자 · 건너뛴 뒤)
-            public float SkipFlyStagger;   // 건너뛴 카드들이 더미로 날아갈 때 카드 사이 시차 (단일 팩)
+            [Tooltip("묶음에서 카드 사이 간격 (m)")]
+            public float Spacing = 0.003f;
+            [Tooltip("상자: 눈앞 카드 묶음 크기 배율 (팩 크기 배율과 같게)")]
+            public float Scale = 1.5f;
+            [Tooltip("단일 팩: 카드 묶음 크기 = 눈앞 팩 크기 × 이 값. 카드(63×88mm)가 팩 몸통(75×102mm) 안에 맞게")]
+            public float PackFitRatio = 1.1f;
+            [Tooltip("단일 팩: 팩 크기로 시작한 카드 묶음이 위로 솟으며 이 배율만큼 커짐 (실기기 피드백: 개봉 카드가 다시 작아 보임 → 1.5배)")]
+            public float RevealGrow = 1.5f;
+            [Tooltip("단일 팩: 뜯긴 팩에서 카드 묶음이 위로 솟는 거리 (m)와 시간 (초)")]
+            public float Rise = 0.07f;
+            public float RiseSeconds = 0.45f;
+            [Tooltip("실제로 만들어 두는 카드 수 (맨 앞부터). 나머지는 넘길 때마다 풀에서 꺼냄 (Quest 성능)")]
+            [Min(1)] public int Depth = 3;
+            [Tooltip("앞 카드가 빠진 뒤 뒤 카드들이 앞으로 당겨지는 시간 (초)")]
+            public float RestackSeconds = 0.12f;
+            [Tooltip("상자 · 건너뛴 뒤: 카드 묶음이 떠오르는 시간 (초)")]
+            public float PopInSeconds = 0.3f;
+            [Tooltip("건너뛴 카드들이 더미로 날아갈 때 카드 사이 시차 (초, 단일 팩)")]
+            public float SkipFlyStagger = 0.04f;
         }
 
         readonly CardRevealPool pool;
         readonly CounterPileView pile;
-        readonly Func<Settings> settings;
+        readonly Settings settings;
         readonly List<CardRevealView> views = new List<CardRevealView>(); // views[k] = 대기열의 (지금 위치 + k)번째
 
-        public RevealStack(CardRevealPool pool, CounterPileView pile, Func<Settings> settings)
+        public RevealStack(CardRevealPool pool, CounterPileView pile, Settings settings)
         {
             this.pool = pool;
             this.pile = pile;
@@ -43,11 +58,20 @@ namespace CardShop.Presentation
         /// <summary>지금 공개 중인 맨 앞 카드.</summary>
         public CardRevealView Front => views[0];
 
-        /// <summary>개봉을 시작할 때: 묶음 자리와 카드 크기를 정함 (남은 카드는 없어야 함).</summary>
-        public void Begin(Pose pose, float scale)
+        /// <summary>떠오르며 나타나는 데 걸리는 시간 (상자 묶음이 다 떠오르기를 기다릴 때).</summary>
+        public float PopInSeconds => settings.PopInSeconds;
+
+        /// <summary>건너뛴 카드 cardCount장이 시차를 두고 출발할 때 마지막 카드가 늦게 출발하는 시간.</summary>
+        public float SkipDelay(int cardCount) => Mathf.Max(0, cardCount - 1) * settings.SkipFlyStagger;
+
+        /// <summary>
+        /// 개봉을 시작할 때: 묶음 자리와 카드 크기를 정함 (남은 카드는 없어야 함).
+        /// packScale이 있으면(단일 팩) 눈앞 팩 크기에 맞추고, 없으면(상자) 고정 크기.
+        /// </summary>
+        public void Begin(Pose pose, float? packScale)
         {
             Pose = pose;
-            Scale = scale;
+            Scale = packScale.HasValue ? packScale.Value * settings.PackFitRatio : settings.Scale;
         }
 
         /// <summary>
@@ -56,7 +80,7 @@ namespace CardShop.Presentation
         /// </summary>
         public void Fill(List<PackResult> packs, List<RevealItem> queue, int from, bool popIn)
         {
-            Settings s = settings();
+            Settings s = settings;
             Vector3 back = Pose.rotation * Vector3.forward;
             for (int k = 0; k < views.Count; k++)
                 views[k].FlyTo(Pose.position + back * (s.Spacing * k), Pose.rotation, s.RestackSeconds, Scale,
@@ -75,14 +99,15 @@ namespace CardShop.Presentation
             }
         }
 
-        /// <summary>단일 팩: 뜯긴 팩에서 묶음이 위로 솟으며 grow배 커짐. 이후 채우는 카드도 이 크기 · 자리.</summary>
-        public void Rise(float distance, float seconds, float grow)
+        /// <summary>단일 팩: 뜯긴 팩에서 묶음이 위로 솟으며 커짐. 이후 채우는 카드도 이 크기 · 자리. 걸리는 시간(초)을 돌려줍니다.</summary>
+        public float Rise()
         {
-            Vector3 up = Pose.rotation * Vector3.up * distance;
-            Scale *= grow;
+            Vector3 up = Pose.rotation * Vector3.up * settings.Rise;
+            Scale *= settings.RevealGrow;
             foreach (CardRevealView v in views)
-                v.FlyTo(v.transform.position + up, Pose.rotation, seconds, Scale, arcHeight: 0f, grabbableOnArrive: false);
+                v.FlyTo(v.transform.position + up, Pose.rotation, settings.RiseSeconds, Scale, arcHeight: 0f, grabbableOnArrive: false);
             Pose = new Pose(Pose.position + up, Pose.rotation);
+            return settings.RiseSeconds;
         }
 
         /// <summary>맨 앞 카드를 묶음에서 뺌 (더미로 보내는 것은 부르는 쪽).</summary>
@@ -99,7 +124,7 @@ namespace CardShop.Presentation
         /// </summary>
         public List<RevealItem> Skip(List<PackResult> packs, List<RevealItem> queue, int from, bool isBox)
         {
-            Settings s = settings();
+            Settings s = settings;
             List<RevealItem> kept = RevealQueue.GodOnly(packs, queue, from);
             Vector3 back = Pose.rotation * Vector3.forward;
             int flyIndex = 0;

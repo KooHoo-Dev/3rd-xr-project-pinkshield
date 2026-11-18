@@ -16,24 +16,31 @@ namespace CardShop.Presentation
     {
         static readonly Color SpecialGold = new Color(1f, 0.82f, 0.3f);
 
-        /// <summary>CardRevealer 인스펙터 값 (씬에 저장된 값을 그대로 쓰기 위해 CardRevealer에 둠).</summary>
-        public struct Settings
+        /// <summary>인스펙터에서 조정하는 값 (CardRevealer 인스펙터에 이 묶음으로 보임).</summary>
+        [Serializable]
+        public sealed class Settings
         {
-            public RarityRevealProfile Profile;     // 비우면 설계 기본값
-            public float LegendaryShakeAmount;      // 레전더리 카드가 떨리는 크기 (m)
-            public float LegendaryShakeSeconds;
-            public float LegendaryPackExtraPause;   // 레전더리 확정 팩의 레전더리 카드는 이만큼 더 멈춤 + 진동 1번 더
-            public AudioClip GodPackSound;          // 비우면 없음
+            [Tooltip("등급별 멈춤 · 진동 · 소리. 비워 두면 설계 기본값")]
+            public RarityRevealProfile Profile;
+            [Tooltip("레전더리 카드가 부르르 떨리는 크기 (m)와 시간 (초)")]
+            public float LegendaryShakeAmount = 0.004f;
+            public float LegendaryShakeSeconds = 0.9f;
+            [Tooltip("레전더리 확정 팩의 레전더리 카드는 평소보다 이만큼 더 멈춤 (초) + 진동 1번 더")]
+            public float LegendaryPackExtraPause = 0.6f;
+            [Tooltip("갓팩 예고 뒤 첫 카드까지 멈춤 (초)")]
+            public float GodIntroSeconds = 1f;
+            [Tooltip("갓팩 예고 효과음 (비워 두면 없음)")]
+            public AudioClip GodPackSound;
         }
 
         readonly MonoBehaviour host; // 진동 여러 번(코루틴) · 폭죽 부모
         readonly Func<CardRarityStyles> styles;
-        readonly Func<Settings> settings;
+        readonly Settings settings;
         RevealBurst burst;
         RarityRevealProfile defaultProfile;
 
         /// <param name="styles">등급 색 (카드 프리팹의 것을 빌려 씀, 없으면 흰색)</param>
-        public RevealFx(MonoBehaviour host, Func<CardRarityStyles> styles, Func<Settings> settings)
+        public RevealFx(MonoBehaviour host, Func<CardRarityStyles> styles, Settings settings)
         {
             this.host = host;
             this.styles = styles;
@@ -55,7 +62,7 @@ namespace CardShop.Presentation
         /// <param name="legendaryPack">레전더리 확정 팩의 레전더리 카드: 금빛 폭죽 + 더 멈춤 + 진동 1번 더</param>
         public float Announce(CardRevealView view, CardData card, bool legendaryPack, XRBaseInputInteractor hand)
         {
-            Settings s = settings();
+            Settings s = settings;
             CardRarity tier = card.rarity == CardRarity.Unique ? CardRarity.SuperRare : card.rarity; // 연출 등급 통일
             RarityRevealProfile.Entry fx = Profile(s).Get(tier);
             if (fx.sound != null) AudioSource.PlayClipAtPoint(fx.sound, view.transform.position, fx.volume);
@@ -77,14 +84,14 @@ namespace CardShop.Presentation
             return fx.pause + (legendaryPack ? s.LegendaryPackExtraPause : 0f);
         }
 
-        /// <summary>갓팩 예고: 카드 묶음 앞에서 큰 금빛 폭죽 + 진동 3번 + (있으면) 효과음.</summary>
-        public void GodIntro(Pose stack, XRBaseInputInteractor hand)
+        /// <summary>갓팩 예고: 카드 묶음 앞에서 큰 금빛 폭죽 + 진동 3번 + (있으면) 효과음. 첫 카드까지 기다릴 시간(초)을 돌려줍니다.</summary>
+        public float GodIntro(Pose stack, XRBaseInputInteractor hand)
         {
             Vector3 center = stack.position + stack.rotation * Vector3.forward * 0.01f;
             Burst().Play(center, stack.rotation, SpecialGold, 0.3f, 1.4f);
-            AudioClip sound = settings().GodPackSound;
-            if (sound != null) AudioSource.PlayClipAtPoint(sound, center, 1f);
+            if (settings.GodPackSound != null) AudioSource.PlayClipAtPoint(settings.GodPackSound, center, 1f);
             if (hand != null) host.StartCoroutine(Haptic(hand, 0.8f, 0.12f, 3));
+            return settings.GodIntroSeconds;
         }
 
         RarityRevealProfile Profile(Settings s)

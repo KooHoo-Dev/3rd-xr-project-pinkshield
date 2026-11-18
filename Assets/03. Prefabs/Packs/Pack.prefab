@@ -1020,10 +1020,6 @@ MonoBehaviour:
   stripFall: 0.06
   stripSide: 0.05
   stripSpin: 120
-  beamDelay: 0.05
-  beamSeconds: 0.5
-  beamHeight: 0.1
-  beamAlpha: 0.75
   cardsRiseDelay: 0.25
   packDropSeconds: 0.6
   packDrop: 0.35
@@ -1031,9 +1027,7 @@ MonoBehaviour:
   packTumble: 35
   packGrow: 0.12
   tearSound: {fileID: 0}
-  specialTearSound: {fileID: 0}
   tearVolume: 0.8
-  specialBeamScale: 1.8
 --- !u!1 &3517315920660237600
 GameObject:
   m_ObjectHideFlags: 0
