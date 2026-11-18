@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00afd96dfe18c73439c466a866c504a2, type: 3}
+  m_Name: SoundBank
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.SoundBank
+  entries:
+  - id: 0
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 1
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 2
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 3
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 4
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 5
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 10
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 11
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 12
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 13
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 14
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 15
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 16
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 20
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 21
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 22
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 23
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 24
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 25
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 26
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 30
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 31
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 32
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 33
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 34
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 40
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 41
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 42
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 43
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 50
+    clips: []
+    volume: 0.35
+    pitch: {x: 1, y: 1}
+  - id: 51
+    clips: []
+    volume: 0.35
+    pitch: {x: 1, y: 1}
+  - id: 52
+    clips: []
+    volume: 0.35
+    pitch: {x: 1, y: 1}
+  - id: 53
+    clips: []
+    volume: 0.35
+    pitch: {x: 1, y: 1}

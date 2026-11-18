@@ -1,6 +1,8 @@
+using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Core.Phases;
 using CardShop.Logic;
+using CardShop.Presentation;
 
 namespace CardShop.UI
 {
@@ -8,6 +10,13 @@ namespace CardShop.UI
     public sealed class SettlementBoard : PhaseBoard
     {
         protected override GamePhaseId Phase => GamePhaseId.Settlement;
+
+        // 정산 판이 뜨면 돈 들어오는 소리 (SoundBank 칸이 비면 조용)
+        protected override void OnPhaseChanged(GamePhaseId phase)
+        {
+            base.OnPhaseChanged(phase);
+            if (phase == GamePhaseId.Settlement) Sfx.Play(SoundId.MoneyIn, transform.position);
+        }
 
         protected override void Redraw()
         {

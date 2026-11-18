@@ -16,12 +16,15 @@ namespace CardShop.Customers
         public static readonly int Cheer = Animator.StringToHash("Cheer");
         public static readonly int Angry = Animator.StringToHash("Angry");
         public static readonly int Talk = Animator.StringToHash("Talk");
+        /// <summary>전신 휘청 (Reaction 레이어, 도둑이 빗자루에 맞음). 예전 Animator에는 없어 무시됨 → Build Customer Animator</summary>
+        public static readonly int Hit = Animator.StringToHash("Hit");
     }
 
     public enum CustomerState
     {
-        Enter,    // 문 → 진열대
-        Browse,   // 진열대 앞에서 구경
+        Enter,      // 문 → 진열대
+        Browse,     // 진열대 뒤 구매 자리에서 구경
+        BrowseWait, // 구매 자리가 비기를 기다리는 줄 (창을 따라 섬, 11-19 손님 동선)
         Queue,    // 계산대 줄 (맨 앞이면 결제 대기)
         Leave,    // 문 → 밖
     }
@@ -44,7 +47,7 @@ namespace CardShop.Customers
         [SerializeField] float avoidRadius = 0.35f;
 
         Vector3 velocity;
-        CustomerDirector director;
+        Func<bool> isPaused;
         Animator animator;
         float walkSpeed;
         float turnSpeed;
@@ -72,10 +75,13 @@ namespace CardShop.Customers
         public bool SaidImpatient { get; set; }
         /// <summary>머리 위 말풍선 (CustomerDirector가 만듦, 없을 수 있음)</summary>
         public SpeechBubble Bubble { get; set; }
+        /// <summary>여성 외형 (감탄 소리 · 도둑 웃음을 남녀로 고를 때)</summary>
+        public bool IsFemale { get; set; }
 
-        public void Init(CustomerDirector owner, Animator anim, float speed, float turnDegreesPerSecond)
+        /// <param name="paused">일시정지 중인가 (이동 · 타이머 · 애니메이션을 멈춤)</param>
+        public void Init(Func<bool> paused, Animator anim, float speed, float turnDegreesPerSecond)
         {
-            director = owner;
+            isPaused = paused;
             animator = anim;
             walkSpeed = speed;
             turnSpeed = turnDegreesPerSecond;
@@ -114,7 +120,7 @@ namespace CardShop.Customers
 
         void Update()
         {
-            bool paused = director != null && director.IsPaused;
+            bool paused = isPaused != null && isPaused();
             if (animator != null) animator.speed = paused ? 0f : 1f;
             if (paused) return;
 

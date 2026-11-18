@@ -1,6 +1,6 @@
 # 인계 노트 — 다른 PC에서 이어서 작업하기
 
-> 마지막 갱신: 2026-11-18 오후 (사용자 외출 중 Claude 정리) · 브랜치 `main`
+> 마지막 갱신: 2026-11-19 밤 · 브랜치 `main` · 마지막 커밋 `80a353b` · EditMode **227/227**
 > 하루 한 일은 [일일 노트 11-18](daily/2026-11-18.md) (전날: [11-17](daily/2026-11-17.md)), 설계는 [시스템 설계 한눈에 보기](../Assets/98.%20Doc/시스템설계_한눈에_보기.md)를 봅니다.
 
 ## 0. 다음에 바로 할 일
@@ -8,6 +8,14 @@
 **지금 상태**: 11-18 작업이 모두 `main`에 있고, 배치 모드로 `Rebuild Street Blocks Prefab` → `Build Shop Scene`까지 실행해 커밋함(`730494d`). EditMode **180/180 통과**. 에디터 Play · 실기기 확인은 전부 아직.
 - 다시 빌드할 때 배치 모드 진입점: `CardShop.EditorTools.Interior.InteriorBuilder.RebuildBlocksAndSceneFromCommandLine` (거리 보강 프리팹 + 씬 한 번에). 씬만이면 `CardShop.EditorTools.ShopSceneBuilder.Build`
 - 배치 모드 실행 뒤 `Assets/XR/Settings/OpenXRPackageSettings.asset`이 fileID 순서만 바뀌어 수정됨으로 뜸 → 되돌리면 됨(커밋 안 함)
+
+### 0-4) 11-19 플레이 피드백 반영 (최신, `80a353b`)
+- 하루 정리: [일일 노트 11-19](daily/2026-11-19.md) · 무엇을 왜: [플레이피드백_11-19_작업계획](플레이피드백_11-19_작업계획.md) · 확인: [리팩토링 Play 확인 목록](리팩토링_Play_확인목록.md) G 절
+- `CustomerDirector` 436 → 276줄 + 손님 동선 개편(진열대 뒤 구매 2칸 + 창가 대기 줄). 씬은 사용자가 Build Shop Scene 다시 실행함(Buy_ · BrowseWait_ 지점 있음)
+- 씬을 다시 빌드하지 않아도 되게 스스로 붙는 컴포넌트 2개: `PlayerMoveRules`(XR Origin), `FreePackOffer`(선반 오브젝트) — `RuntimeInitializeOnLoadMethod`
+- **Play 확인 남음**: G2 · G4 · G5 · G7 · G13 · G15~G21, E1~E3, F1 · F6 · F7
+- 커밋 안 함: `Prompts/튜토리얼_하이라이트_VR.md` (다른 세션에서 만든 프롬프트, 사용자 판단)
+- 해석해서 만든 것 (맞는지 확인 필요): "대기 줄이 없으면 계산대로 바로" = 구매 대기 줄 없음 → 오른쪽 길 + 빈 계산대 → 곧장, "상자 카드 팩 진열 때 등급 연출" = 하이라이트 카드
 
 ### 0-1) 코드 리뷰 + 리팩토링 1·2·3단계 + CardRevealer 개선 (11-18 밤, Claude)
 게임 코드(Runtime) 전체를 리뷰하고 1·2·3단계를 진행함. **Play 확인은 리팩토링이 다 끝난 뒤 한 번에 → [리팩토링 Play 확인 목록](리팩토링_Play_확인목록.md)**

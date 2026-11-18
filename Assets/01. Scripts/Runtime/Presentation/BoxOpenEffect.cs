@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using CardShop.Cards;
 using UnityEngine;
 
 namespace CardShop.Presentation
@@ -47,6 +48,8 @@ namespace CardShop.Presentation
         }
 
         readonly List<VisualPack> packs = new List<VisualPack>();
+        static readonly Vector2 SlashSize = new Vector2(0.05f, 0.006f);
+
         SpriteRenderer slash;
         Coroutine routine;
 
@@ -145,6 +148,7 @@ namespace CardShop.Presentation
                     {
                         torn[i] = true;
                         if (tearSound != null) AudioSource.PlayClipAtPoint(tearSound, pos, tearVolume);
+                        else Sfx.Play(SoundId.PackTear, pos); // 인스펙터 칸이 비면 SoundBank
                     }
 
                     float s = Mathf.Clamp01(tt / stripSeconds);
@@ -172,14 +176,15 @@ namespace CardShop.Presentation
             Vector3 from = homes[0].position - right * half + lift;
             Vector3 to = homes[homes.Length - 1].position + right * half + lift;
             cut.transform.SetPositionAndRotation(Vector3.Lerp(from, to, t), homes[0].rotation);
-            cut.transform.localScale = Vector3.one * ps;
+            // 판 크기(SlashSize)에 팩 배율을 곱함. 배율만 넣으면 1m 판이 그대로 커져 흰 사각형이 눈앞을 가림 (Play 확인 A10)
+            cut.transform.localScale = new Vector3(SlashSize.x * ps, SlashSize.y * ps, 1f);
             cut.color = new Color(1f, 1f, 1f, 0.95f * Mathf.Sin(t * Mathf.PI));
         }
 
         SpriteRenderer EnsureSlash()
         {
             if (slash == null)
-                slash = RevealSprites.Quad(transform, "Slash", RevealSprites.Center, Vector3.zero, new Vector2(0.05f, 0.006f), Color.clear, 3);
+                slash = RevealSprites.Quad(transform, "Slash", RevealSprites.Center, Vector3.zero, SlashSize, Color.clear, 3);
             return slash;
         }
 

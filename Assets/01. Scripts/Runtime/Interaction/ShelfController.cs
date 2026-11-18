@@ -19,6 +19,10 @@ namespace CardShop.Interaction
         [SerializeField] PackOpener opener;
 
         readonly List<PackView> packs = new List<PackView>();
+
+        /// <summary>선반 팩과 같은 프리팹 · 개봉 연결 (계산대 무료 팩 FreePackOffer가 빌려 씀).</summary>
+        public PackView PackPrefab => packPrefab;
+        public PackOpener Opener => opener;
         GameContext context;
 
         public void Configure(ShelfSlotSocket[] shelfSlots, PackView prefab, PackOpener packOpener)

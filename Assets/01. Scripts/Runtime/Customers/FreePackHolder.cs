@@ -28,11 +28,23 @@ namespace CardShop.Customers
             homeLocalRot = pack.transform.localRotation;
         }
 
-        /// <summary>영업 중에만 보임 (퇴근 후에는 팩 고르기에서 무료로 깜).</summary>
+        /// <summary>지킬 팩(받침 + 금색 팩)은 영업 중에만 보임. 퇴근 후에는 ShowStandOnly + FreePackOffer.</summary>
         public void Show(bool on)
         {
             if (display != null) display.SetActive(on);
             if (display == null || !pack.transform.IsChildOf(display.transform)) pack.gameObject.SetActive(on);
+        }
+
+        /// <summary>제자리(받침 위) 월드 자세.</summary>
+        public Pose HomePose => new Pose(
+            homeParent != null ? homeParent.TransformPoint(homeLocalPos) : homeLocalPos,
+            homeParent != null ? homeParent.rotation * homeLocalRot : homeLocalRot);
+
+        /// <summary>받침 · 안내 글자만 켜고 끔 (퇴근 후: 지킨 팩 대신 실제로 열 수 있는 팩을 FreePackOffer가 올려 둠).</summary>
+        public void ShowStandOnly(bool on)
+        {
+            if (display != null) display.SetActive(on);
+            pack.gameObject.SetActive(false);
         }
 
         /// <summary>도둑 손에 붙임 (잡을 수 없게).</summary>
@@ -75,9 +87,8 @@ namespace CardShop.Customers
         void PlaceHome()
         {
             pack.transform.SetParent(homeParent, false);
-            pack.PlaceAt(
-                homeParent != null ? homeParent.TransformPoint(homeLocalPos) : homeLocalPos,
-                homeParent != null ? homeParent.rotation * homeLocalRot : homeLocalRot);
+            Pose home = HomePose;
+            pack.PlaceAt(home.position, home.rotation);
         }
     }
 }

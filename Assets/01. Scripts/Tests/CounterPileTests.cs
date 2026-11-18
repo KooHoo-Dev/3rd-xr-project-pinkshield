@@ -31,20 +31,61 @@ namespace CardShop.Tests
             Assert.AreEqual(2, pile.Pile.Count);
         }
 
-        // 고친 버그: 상자를 연 뒤 같은 퇴근 시간에 단일 팩을 열면 카드가 상자 높이(약 10cm) 위에 떠서 쌓였음
+        // 11-19 플레이 피드백: 상자 카드 더미도 카운터에 남기고, 이어서 여는 단일 팩은 그 위에 쌓임
         [Test]
-        public void BoxThenSinglePack_StartsFromCounter()
+        public void BoxSettles_ThenSinglePackStacksOnTop()
         {
             CounterPile<Card> pile = NewPile();
             var recycled = new List<Card>();
             for (int i = 0; i < 20; i++) pile.Place(new Card(), true, 0f);
-            pile.CountSkipped(30);
+            pile.TrimBox(now: 1f, visible: 3, recycled);
+            for (int i = 0; i < 30; i++) pile.CountSkipped(null, isNew: i < 4);
             Assert.AreEqual(50, pile.NextIndex);
 
-            pile.ClearBox(recycled, keepBlock: false); // 상자 결과판으로 넘어갈 때
-            Assert.AreEqual(20, recycled.Count, "상자 카드는 모두 풀로");
-            Assert.AreEqual(0, pile.BlockTop);
-            Assert.AreEqual(0, pile.Place(new Card(), false, 0f), "다음 단일 팩 카드는 카운터 바닥부터");
+            pile.SettleBox();
+            Assert.AreEqual(17, recycled.Count, "아래 카드는 덩어리로");
+            Assert.AreEqual(3, pile.Pile.Count, "위 3장은 실제 카드로 남음");
+            Assert.AreEqual(47, pile.TableCards.Count, "덩어리 = 줄인 카드 + 건너뛴 카드");
+            Assert.AreEqual(4, pile.TableNew);
+            Assert.AreEqual(pile.CardCount, pile.NextIndex, "장부 규칙 유지");
+            Assert.AreEqual(50, pile.Place(new Card(), false, 0f), "다음 단일 팩 카드는 상자 더미 바로 위");
+        }
+
+        [Test]
+        public void BoxSettled_TakeAllIncludesBoxCards()
+        {
+            CounterPile<Card> pile = NewPile();
+            for (int i = 0; i < 10; i++) pile.Place(new Card(), true, 0f);
+            pile.TrimBox(now: 1f, visible: 3, new List<Card>());
+            pile.SettleBox();
+            var batch = new List<Card>();
+            var cards = new List<CardData>();
+            pile.TakeAll(batch, cards);
+            Assert.AreEqual(3, batch.Count);
+            Assert.AreEqual(10, cards.Count, "퇴근 때 상자 카드도 보관함으로");
+        }
+
+        [Test]
+        public void Height_ThinBoxCardsThenThickSingleCards()
+        {
+            Assert.AreEqual(0.04f, CardPileLayout.Height(50, 50, 0.0008f, 0.002f), 1e-6f, "상자 맨 위");
+            Assert.AreEqual(0.044f, CardPileLayout.Height(52, 50, 0.0008f, 0.002f), 1e-6f, "그 위 단일 팩은 보통 두께");
+            Assert.AreEqual(0.008f, CardPileLayout.Height(4, 0, 0.0008f, 0.002f), 1e-6f, "상자가 없으면 보통 두께");
+        }
+
+        // 11-19 피드백: 더미 자리가 다 차면 마지막 더미에 계속 쌓임 → 한 더미 장수(50)를 넘은 카드는 얇게
+        [Test]
+        public void Height_AboveSoftCapGrowsThin()
+        {
+            Assert.AreEqual(0.12f, CardPileLayout.Height(60, 0, 0.0008f, 0.002f, 60), 1e-6f, "60장까지는 보통 두께");
+            Assert.AreEqual(0.12f + 40 * 0.0008f, CardPileLayout.Height(100, 0, 0.0008f, 0.002f, 60), 1e-6f, "넘은 40장은 얇게");
+            float prev = -1f;
+            for (int i = 0; i < 200; i++)
+            {
+                float h = CardPileLayout.Height(i, 50, 0.0008f, 0.002f, 60);
+                Assert.Greater(h, prev, $"{i}번 카드가 아래 카드보다 낮음");
+                prev = h;
+            }
         }
 
         [Test]

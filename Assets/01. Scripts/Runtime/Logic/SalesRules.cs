@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CardShop.Cards;
 using UnityEngine;
 
@@ -69,6 +70,43 @@ namespace CardShop.Logic
             price = InstantPrice(card);
             s.Wallet.Add(price);
             return true;
+        }
+
+        /// <summary>
+        /// 한꺼번에 팔기 견적 (11-19 피드백 H: 레어 이하 모두 팔기). maxRarity 이하 등급의 보유 카드 전부(장수 포함)를
+        /// 즉시 판매가로 팔면 몇 장 · 얼마인지. 아무것도 바꾸지 않습니다.
+        /// </summary>
+        public int QuoteSellAllUpTo(GameSession s, CardRarity maxRarity, out int total)
+        {
+            total = 0;
+            int count = 0;
+            foreach (KeyValuePair<string, int> e in s.Collection.Owned)
+            {
+                CardData card = cards.Get(e.Key);
+                if (card == null || card.rarity > maxRarity) continue;
+                count += e.Value;
+                total += InstantPrice(card) * e.Value;
+            }
+            return count;
+        }
+
+        /// <summary>maxRarity 이하 등급의 보유 카드를 모두 즉시 판매합니다(도감은 유지). 판 장수를 돌려주고 합계는 total.</summary>
+        public int SellAllUpTo(GameSession s, CardRarity maxRarity, out int total)
+        {
+            total = 0;
+            int count = 0;
+            var ids = new List<string>(s.Collection.Owned.Keys); // 파는 동안 목록이 바뀌므로 먼저 복사
+            foreach (string id in ids)
+            {
+                CardData card = cards.Get(id);
+                if (card == null || card.rarity > maxRarity) continue;
+                while (TrySellInstantly(s, id, out int price))
+                {
+                    count++;
+                    total += price;
+                }
+            }
+            return count;
         }
 
         /// <summary>마지막 날 끝에서만 안 팔린 진열 카드를 돌려놓습니다(최종 점수에 카드 가치가 들어가므로). 그 외의 날은 집에서 등록한 카드를 지우지 않도록 아무것도 안 합니다.</summary>

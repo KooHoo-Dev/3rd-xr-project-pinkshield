@@ -51,7 +51,7 @@ namespace CardShop.UI
                 if (pending > 0) text += $" · 청소 {pending}곳";
             }
             if (flow.CurrentPhase == GamePhaseId.AfterHours)
-                text += $"\n다음 팩 {ctx.PackOpening.NextSinglePackCost} · 도감 {ctx.Session.Collection.DiscoveredCount}/{ctx.Cards.Count}";
+                text += $"\n무료 팩 {ctx.Session.FreePacksLeft} · 도감 {ctx.Session.Collection.DiscoveredCount}/{ctx.Cards.Count}";
             if (flow.IsPaused)
                 text += "\n(일시정지)";
             if (lastNotice.Length > 0)

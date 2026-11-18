@@ -36,8 +36,23 @@ namespace CardShop.Core
         public static readonly Vector3 DoorOutsidePos = new Vector3(DoorX, 0f, 5.0f);
         /// <summary>출입구 바로 안</summary>
         public static readonly Vector3 DoorInsidePos = new Vector3(DoorX, 0f, 3.5f);
-        /// <summary>판매 진열대 앞 구경 자리 (진열대 x -2.67 ~ -1.13 안쪽, 0.55m 간격)</summary>
-        public static readonly Vector3[] BrowsePositions = { new Vector3(-2.3f, 0f, 1.75f), new Vector3(-1.75f, 0f, 1.75f), new Vector3(-1.2f, 0f, 1.75f) };
+        /// <summary>
+        /// 판매 진열대 구매 자리 2칸 (11-19 손님 동선): 진열대 뒤(창 쪽)에서 플레이어 쪽을 보고 구경 → 손님 얼굴이 보임.
+        /// 예전에는 진열대 앞 3칸(z 1.75)이라 손님이 등을 보였음.
+        /// </summary>
+        public static readonly Vector3[] BrowsePositions = { new Vector3(-2.3f, 0f, 3.08f), new Vector3(-1.5f, 0f, 3.08f) };
+        /// <summary>구매 자리 뒤를 지나는 길 (z). 구매 자리에서 0.47m 떨어져 서 있는 손님을 스치지 않음</summary>
+        public const float BrowseLaneZ = 3.55f;
+        /// <summary>
+        /// 구매 자리가 빌 때까지 기다리는 줄: 구매 자리 2 오른쪽에서 창을 따라 오른쪽(문 쪽)으로 섬. 0번이 맨 앞.
+        /// 계산대 줄 뒤를 지나는 길(QueueBackLaneZ)과 0.46m 떨어지게 창 가까이 둠. 더 길면 마지막 두 칸 간격대로 이어짐.
+        /// </summary>
+        public static readonly Vector3[] BrowseWaitPositions =
+        {
+            new Vector3(-0.8f, 0f, 3.72f), new Vector3(-0.1f, 0f, 3.72f), new Vector3(0.6f, 0f, 3.72f), new Vector3(1.3f, 0f, 3.72f),
+        };
+        /// <summary>다 본 손님이 진열대 왼쪽 끝을 돌아 나오는 길 (x). 진열대 왼쪽 끝 x -2.67에서 0.6m 바깥</summary>
+        public const float StandLeftX = -3.3f;
         /// <summary>
         /// 계산대 줄. 0번이 맨 앞(결제 자리). 0.7m 간격으로 뒤(+Z)로 3칸 선 뒤 오른쪽(+X)으로 꺾음 —
         /// 앞벽 쪽 입장 통로(EntryTurnPos의 z)와 진열대 쪽 통로(AisleX)를 막지 않게 (기기 테스트 피드백: 손님이 겹쳐 섬).
@@ -48,7 +63,9 @@ namespace CardShop.Core
             new Vector3(0f, 0f, 1.4f), new Vector3(0f, 0f, 2.1f), new Vector3(0f, 0f, 2.8f),
             new Vector3(0.7f, 0f, 2.8f), new Vector3(1.4f, 0f, 2.8f),
         };
-        /// <summary>입장 통로가 꺾이는 곳: 문 안에서 앞벽을 따라 왼쪽으로 온 뒤, 진열대 오른쪽 통로로 내려감</summary>
+        /// <summary>계산대 줄 뒤를 지나는 길 (z): 줄 끝에 합류할 때 다가오는 길이자, 줄 중간에서 떠날 때 문으로 가는 길. 줄 맨 뒤 칸(z 2.8)에서 0.46m</summary>
+        public const float QueueBackLaneZ = 2.8f + 0.46f;
+        /// <summary>입장 통로가 꺾이는 곳 (지금은 카드 도둑 길에만 씀: 문 → 앞벽을 따라 왼쪽 → 진열대 오른쪽 통로)</summary>
         public static readonly Vector3 EntryTurnPos = new Vector3(-0.65f, 0f, 3.6f);
         /// <summary>진열대 오른쪽 통로의 아래 끝 (카운터 앞 · 구경 자리 앞을 지나는 낮은 통로가 시작되는 곳)</summary>
         public static readonly Vector3 AisleLowPos = new Vector3(-0.65f, 0f, 1.3f);

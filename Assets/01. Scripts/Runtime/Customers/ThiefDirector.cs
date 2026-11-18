@@ -3,6 +3,7 @@ using CardShop.Cards;
 using CardShop.Cleanup;
 using CardShop.Core;
 using CardShop.Logic;
+using CardShop.Presentation;
 using UnityEngine;
 
 namespace CardShop.Customers
@@ -41,6 +42,10 @@ namespace CardShop.Customers
         [SerializeField] float maskHeadOffset = 0.09f;
         [Tooltip("바닥에 떨어진 팩 높이 (눕혔을 때 두께의 절반, m)")]
         [SerializeField] float droppedPackHeight = 0.008f;
+        [Tooltip("도둑 옷 색 (손님 몸 전체에 곱함). 어두울수록 수상해 보임 (11-19 피드백)")]
+        [SerializeField] Color outfitTint = new Color(0.22f, 0.22f, 0.26f);
+        [Tooltip("빗자루에 맞은 뒤 휘청하다 도망치기까지 (초)")]
+        [SerializeField] float hitStunSeconds = 1.2f;
 
         static readonly string[] EnterLines = { "(두리번두리번)", "아무도 안 보지…?", "흠흠, 손님입니다~" };
         static readonly string[] StealLines = { "이건 공짜죠? ㅎㅎ", "무료 팩 잘 받아 갑니다~", "오늘 운 좋네!" };
@@ -88,7 +93,7 @@ namespace CardShop.Customers
             }
         }
 
-        // 영업 중에만 보임 (퇴근 후에는 팩 고르기에서 무료로 깜)
+        // 지킬 팩은 영업 중에만 보임 (퇴근 후에는 FreePackOffer가 같은 자리에 열 수 있는 팩을 놓음)
         void Start() => holder?.Show(flow != null && flow.CurrentPhase == GamePhaseId.Business);
 
         void OnPhaseChanged(GamePhaseId from, GamePhaseId to)
@@ -139,10 +144,12 @@ namespace CardShop.Customers
 
             Transform head = HumanoidHeight.Head(thief.GetComponentInChildren<Animator>());
             thiefHeight = ThiefBody.Height(thief, head);
+            ThiefBody.DressDark(thief, outfitTint);
             ThiefBody.WearMask(thief, head, maskTemplate, maskHeadOffset, thiefHeight);
 
             state = State.Approach;
             Say(EnterLines);
+            Sfx.Play(thief.IsFemale ? SoundId.ThiefLaughFemale : SoundId.ThiefLaughMale, thief.transform.position); // 등장 힌트
             thief.WalkPath(ThiefRules.ApproachPath(customers.Routes, stealSpot.position), stealSpot.rotation, () =>
             {
                 state = State.Linger;
@@ -182,6 +189,7 @@ namespace CardShop.Customers
             pack.Escaped();
             context.Session.Ledger.freePackStolen = true;
             Say(EscapeLines);
+            Sfx.Play(SoundId.ThiefEscaped);
             context.Events.RaiseNotice("도둑을 놓쳤어요… 오늘 퇴근 후 무료 팩은 없어요.");
             thief.WalkPath(new[] { farEscape }, null, RemoveThief);
         }
@@ -191,7 +199,9 @@ namespace CardShop.Customers
             bool hadPack = pack.Caught();
             state = State.RunOff;
             context.Session.Ledger.thievesCaught++;
-            thief.Gesture(CustomerAnim.Shake);
+            Sfx.Play(SoundId.BroomHit, thief.transform.position + Vector3.up);
+            Sfx.Play(SoundId.ThiefCaught, thief.transform.position);
+            thief.Gesture(CustomerAnim.Hit); // 전신 휘청 (Kevin Iglesias Stun01, 11-19 피드백: 맞아도 반응이 없어 어색)
             Say(CaughtLines);
 
             if (hadPack) holder.DropInFrontOf(thief.transform, droppedPackHeight);
@@ -203,7 +213,7 @@ namespace CardShop.Customers
             // 잠깐 멈칫한 뒤 가까운 쪽으로 도망
             thief.WalkTo(thief.transform.position, null, null);
             thief.WalkSpeed = settings.runSpeed;
-            thief.Wait(0.8f, () =>
+            thief.Wait(hitStunSeconds, () =>
             {
                 if (thief == null) return;
                 CustomerRoutes routes = customers.Routes;
@@ -253,6 +263,16 @@ namespace CardShop.Customers
         // ------------------------------------------------------------------ IThiefFloor
 
         public void StopSpawning() => clock.Stop();
+
+        /// <summary>무료 팩 받침 위 자리 (퇴근 후 FreePackOffer가 열 수 있는 팩을 놓는 곳). 무료 팩이 없는 씬이면 false.</summary>
+        public bool TryGetFreePackHome(out Pose pose)
+        {
+            pose = holder != null ? holder.HomePose : default;
+            return holder != null;
+        }
+
+        /// <summary>받침 · 안내 글자만 켜고 끔 (지킨 금색 팩은 숨김).</summary>
+        public void ShowFreePackStand(bool on) => holder?.ShowStandOnly(on);
 
         public void DismissAll()
         {

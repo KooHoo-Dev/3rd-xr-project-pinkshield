@@ -11,7 +11,8 @@ namespace CardShop.UI
     /// <summary>
     /// 집 책상 바인더 옆의 판매 패널 (시연 피드백 7-4).
     /// 바인더에서 카드를 고르면 이름 · 보유 장수 · 판매 등록 가능 여부 · 즉시 판매가 · 판매 등록 칸을 보여 주고,
-    /// [판매 등록] [즉시 판매] 버튼과 판매 등록 중인 카드 목록(누르면 판매 등록 취소)을 둡니다.
+    /// [판매 등록] [즉시 판매] [레어 이하 모두 팔기] 버튼과 판매 등록 중인 카드 목록(누르면 판매 등록 취소)을 둡니다.
+    /// 모두 팔기는 실수 방지로 한 번 누르면 견적(장수 · 금액)을 보여 주고, ConfirmSeconds 안에 한 번 더 누르면 팝니다.
     /// 규칙은 순수 C# SalesRules가 하고 이 컴포넌트는 버튼과 글자만 잇습니다. 집(Home)에서만 보입니다.
     /// </summary>
     public sealed class SalesPanel : HomePanel
@@ -20,6 +21,9 @@ namespace CardShop.UI
         const string NoSelection = "바인더에서 카드를 골라 주세요";
         const string DisplayHeader = "판매 등록 중";
         const string DisplayEmpty = "판매 등록 중인 카드 없음";
+        const float ConfirmSeconds = 4f;
+        // 모두 팔기 대상: 이 등급 이하 (판매 등록은 수퍼레어 이상만 되므로 그 아래를 정리하는 버튼)
+        const CardRarity SellAllMax = CardRarity.Rare;
 
         [SerializeField] BinderView binder;
         [SerializeField] TMP_Text selectedLabel;
@@ -27,15 +31,19 @@ namespace CardShop.UI
         [SerializeField] TMP_Text messageLabel;
         [SerializeField] Button displayButton;
         [SerializeField] Button sellButton;
+        [Tooltip("레어 이하 모두 팔기 (비우면 기능 없음 — Build Shop Scene 다시 실행)")]
+        [SerializeField] Button sellAllButton;
         [Tooltip("판매 등록 중인 카드 버튼(판매 등록 칸 수만큼). 누르면 판매 등록 취소")]
         [SerializeField] Button[] displayedButtons;
 
         string message = "";
+        float sellAllArmedUntil = -1f; // 이 시각까지 한 번 더 누르면 팖
 
         protected override void OnEnable()
         {
             displayButton.onClick.AddListener(OnDisplayClicked);
             sellButton.onClick.AddListener(OnSellClicked);
+            if (sellAllButton != null) sellAllButton.onClick.AddListener(OnSellAllClicked);
             for (int i = 0; i < displayedButtons.Length; i++)
             {
                 int index = i; // 람다가 반복 변수 대신 이 칸 번호를 기억하도록
@@ -49,6 +57,7 @@ namespace CardShop.UI
         {
             displayButton.onClick.RemoveListener(OnDisplayClicked);
             sellButton.onClick.RemoveListener(OnSellClicked);
+            if (sellAllButton != null) sellAllButton.onClick.RemoveListener(OnSellAllClicked);
             foreach (Button b in displayedButtons) b.onClick.RemoveAllListeners();
             if (binder != null) binder.CardSelected -= OnCardSelected;
             base.OnDisable();
@@ -82,7 +91,7 @@ namespace CardShop.UI
 
             switch (Context.Sales.Display(Context.Session, card.id))
             {
-                case DisplayResult.Ok: message = $"{card.displayName} 판매 등록"; break;
+                case DisplayResult.Ok: message = $"{card.displayName} 상점 판매 등록 완료"; break;
                 case DisplayResult.RarityTooLow: message = $"판매 등록은 {RarityName(Context.Economy.minDisplayRarity)} 이상만 가능해요"; break;
                 case DisplayResult.DisplayFull: message = "판매 등록 칸이 가득 찼어요"; break;
                 case DisplayResult.NotOwned: message = "보유한 카드가 없어요"; break;
@@ -96,9 +105,35 @@ namespace CardShop.UI
             CardData card = binder != null ? binder.SelectedCard : null;
             if (card == null || Context == null) return;
 
-            message = Context.Sales.TrySellInstantly(Context.Session, card.id, out int price)
-                ? $"{card.displayName} 판매  +{price}"
-                : "보유한 카드가 없어요";
+            bool sold = Context.Sales.TrySellInstantly(Context.Session, card.id, out int price);
+            message = sold ? $"{card.displayName} 판매  +{price}" : "보유한 카드가 없어요";
+            if (sold) Sfx.Play(SoundId.MoneyIn, transform.position);
+            Refresh();
+        }
+
+        void OnSellAllClicked()
+        {
+            if (Context == null) return;
+            GameSession s = Context.Session;
+            string what = $"{RarityName(SellAllMax)} 이하";
+
+            if (Time.unscaledTime > sellAllArmedUntil)
+            {
+                int count = Context.Sales.QuoteSellAllUpTo(s, SellAllMax, out int quote);
+                if (count == 0) message = $"{what} 카드가 없어요";
+                else
+                {
+                    message = $"{what} {count}장  +{quote}\n한 번 더 누르면 모두 팔아요";
+                    sellAllArmedUntil = Time.unscaledTime + ConfirmSeconds;
+                }
+            }
+            else
+            {
+                sellAllArmedUntil = -1f;
+                int sold = Context.Sales.SellAllUpTo(s, SellAllMax, out int total);
+                message = sold > 0 ? $"{what} {sold}장 판매  +{total}" : $"{what} 카드가 없어요";
+                if (sold > 0) Sfx.Play(SoundId.MoneyIn, transform.position);
+            }
             Refresh();
         }
 
@@ -145,6 +180,11 @@ namespace CardShop.UI
             }
             displayButton.interactable = card != null;
             sellButton.interactable = card != null;
+            if (sellAllButton != null)
+            {
+                bool armed = Time.unscaledTime <= sellAllArmedUntil;
+                sellAllButton.GetComponentInChildren<TMP_Text>().text = armed ? "한 번 더 눌러 판매" : $"{RarityName(SellAllMax)} 이하 모두 팔기";
+            }
 
             statusLabel.text = $"판매 등록 칸 {session.SalesDisplay.Count} / {Context.Economy.salesDisplaySlots}   ·   보유 재화 {session.Wallet.Money}";
             messageLabel.text = message;

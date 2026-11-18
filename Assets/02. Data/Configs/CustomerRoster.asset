@@ -363,6 +363,8 @@ MonoBehaviour:
   noRepeatCount: 3
   maleController: {fileID: 9100000, guid: ae3b0ed7ce66d4d40a233cc29e78da8c, type: 2}
   femaleController: {fileID: 22100000, guid: b3cfa98f44841464ab602b12b6838f33, type: 2}
+  maleHeadHeight: {x: 1.58, y: 1.72}
+  femaleHeadHeight: {x: 1.5, y: 1.64}
   walkSpeed: 1.2
   turnSpeedDegrees: 360
   browseSeconds: {x: 3, y: 6}

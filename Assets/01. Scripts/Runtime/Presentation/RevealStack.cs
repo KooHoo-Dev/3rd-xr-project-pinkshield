@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CardShop.Cards;
 using CardShop.Logic;
 using UnityEngine;
 
@@ -114,18 +115,20 @@ namespace CardShop.Presentation
         public CardRevealView TakeFront()
         {
             CardRevealView v = views[0];
+            Sfx.Play(SoundId.CardFlip, v.transform.position);
             views.RemoveAt(0);
             return v;
         }
 
         /// <summary>
         /// 건너뛰기 (DEC-004): queue[from..]의 남은 카드를 전 등급 건너뛰고, 끝까지 보여 줄 갓팩 카드만 담은 새 대기열을 돌려줍니다 (DEC-008).
-        /// 단일 팩은 남은 카드가 모두 더미로 날아가고(결과함에 5장이 다 있어야 하므로), 상자는 더미 높이로만 셉니다(오브젝트 없음).
+        /// 단일 팩은 남은 카드가 모두 더미로 날아가고(결과함에 5장이 다 있어야 하므로), 상자는 더미 덩어리 카드로만 셉니다(오브젝트 없음).
         /// </summary>
         public List<RevealItem> Skip(List<PackResult> packs, List<RevealItem> queue, int from, bool isBox)
         {
             Settings s = settings;
             List<RevealItem> kept = RevealQueue.GodOnly(packs, queue, from);
+            Sfx.Play(SoundId.CardShuffle, Pose.position);
             Vector3 back = Pose.rotation * Vector3.forward;
             int flyIndex = 0;
             for (int k = from; k < queue.Count; k++)
@@ -141,7 +144,8 @@ namespace CardShop.Presentation
                 if (isBox)
                 {
                     if (v != null) pool.Recycle(v);
-                    pile.CountSkipped(1);
+                    PackResult sp = packs[item.Pack];
+                    pile.CountSkipped(sp.Cards[item.Card], sp.IsNew[item.Card]);
                     continue;
                 }
                 if (v == null)

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Logic;
+using CardShop.Presentation;
 using UnityEngine;
 
 namespace CardShop.Cleanup
@@ -149,6 +151,7 @@ namespace CardShop.Cleanup
             // 잡기를 먼저 끔: 들고 있는 팩이면 강제로 놓이며 떨어지기 시작하는데, 그 뒤 PlaceAt이 떨어짐을 멈추고 칸에 꽂음
             pack.Held.SetGrabbable(false);
             pack.Held.PlaceAt(slots[slot].position, slots[slot].rotation);
+            Sfx.Play(SoundId.RackInsert, slots[slot].position);
         }
 
         static Vector3 ClampInsideShop(Vector3 p)

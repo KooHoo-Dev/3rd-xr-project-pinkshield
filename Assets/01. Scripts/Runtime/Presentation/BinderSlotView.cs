@@ -8,7 +8,8 @@ namespace CardShop.Presentation
 {
     /// <summary>
     /// 바인더 한 칸 (월드 UI). 페이지를 넘기면 같은 칸 오브젝트에 다른 카드를 다시 그립니다(오브젝트 재사용).
-    /// 발견한 카드 = 그림 + 이름 + 보유 장수, 못 얻은 카드 = 검은 실루엣 + 번호, 팔아서 0장 = "판매됨"(설계서 Q9).
+    /// 발견한 카드 = 그림 + 이름 + 보유 장수, 못 얻은 카드 = 검은 실루엣 + 번호, 팔아서 0장 = "판매됨"(설계서 Q9),
+    /// 가게 판매 등록으로 0장 = "판매 등록 완료" (11-19 플레이 피드백: 등록만 했는데 "판매됨"으로 보였음).
     /// </summary>
     public sealed class BinderSlotView : MonoBehaviour
     {
@@ -48,7 +49,15 @@ namespace CardShop.Presentation
 
         /// <param name="card">null이면 빈 칸(마지막 페이지의 남는 칸)이라 숨깁니다.</param>
         /// <param name="number">바인더 전체 번호 (1부터)</param>
-        public void Show(CardData card, int number, bool discovered, int count, CardRarityStyles styles)
+        /// <param name="listed">가게에 판매 등록 중인 장수 (보유 장수 count에는 들어 있지 않음)</param>
+        /// <summary>칸 아래 글자: 보유 장수 · 판매 등록 · 판매됨.</summary>
+        public static string CountLabel(int count, int listed)
+        {
+            if (count > 0) return listed > 0 ? $"x{count} · 등록 {listed}" : $"x{count}";
+            return listed > 0 ? "판매 등록 완료" : "판매됨";
+        }
+
+        public void Show(CardData card, int number, bool discovered, int count, int listed, CardRarityStyles styles)
         {
             if (card == null)
             {
@@ -68,7 +77,7 @@ namespace CardShop.Presentation
                 nameText.text = card.displayName;
                 nameText.color = DarkText;
                 // 배경판 없이도 읽히도록 글자 뒤에 어두운 띠
-                countText.text = count > 0 ? $"<mark=#140F1ECC> x{count} </mark>" : "<mark=#140F1ECC> 판매됨 </mark>";
+                countText.text = $"<mark=#140F1ECC> {CountLabel(count, listed)} </mark>";
             }
             else
             {

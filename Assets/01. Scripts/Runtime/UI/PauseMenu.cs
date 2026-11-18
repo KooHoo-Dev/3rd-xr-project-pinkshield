@@ -1,5 +1,7 @@
 using System.Collections;
+using CardShop.Cards;
 using CardShop.Core;
+using CardShop.Presentation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -36,7 +38,8 @@ namespace CardShop.UI
         [SerializeField] Button confirmNoButton;
         [Tooltip("플레이어 앞 거리 (m)")]
         [SerializeField] float distance = 1.0f;
-        [SerializeField] int countdownSeconds = 3;
+        [Tooltip("[이어서 하기]를 누른 뒤 메뉴가 닫히고 게임이 다시 흐르기까지 (초). 11-19 피드백: 3초 카운트다운 → 숫자 없이 1초")]
+        [SerializeField] float resumeDelay = 1f;
 
         GameContext subscribed;
         InputAction pauseAction;
@@ -97,6 +100,7 @@ namespace CardShop.UI
 
         void Show()
         {
+            Sfx.Play(SoundId.PauseOpen);
             ShowMain();
             Place();
             root.SetActive(true);
@@ -147,16 +151,11 @@ namespace CardShop.UI
             if (countdown == null) countdown = StartCoroutine(CountdownThenResume());
         }
 
-        // 바로 재개하면 준비할 틈 없이 시간이 흐르므로 카운트다운을 둡니다.
+        // 버튼을 누른 손이 제자리로 갈 틈만 짧게 두고 재개 (숫자 카운트다운은 없앰, 11-19 피드백)
         IEnumerator CountdownThenResume()
         {
             mainPanel.SetActive(false);
-            countdownLabel.gameObject.SetActive(true);
-            for (int n = countdownSeconds; n > 0; n--)
-            {
-                countdownLabel.text = n.ToString();
-                yield return new WaitForSecondsRealtime(1f);
-            }
+            yield return new WaitForSecondsRealtime(resumeDelay);
             countdown = null;
             flow.Resume(); // PausedChanged(false) → Hide
         }

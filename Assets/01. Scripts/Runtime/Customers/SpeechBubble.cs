@@ -12,6 +12,7 @@ namespace CardShop.Customers
     /// → 만화식 구름 말풍선을 글자 '뒤에' 그립니다. 동그라미 스프라이트(코드로 만든 원 하나)를 겹쳐
     ///   몸통(타원) + 가장자리 뭉게(작은 원들) + 꼬리(머리 쪽 작은 원 2개)를 만들고, 같은 모양을 조금 크게 진한 색으로 깔아 테두리를 냅니다.
     ///   글자 길이에 맞춰 크기가 바뀌어도 모양이 깨지지 않습니다(이미지 에셋 불필요).
+    /// 사라질 때는 투명해지지 않고 작아지며 사라집니다 (11-19 피드백: 겹친 원들이 반투명해지면 서로 비쳐 동그라미 자국이 보였음).
     /// </summary>
     public sealed class SpeechBubble : MonoBehaviour
     {
@@ -41,6 +42,7 @@ namespace CardShop.Customers
         readonly List<SpriteRenderer> outlines = new List<SpriteRenderer>();
         Transform head;
         Transform body;
+        float pop = 1f; // 사라질 때 작아지는 배율 (1 → 0)
         float left;
         float duration;
 
@@ -125,7 +127,7 @@ namespace CardShop.Customers
             left = duration;
             gameObject.SetActive(true);
             Layout();
-            SetAlpha(1f);
+            pop = 1f;
             Follow();
         }
 
@@ -178,18 +180,12 @@ namespace CardShop.Customers
             outlines[i].enabled = true;
         }
 
-        void SetAlpha(float a)
-        {
-            text.alpha = a;
-            foreach (SpriteRenderer r in fills) { Color c = r.color; c.a = a; r.color = c; }
-            foreach (SpriteRenderer r in outlines) { Color c = r.color; c.a = a; r.color = c; }
-        }
-
         void LateUpdate()
         {
             if (IsPaused == null || !IsPaused()) left -= Time.deltaTime;
             if (left <= 0f) { gameObject.SetActive(false); return; }
-            if (left < FadeSeconds) SetAlpha(Mathf.Clamp01(left / FadeSeconds));
+            // 마지막 FadeSeconds 동안 꼬리 끝(머리 위)을 향해 작아짐. 원들이 불투명한 채라 겹친 자국이 생기지 않음
+            pop = left < FadeSeconds ? Mathf.Max(0.01f, Mathf.SmoothStep(0f, 1f, left / FadeSeconds)) : 1f;
             Follow();
         }
 
@@ -206,13 +202,13 @@ namespace CardShop.Customers
             Camera cam = Camera.main;
             if (cam == null)
             {
-                transform.localScale = unscale;
+                transform.localScale = unscale * pop;
                 return;
             }
             Vector3 dir = transform.position - cam.transform.position;
             // 멀리 있는 손님 말풍선도 읽히게: 보이는 크기가 거의 일정하도록 거리에 비례해 키움 (원점이 꼬리 끝이라 위로만 커짐)
             float distanceScale = Mathf.Clamp(dir.magnitude / ReferenceDistance, 1f, MaxDistanceScale);
-            transform.localScale = unscale * distanceScale;
+            transform.localScale = unscale * (distanceScale * pop);
             dir.y = 0f; // 수평으로만 돌림 (위아래로 기울면 읽기 어려움)
             if (dir.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
         }

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using CardShop.Cards;
 using UnityEngine;
 
 namespace CardShop.Presentation
@@ -64,6 +65,7 @@ namespace CardShop.Presentation
             if (playing) return cardsRiseDelay;
             playing = true;
             if (tearSound != null) AudioSource.PlayClipAtPoint(tearSound, transform.position, tearVolume);
+            else Sfx.Play(SoundId.PackTear, transform.position); // 인스펙터 칸이 비면 SoundBank
             StartCoroutine(Run());
             return cardsRiseDelay;
         }

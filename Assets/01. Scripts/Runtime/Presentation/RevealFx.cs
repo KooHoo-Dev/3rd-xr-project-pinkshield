@@ -29,6 +29,8 @@ namespace CardShop.Presentation
             public float LegendaryPackExtraPause = 0.6f;
             [Tooltip("갓팩 예고 뒤 첫 카드까지 멈춤 (초)")]
             public float GodIntroSeconds = 1f;
+            [Tooltip("갓팩 예고: 짧은 진동 3번 뒤 이어지는 길고 센 진동 (초). 11-19 피드백: 더 극적으로")]
+            public float GodRumbleSeconds = 1f;
             [Tooltip("갓팩 예고 효과음 (비워 두면 없음)")]
             public AudioClip GodPackSound;
         }
@@ -90,8 +92,11 @@ namespace CardShop.Presentation
             Vector3 center = stack.position + stack.rotation * Vector3.forward * 0.01f;
             Burst().Play(center, stack.rotation, SpecialGold, 0.3f, 1.4f);
             if (settings.GodPackSound != null) AudioSource.PlayClipAtPoint(settings.GodPackSound, center, 1f);
-            if (hand != null) host.StartCoroutine(Haptic(hand, 0.8f, 0.12f, 3));
-            return settings.GodIntroSeconds;
+            const float pulse = 0.12f, gap = 0.06f;
+            if (hand != null) host.StartCoroutine(GodHaptic(hand, pulse, gap, settings.GodRumbleSeconds));
+            // 긴 진동이 끝나기 전에 첫 카드가 나오지 않게
+            float hapticTotal = 3f * pulse + 3f * gap + settings.GodRumbleSeconds;
+            return Mathf.Max(settings.GodIntroSeconds, hapticTotal);
         }
 
         RarityRevealProfile Profile(Settings s)
@@ -109,6 +114,14 @@ namespace CardShop.Presentation
         }
 
         RevealBurst Burst() => burst != null ? burst : burst = RevealBurst.Create(host.transform);
+
+        // 두근두근(짧게 3번) → 부르르(길고 세게)
+        static IEnumerator GodHaptic(XRBaseInputInteractor hand, float pulse, float gap, float rumble)
+        {
+            yield return Haptic(hand, 0.8f, pulse, 3);
+            yield return new WaitForSeconds(pulse + gap);
+            if (hand != null && rumble > 0f) hand.SendHapticImpulse(1f, rumble);
+        }
 
         static IEnumerator Haptic(XRBaseInputInteractor hand, float amplitude, float seconds, int count)
         {

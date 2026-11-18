@@ -40,7 +40,11 @@ namespace CardShop.Interaction
             font = fontAsset;
         }
 
-        void Awake() => toast = WorldToast.Create(transform, font);
+        void Awake()
+        {
+            toast = WorldToast.Create(transform, font);
+            toast.transform.localScale = Vector3.one * 2f; // 1m 거리에서 읽히도록 크게 (퇴근 혼잣말과 같게, 11-19 피드백)
+        }
 
         void LateUpdate()
         {

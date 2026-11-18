@@ -1,4 +1,5 @@
 using System.Collections;
+using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Logic;
 using CardShop.Presentation;
@@ -36,11 +37,18 @@ namespace CardShop.Interaction
             if (!allowed) { Deny("팩은 영업이 끝난 뒤에 열 수 있어요.", toastPos, hand); return; }
             if (revealer.IsBusy) { Deny("아직 카드를 여는 중이에요.", toastPos, hand); return; }
 
-            int cost = pack.IsGift ? 0 : ctx.PackOpening.NextSinglePackCost;
-            if (!ctx.PackOpening.TryOpenSingle(pack.Clue, pack.IsGift, out PackResult result, out OpenFailReason fail))
+            int cost = pack.IsGift || pack.IsFree ? 0 : ctx.Economy.packPrice;
+            PackResult result;
+            OpenFailReason fail;
+            bool opened = pack.IsFree
+                ? ctx.PackOpening.TryOpenFree(out result, out fail)
+                : ctx.PackOpening.TryOpenSingle(pack.Clue, pack.IsGift, out result, out fail);
+            if (!opened)
             {
                 if (fail == OpenFailReason.NotEnoughMoney)
                     Deny($"재화가 부족해요. (팩 {ctx.Economy.packPrice}, 보유 {ctx.Session.Wallet.Money})", toastPos, hand);
+                else if (fail == OpenFailReason.NoFreePack)
+                    Deny("오늘 무료 팩은 이미 열었어요.", toastPos, hand);
                 return;
             }
 
@@ -91,6 +99,7 @@ namespace CardShop.Interaction
 
         void Deny(string message, Vector3 at, XRBaseInputInteractor hand)
         {
+            Sfx.Play(SoundId.UiDeny, at);
             GameContext.Instance.Events.RaiseNotice(message);
             if (toast == null) toast = WorldToast.Create(transform, revealer.Font);
             toast.Show(message, at);

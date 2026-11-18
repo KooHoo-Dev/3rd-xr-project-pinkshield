@@ -192,8 +192,9 @@ namespace CardShop.Tests
             session.FreePacksLeft = 1;
             session.Wallet.Add(economy.packPrice);
 
-            Assert.IsTrue(service.TryOpenSingle(PackClue.None, false, out _, out _), "무료 팩");
+            Assert.IsTrue(service.TryOpenFree(out _, out _), "무료 팩");
             Assert.AreEqual(economy.packPrice, session.Wallet.Money, "무료 팩은 차감 없음");
+            Assert.AreEqual(0, session.FreePacksLeft);
 
             Assert.IsTrue(service.TryOpenSingle(PackClue.None, false, out _, out _), "유료 팩");
             Assert.AreEqual(0, session.Wallet.Money);
@@ -201,6 +202,25 @@ namespace CardShop.Tests
             Assert.IsFalse(service.TryOpenSingle(PackClue.None, false, out _, out OpenFailReason fail));
             Assert.AreEqual(OpenFailReason.NotEnoughMoney, fail);
             Assert.AreEqual(2, session.Stats.packsOpened);
+        }
+
+        [Test]
+        public void ShelfPack_IsPaidEvenWithFreePackLeft()
+        {
+            session.FreePacksLeft = 1;
+            session.Wallet.Add(economy.packPrice);
+            Assert.IsTrue(service.TryOpenSingle(PackClue.None, false, out _, out _));
+            Assert.AreEqual(0, session.Wallet.Money, "선반 팩은 무료 팩이 남아도 유료");
+            Assert.AreEqual(1, session.FreePacksLeft, "무료 팩은 계산대 팩으로만 씀");
+        }
+
+        [Test]
+        public void FreePack_FailsWhenNoneLeft()
+        {
+            session.FreePacksLeft = 0;
+            Assert.IsFalse(service.TryOpenFree(out _, out OpenFailReason fail));
+            Assert.AreEqual(OpenFailReason.NoFreePack, fail);
+            Assert.AreEqual(0, session.Stats.packsOpened);
         }
 
         [Test]
@@ -215,7 +235,7 @@ namespace CardShop.Tests
         public void OpenedCards_GoToCollectionWithNewFlags()
         {
             session.FreePacksLeft = 1;
-            service.TryOpenSingle(PackClue.None, false, out PackResult r, out _);
+            service.TryOpenFree(out PackResult r, out _);
             Assert.AreEqual(odds.CardsPerPack, session.Collection.TotalCards);
             Assert.IsTrue(r.IsNew[0], "첫 카드는 항상 새 카드");
             Assert.IsNotNull(session.Stats.bestCard);

@@ -167,6 +167,8 @@ namespace CardShop.Tests
             Assert.IsNotNull(director, "CustomerDirector 없음 (Build Shop Scene 다시 실행)");
             var so = new SerializedObject(director);
             Assert.Greater(so.FindProperty("browseSpots").arraySize, 0, "구경 자리 없음");
+            Assert.AreEqual(ShopLayout.BrowsePositions.Length, so.FindProperty("browseSpots").arraySize, "구매 자리 수가 ShopLayout과 다름 (11-19 손님 동선, Build Shop Scene 다시 실행)");
+            Assert.Greater(so.FindProperty("browseWaitSlots").arraySize, 0, "구매 자리 대기 줄 없음 (Build Shop Scene 다시 실행)");
             Assert.Greater(so.FindProperty("queueSlots").arraySize, 0, "계산대 줄 자리 없음");
             // 줄 동선 통로 · 말풍선 대사 (2026-11-18 기기 테스트 피드백)
             foreach (string point in new[] { "entryTurn", "aisleLow", "counterExit", "lineSet", "bubbleFont" })
