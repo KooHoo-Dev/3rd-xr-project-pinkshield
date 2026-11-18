@@ -28,6 +28,10 @@ namespace CardShop.UI
         [SerializeField] Button recalibrateButton;
         [Tooltip("비우면 누를 때 씬에서 찾음 (플레이어 리그에 붙어 있음)")]
         [SerializeField] CardShop.Interaction.PlayerHeightCalibrator heightCalibrator;
+        [Tooltip("디버그 패널 보이기/숨기기 버튼. Release 빌드에서는 숨김. 비워 두면 버튼 없이 동작")]
+        [SerializeField] Button debugToggleButton;
+        [Tooltip("켜고 끌 디버그 패널. 비워 두면 토글 버튼을 숨김")]
+        [SerializeField] CardShop.DebugTools.DebugCheats debugCheats;
         [SerializeField] Button confirmYesButton;
         [SerializeField] Button confirmNoButton;
         [Tooltip("플레이어 앞 거리 (m)")]
@@ -43,6 +47,12 @@ namespace CardShop.UI
             resumeButton.onClick.AddListener(OnResume);
             restartButton.onClick.AddListener(ShowConfirm);
             if (recalibrateButton != null) recalibrateButton.onClick.AddListener(OnRecalibrate);
+            if (debugToggleButton != null)
+            {
+                bool usable = debugCheats != null && CardShop.DebugTools.DebugCheats.Available;
+                debugToggleButton.gameObject.SetActive(usable);
+                if (usable) debugToggleButton.onClick.AddListener(OnToggleDebug);
+            }
             confirmYesButton.onClick.AddListener(OnRestartConfirmed);
             confirmNoButton.onClick.AddListener(ShowMain);
 
@@ -64,6 +74,7 @@ namespace CardShop.UI
             resumeButton.onClick.RemoveListener(OnResume);
             restartButton.onClick.RemoveListener(ShowConfirm);
             if (recalibrateButton != null) recalibrateButton.onClick.RemoveListener(OnRecalibrate);
+            if (debugToggleButton != null) debugToggleButton.onClick.RemoveListener(OnToggleDebug);
             confirmYesButton.onClick.RemoveListener(OnRestartConfirmed);
             confirmNoButton.onClick.RemoveListener(ShowMain);
             if (subscribed != null) subscribed.Events.PausedChanged -= OnPausedChanged;
@@ -119,6 +130,7 @@ namespace CardShop.UI
 
         void ShowMain()
         {
+            UpdateDebugLabel();
             mainPanel.SetActive(true);
             confirmPanel.SetActive(false);
             countdownLabel.gameObject.SetActive(false);
@@ -150,6 +162,21 @@ namespace CardShop.UI
         }
 
         void OnRestartConfirmed() => flow.RestartGame();
+
+        // 디버그 패널은 계산대 오른쪽 고정 자리에 뜹니다 (Development 빌드 · 에디터에서만)
+        void OnToggleDebug()
+        {
+            if (debugCheats == null) return;
+            debugCheats.PanelVisible = !debugCheats.PanelVisible;
+            UpdateDebugLabel();
+        }
+
+        void UpdateDebugLabel()
+        {
+            if (debugToggleButton == null || debugCheats == null) return;
+            var label = debugToggleButton.GetComponentInChildren<TMP_Text>(true);
+            if (label != null) label.text = debugCheats.PanelVisible ? "디버그 패널 숨기기" : "디버그 패널 보이기";
+        }
 
         // 지금 자세 그대로 바로 맞춥니다(메뉴를 보고 있으니 고개는 대체로 수평). 눈높이가 바뀌었으니 메뉴도 다시 눈앞에 놓습니다.
         void OnRecalibrate()

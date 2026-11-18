@@ -8,6 +8,8 @@ namespace CardShop.DebugTools
     /// <summary>
     /// 촬영·테스트용 치트 (기획서 10장: 등급·갓팩·레전더리 확정 팩 강제). 에디터와 Development 빌드에서만 동작하고,
     /// Release 빌드에서는 이 오브젝트를 스스로 끕니다. 버튼(UnityEvent)에서 호출합니다.
+    /// 기기(Development 빌드)에서는 패널을 숨긴 채 시작합니다: 출시 빌드처럼 타이틀 · 정산 판만으로 진행되는지 보다가,
+    /// 필요할 때 일시정지 메뉴의 [디버그 패널 보이기]로 켭니다. 에디터에서는 켜진 채 시작합니다.
     /// </summary>
     public sealed class DebugCheats : MonoBehaviour
     {
@@ -21,8 +23,27 @@ namespace CardShop.DebugTools
             hideInRelease = hide;
         }
 
+        /// <summary>이 빌드에 디버그 기능이 들어 있는가 (에디터 · Development 빌드)</summary>
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public static bool Available => true;
+#else
+        public static bool Available => false;
+#endif
+
+        /// <summary>디버그 패널(이 오브젝트)이 보이는가. Release 빌드에서는 항상 false.</summary>
+        public bool PanelVisible
+        {
+            get => gameObject.activeSelf;
+            set => gameObject.SetActive(value && Available);
+        }
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         static GameContext Ctx => GameContext.Instance;
+
+        void Awake()
+        {
+            if (!Application.isEditor) gameObject.SetActive(false); // 기기에서는 숨긴 채 시작
+        }
 
         public void ForceGodPack() => Force(r => r.ForceNextSpecial(SpecialPackType.GodPack), "다음 팩: 갓팩");
         public void ForceLegendaryPack() => Force(r => r.ForceNextSpecial(SpecialPackType.LegendaryPack), "다음 팩: 레전더리 확정");

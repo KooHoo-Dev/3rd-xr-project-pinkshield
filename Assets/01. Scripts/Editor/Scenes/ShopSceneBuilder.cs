@@ -518,7 +518,7 @@ namespace CardShop.EditorTools
             canvasGo.transform.SetParent(system.transform, false);
             canvasGo.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
             var rt = (RectTransform)canvasGo.transform;
-            rt.sizeDelta = new Vector2(500f, 560f);           // 1px = 1mm
+            rt.sizeDelta = new Vector2(500f, 640f);           // 1px = 1mm (버튼 4개: 높이 64mm · 간격 38mm)
             rt.localScale = Vector3.one * 0.001f;
             rt.position = new Vector3(0f, 1.4f, 1.0f);        // 실제 위치는 PauseMenu가 눈앞으로 옮김
 
@@ -527,13 +527,15 @@ namespace CardShop.EditorTools
             WorldUi.Stretch((RectTransform)bg.transform, Vector2.zero, Vector2.one);
             bg.GetComponent<Image>().color = new Color(0.1f, 0.08f, 0.14f, 0.92f);
 
-            WorldUi.AddText(canvasGo.transform, "Title", "일시정지", new Vector2(0f, 0.7f), new Vector2(1f, 0.95f), 44f, Color.white, font);
+            WorldUi.AddText(canvasGo.transform, "Title", "일시정지", new Vector2(0f, 0.76f), new Vector2(1f, 0.95f), 44f, Color.white, font);
 
             GameObject main = CreatePanel(canvasGo.transform, "MainPanel");
             // 버튼 높이 56mm, 간격 34mm (시연 피드백 C2: 위아래로 붙어 있어 잘못 눌림)
-            Button resume = WorldUi.AddButton(main.transform, "이어서 하기", new Vector2(0.08f, 0.52f), new Vector2(0.92f, 0.62f), font);
-            Button recalibrate = WorldUi.AddButton(main.transform, "눈높이 다시 맞추기", new Vector2(0.08f, 0.36f), new Vector2(0.92f, 0.46f), font);
-            Button restart = WorldUi.AddButton(main.transform, "처음부터 다시 시작", new Vector2(0.08f, 0.20f), new Vector2(0.92f, 0.30f), font);
+            Button resume = WorldUi.AddButton(main.transform, "이어서 하기", new Vector2(0.08f, 0.60f), new Vector2(0.92f, 0.70f), font);
+            Button recalibrate = WorldUi.AddButton(main.transform, "눈높이 다시 맞추기", new Vector2(0.08f, 0.44f), new Vector2(0.92f, 0.54f), font);
+            Button restart = WorldUi.AddButton(main.transform, "처음부터 다시 시작", new Vector2(0.08f, 0.28f), new Vector2(0.92f, 0.38f), font);
+            // 디버그 패널 켜고 끄기 (Development 빌드 · 에디터에서만 보임. 기기에서는 패널이 숨겨진 채 시작)
+            Button debugToggle = WorldUi.AddButton(main.transform, "디버그 패널 보이기", new Vector2(0.08f, 0.12f), new Vector2(0.92f, 0.22f), font);
 
             GameObject confirm = CreatePanel(canvasGo.transform, "ConfirmPanel");
             WorldUi.AddText(confirm.transform, "Message", "정말 처음부터 다시 시작할까요?\n진행 상황이 사라져요.", new Vector2(0.05f, 0.45f), new Vector2(0.95f, 0.7f), 28f, Color.white, font);
@@ -552,6 +554,8 @@ namespace CardShop.EditorTools
             so.FindProperty("resumeButton").objectReferenceValue = resume;
             so.FindProperty("restartButton").objectReferenceValue = restart;
             so.FindProperty("recalibrateButton").objectReferenceValue = recalibrate;
+            so.FindProperty("debugToggleButton").objectReferenceValue = debugToggle;
+            so.FindProperty("debugCheats").objectReferenceValue = Object.FindFirstObjectByType<DebugCheats>(FindObjectsInactive.Include);
             so.FindProperty("confirmYesButton").objectReferenceValue = yes;
             so.FindProperty("confirmNoButton").objectReferenceValue = no;
             so.ApplyModifiedPropertiesWithoutUndo();
