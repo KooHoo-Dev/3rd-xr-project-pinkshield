@@ -78,6 +78,9 @@ namespace CardShop.Interaction
             if (pack == null || pack.Grab.enabled) return;
             pack = null;
             if (thief != null) thief.ShowFreePackStand(false);
+            // 무료 팩이 더 남았으면(튜토리얼을 건너뛰어 받은 선물 팩 몫 등) 한 개 더 올림
+            if (CurrentPhase == GamePhaseId.AfterHours && Context != null && Context.Session.FreePacksLeft > 0 && routine == null)
+                routine = StartCoroutine(OfferNextFrame());
         }
 
         void OnReleased(SelectExitEventArgs _)

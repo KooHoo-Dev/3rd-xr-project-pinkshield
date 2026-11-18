@@ -67,7 +67,8 @@ namespace CardShop.Customers
         readonly SpawnClock clock = new SpawnClock();
         readonly List<CustomerAgent> agents = new List<CustomerAgent>();
 
-        public bool IsPaused => flow != null && flow.IsPaused;
+        // 일시정지 · 튜토리얼 정지 모두 손님 시간(등장 · 인내심 · 걷기)을 멈춤 (튜토리얼_설계 8-3)
+        public bool IsPaused => flow != null && flow.IsTimeStopped;
         public bool HasCustomers => agents.Count > 0 || clock.HasPending;
         /// <summary>지금 매장 안팎에 있는 손님 (입구 종 등 연출이 읽기만 함)</summary>
         public IReadOnlyList<CustomerAgent> Agents => agents;

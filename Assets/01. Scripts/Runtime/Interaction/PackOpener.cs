@@ -46,7 +46,10 @@ namespace CardShop.Interaction
             if (!opened)
             {
                 if (fail == OpenFailReason.NotEnoughMoney)
+                {
                     Deny($"재화가 부족해요. (팩 {ctx.Economy.packPrice}, 보유 {ctx.Session.Wallet.Money})", toastPos, hand);
+                    ctx.Events.RaiseHappened(GameMoment.PackDeniedMoney);
+                }
                 else if (fail == OpenFailReason.NoFreePack)
                     Deny("오늘 무료 팩은 이미 열었어요.", toastPos, hand);
                 return;
@@ -61,6 +64,7 @@ namespace CardShop.Interaction
             if (tear == null) tear = pack.gameObject.AddComponent<PackTearEffect>(); // 프리팹을 다시 만들기 전이면 기본값으로
 
             ctx.Events.RaiseNotice(cost == 0 ? "무료 팩 개봉!" : $"팩 개봉 (-{cost})");
+            ctx.Events.RaiseHappened(pack.IsGift ? GameMoment.GiftPackOpened : pack.IsFree ? GameMoment.PackOpenedFree : GameMoment.PackOpenedPaid);
             revealer.RevealPack(result, stackPose, tear); // 이전 카드 더미는 여기서 자동으로 보관함에
         }
 
@@ -95,6 +99,7 @@ namespace CardShop.Interaction
             }
 
             revealer.RevealBox(results);
+            ctx.Events.RaiseHappened(GameMoment.BoxOpened);
         }
 
         void Deny(string message, Vector3 at, XRBaseInputInteractor hand)

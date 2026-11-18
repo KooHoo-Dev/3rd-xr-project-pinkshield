@@ -132,6 +132,7 @@ namespace CardShop.Cleanup
             trash.gameObject.SetActive(true);
             trash.Init(bin);
             context.Events.RaiseNotice("바닥에 쓰레기가 떨어졌어요. 주워서 카운터 오른쪽 쓰레기통에!");
+            context.Events.RaiseHappened(GameMoment.TrashSpawned);
             return trash;
         }
 
@@ -145,6 +146,7 @@ namespace CardShop.Cleanup
             var spot = go.AddComponent<MessyPackSpot>();
             spot.Init(scattered);
             context.Events.RaiseNotice("진열대 팩이 바닥에 떨어졌어요. 왼쪽 판매 진열대 팩 꽂이에 다시 꽂아 주세요!");
+            context.Events.RaiseHappened(GameMoment.MessyPackSpawned);
             return spot;
         }
 
@@ -153,6 +155,7 @@ namespace CardShop.Cleanup
             spot.Completed -= OnCompleted;
             if (flow.CurrentPhase != GamePhaseId.Business) return;
             context.Session.Ledger.cleanupsDone++;
+            context.Events.RaiseHappened(spot is TrashSpot ? GameMoment.TrashBinned : GameMoment.MessyPackFixed);
             int left = PendingCount;
             context.Events.RaiseNotice(left > 0
                 ? $"청소 완료! 알바비 +{context.Economy.cleanupBonus} (남은 청소 {left}곳)"

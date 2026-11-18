@@ -16,6 +16,9 @@ namespace CardShop.UI
 
         protected override GamePhaseId Phase => GamePhaseId.Title;
 
+        /// <summary>버튼 모양을 복제할 원본 (튜토리얼 켬/끔 버튼)</summary>
+        public Button RecalibrateButton => recalibrateButton;
+
         protected override void OnEnable()
         {
             base.OnEnable();

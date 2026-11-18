@@ -36,6 +36,9 @@ namespace CardShop.Customers
         float checkoutSeconds; // 물건을 올린 뒤 흐른 시간 (일시정지 제외), 계산 평가용
         readonly List<ScannableItem> spawned = new List<ScannableItem>();
 
+        /// <summary>다음 손님 한 명의 물건 수를 이 값으로 고정 (0 = 평소대로). 한 번 쓰면 0으로 돌아갑니다 (튜토리얼 첫 손님 1개, 튜토리얼_설계 9장 Q2).</summary>
+        public int ForceNextItemCount { get; set; }
+
         /// <summary>지금 장바구니의 물건 수 (인내 시간 계산용)</summary>
         public int ItemCount => basket != null ? basket.Count : 0;
 
@@ -59,6 +62,7 @@ namespace CardShop.Customers
             int cardPrice = card != null ? ctx.Sales.CustomerPrice(card, ctx.PopularToday) : 0;
             List<StockOption> options = shopItems != null ? shopItems.Options() : new List<StockOption>();
             int count = shopItems != null ? BasketRules.RollCount(shopItems.countWeights, shopItems.MaxCount(s.Day), ctx.Random) : 1;
+            if (ForceNextItemCount > 0) { count = ForceNextItemCount; ForceNextItemCount = 0; }
             basket = BasketRules.Build(card, cardPrice, count, options, s.Day, ctx.Random);
             onPaid = paid;
             checkoutSeconds = 0f;
@@ -75,11 +79,12 @@ namespace CardShop.Customers
                 item.Released += released => OnReleased(index, released);
             }
             if (pos != null) pos.Show(basket);
+            ctx.Events.RaiseHappened(GameMoment.CheckoutStarted);
         }
 
         void Update()
         {
-            if (basket != null && flow != null && !flow.IsPaused) checkoutSeconds += Time.deltaTime;
+            if (basket != null && flow != null && !flow.IsTimeStopped) checkoutSeconds += Time.deltaTime; // 튜토리얼 정지 중에도 빠른 계산 시간은 멈춤
         }
 
         ScannableItem Spawn(BasketLine line, int i)
@@ -117,6 +122,9 @@ namespace CardShop.Customers
             if (item != null) item.ShowLabel($"{line.Name}\n{line.Price}");
             if (bag == null) basket.MarkBagged(index); // 봉투가 없는 씬: 찍으면 끝
             if (pos != null) pos.Show(basket);
+            Context.Events.RaiseHappened(GameMoment.ItemScanned);
+            if (basket.AllScanned) Context.Events.RaiseHappened(GameMoment.AllScanned);
+            if (basket.AllBagged) Context.Events.RaiseHappened(GameMoment.AllBagged);
         }
 
         // 물건을 놓은 곳이 봉투 위면 담기. 안 찍은 물건은 받지 않고 안내만 (물건은 스스로 제자리로 돌아감)
@@ -132,6 +140,7 @@ namespace CardShop.Customers
             bag.Put(item);
             Sfx.Play(SoundId.BagPut, item.transform.position);
             if (pos != null) pos.Show(basket);
+            if (basket.AllBagged) Context.Events.RaiseHappened(GameMoment.AllBagged);
         }
 
         /// <summary>결제 버튼(Poke). 장바구니의 물건을 모두 찍고 봉투에 담았어야 합니다.</summary>
@@ -163,6 +172,7 @@ namespace CardShop.Customers
             CardData bought = ctx.Sales.CompleteSale(ctx.Session, card, ctx.PopularToday, out int net) ? card : null;
             Sfx.Play(SoundId.PosPay, pos != null ? pos.transform.position : transform.position);
             Clear(); // 손님이 물건을 가져감
+            ctx.Events.RaiseHappened(GameMoment.CheckoutPaid);
             paid?.Invoke(bought, count, net);
         }
 

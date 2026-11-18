@@ -41,6 +41,13 @@ namespace CardShop.UI
         [Tooltip("[이어서 하기]를 누른 뒤 메뉴가 닫히고 게임이 다시 흐르기까지 (초). 11-19 피드백: 3초 카운트다운 → 숫자 없이 1초")]
         [SerializeField] float resumeDelay = 1f;
 
+        /// <summary>메뉴 화면 전체 (튜토리얼 버튼을 덧붙일 때 크기를 늘림)</summary>
+        public RectTransform Root => root != null ? (RectTransform)root.transform : null;
+        /// <summary>첫 화면 버튼 묶음</summary>
+        public GameObject MainPanel => mainPanel;
+        /// <summary>버튼 모양을 복제할 원본</summary>
+        public Button ResumeButton => resumeButton;
+
         GameContext subscribed;
         InputAction pauseAction;
         Coroutine countdown;

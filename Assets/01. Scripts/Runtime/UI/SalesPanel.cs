@@ -91,7 +91,10 @@ namespace CardShop.UI
 
             switch (Context.Sales.Display(Context.Session, card.id))
             {
-                case DisplayResult.Ok: message = $"{card.displayName} 상점 판매 등록 완료"; break;
+                case DisplayResult.Ok:
+                    message = $"{card.displayName} 상점 판매 등록 완료";
+                    Context.Events.RaiseHappened(GameMoment.SalesRegistered);
+                    break;
                 case DisplayResult.RarityTooLow: message = $"판매 등록은 {RarityName(Context.Economy.minDisplayRarity)} 이상만 가능해요"; break;
                 case DisplayResult.DisplayFull: message = "판매 등록 칸이 가득 찼어요"; break;
                 case DisplayResult.NotOwned: message = "보유한 카드가 없어요"; break;
@@ -107,7 +110,7 @@ namespace CardShop.UI
 
             bool sold = Context.Sales.TrySellInstantly(Context.Session, card.id, out int price);
             message = sold ? $"{card.displayName} 판매  +{price}" : "보유한 카드가 없어요";
-            if (sold) Sfx.Play(SoundId.MoneyIn, transform.position);
+            if (sold) { Sfx.Play(SoundId.MoneyIn, transform.position); Context.Events.RaiseHappened(GameMoment.InstantSold); }
             Refresh();
         }
 

@@ -122,7 +122,7 @@ namespace CardShop.Customers
 
         void Update()
         {
-            if (flow == null || flow.IsPaused || flow.CurrentPhase != GamePhaseId.Business) return;
+            if (flow == null || flow.IsTimeStopped || flow.CurrentPhase != GamePhaseId.Business) return;
 
             // 도둑이 나와 있는 동안은 시계가 멈춤. 훔칠 팩이 없으면(이미 잃었거나 바닥에 있음) 차례가 와도 안 옴
             if (thief == null && clock.Tick(Time.deltaTime) && pack.AtHome) Spawn();
@@ -131,6 +131,11 @@ namespace CardShop.Customers
                 ThiefRules.IsHit(broom.HeadPosition, broom.HeadSpeed, thief.transform.position, thiefHeight, settings.hitRadius, settings.hitSpeed))
                 Caught();
         }
+
+        /// <summary>지금 나와 있는 도둑 (튜토리얼 하이라이트용). 없으면 null.</summary>
+        public Transform ActiveThief => thief != null ? thief.transform : null;
+        /// <summary>도둑을 치는 빗자루</summary>
+        public Broom Broom => broom;
 
         bool CanBeHit => state == State.Linger || state == State.Taunt || state == State.Flee;
 
@@ -148,6 +153,7 @@ namespace CardShop.Customers
             ThiefBody.WearMask(thief, head, maskTemplate, maskHeadOffset, thiefHeight);
 
             state = State.Approach;
+            context.Events.RaiseHappened(GameMoment.ThiefAppeared);
             Say(EnterLines);
             Sfx.Play(thief.IsFemale ? SoundId.ThiefLaughFemale : SoundId.ThiefLaughMale, thief.transform.position); // 등장 힌트
             thief.WalkPath(ThiefRules.ApproachPath(customers.Routes, stealSpot.position), stealSpot.rotation, () =>
@@ -188,6 +194,7 @@ namespace CardShop.Customers
             state = State.RunOff;
             pack.Escaped();
             context.Session.Ledger.freePackStolen = true;
+            context.Events.RaiseHappened(GameMoment.ThiefEscaped);
             Say(EscapeLines);
             Sfx.Play(SoundId.ThiefEscaped);
             context.Events.RaiseNotice("도둑을 놓쳤어요… 오늘 퇴근 후 무료 팩은 없어요.");
@@ -199,6 +206,7 @@ namespace CardShop.Customers
             bool hadPack = pack.Caught();
             state = State.RunOff;
             context.Session.Ledger.thievesCaught++;
+            context.Events.RaiseHappened(GameMoment.ThiefCaught);
             Sfx.Play(SoundId.BroomHit, thief.transform.position + Vector3.up);
             Sfx.Play(SoundId.ThiefCaught, thief.transform.position);
             thief.Gesture(CustomerAnim.Hit); // 전신 휘청 (Kevin Iglesias Stun01, 11-19 피드백: 맞아도 반응이 없어 어색)

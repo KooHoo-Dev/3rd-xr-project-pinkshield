@@ -57,6 +57,13 @@ namespace CardShop.Core
         int EndDay();
     }
 
+    /// <summary>1일차 출근 장면(사장님 첫 팩). 구현은 Tutorial의 TutorialDirector. 없거나 끝났으면 Intro는 바로 영업으로 갑니다.</summary>
+    public interface IIntroScript
+    {
+        /// <summary>Intro를 끝내도 되는가 (튜토리얼이 꺼졌거나 건너뛰었으면 참)</summary>
+        bool IntroDone { get; }
+    }
+
     public interface IGamePhase
     {
         GamePhaseId Id { get; }
@@ -94,6 +101,18 @@ namespace CardShop.Core
 
         /// <summary>카드 도둑. ThiefDirector가 OnEnable에서 등록합니다.</summary>
         public IThiefFloor Thief { get; set; }
+
+        /// <summary>1일차 출근 장면. TutorialDirector가 등록합니다.</summary>
+        public IIntroScript Intro { get; set; }
+
+        /// <summary>
+        /// 튜토리얼 정지 (튜토리얼_설계 8-3): 영업 타이머 · 손님 · 도둑의 시간만 멈춥니다.
+        /// IsPaused와 달리 일시정지 메뉴가 뜨지 않고, 찍기 · 봉투 · 청소 같은 플레이어 행동은 그대로 됩니다.
+        /// </summary>
+        public bool IsHeld { get; set; }
+
+        /// <summary>게임 시간이 멈췄는가 (일시정지 또는 튜토리얼 정지). 시간이 흐르는 쪽(타이머 · 손님 · 도둑)이 읽습니다.</summary>
+        public bool IsTimeStopped => isPaused || IsHeld;
 
         /// <summary>전환 연출 중에는 버튼 입력을 받지 않습니다.</summary>
         public bool IsTransitioning => isTransitioning;

@@ -42,8 +42,8 @@ namespace CardShop.Core.Phases
     }
 
     /// <summary>
-    /// 1일차 사장님 첫 팩 · 업무 소개. 튜토리얼(TODO)이 생기기 전까지는 첫 Tick에 바로 영업으로 넘어갑니다
-    /// (출시 빌드에는 디버그 "다음" 버튼이 없어 여기서 멈췄음 — 타이틀연출_손님_설계 0-3).
+    /// 1일차 사장님 첫 팩 (튜토리얼_설계 5-2). 튜토리얼(Flow.Intro)이 있으면 그 장면이 끝날 때까지 기다리고,
+    /// 없거나 꺼져 있으면 첫 Tick에 바로 영업으로 넘어갑니다 (출시 빌드에는 디버그 "다음" 버튼이 없음 — 타이틀연출_손님_설계 0-3).
     /// </summary>
     public sealed class IntroPhase : GamePhase
     {
@@ -53,11 +53,15 @@ namespace CardShop.Core.Phases
         public override void Enter()
         {
             Context.Events.RaiseDayStarted(Context.Session.Day);
-            Log("사장님 첫 팩 (튜토리얼 미구현: 바로 영업으로)");
+            Log(Flow.Intro != null ? "사장님 첫 팩 (튜토리얼)" : "사장님 첫 팩 (튜토리얼 없음: 바로 영업으로)");
         }
 
         // Enter 안에서 바로 GoTo하면 PhaseChanged 구독자가 Intro → Business를 한 호출 안에서 겹쳐 받으므로 한 프레임 뒤에 넘김
-        public override void Tick(float deltaTime) => Flow.GoTo(GamePhaseId.Business);
+        public override void Tick(float deltaTime)
+        {
+            if (Flow.IsTransitioning) return; // 출근 페이드가 끝나기 전
+            if (Flow.Intro == null || Flow.Intro.IntroDone) Flow.GoTo(GamePhaseId.Business);
+        }
 
         public override void OnAdvanceRequested() => Flow.GoTo(GamePhaseId.Business);
     }
@@ -94,7 +98,7 @@ namespace CardShop.Core.Phases
 
         public override void Tick(float deltaTime)
         {
-            if (Flow.IsPaused) return;
+            if (Flow.IsTimeStopped) return; // 일시정지 · 튜토리얼 정지
             if (!IsClosing)
             {
                 TimeLeft -= deltaTime;
@@ -103,6 +107,7 @@ namespace CardShop.Core.Phases
                 IsClosing = true;
                 Flow.Customers?.StopSpawning();
                 Flow.Thief?.StopSpawning();
+                Context.Events.RaiseHappened(GameMoment.BusinessClosing);
                 Log("영업 시간 종료 (남은 손님 결제 대기)");
             }
 

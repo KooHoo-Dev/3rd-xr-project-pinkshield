@@ -278,6 +278,7 @@ namespace CardShop.Presentation
             foreach (CardRevealView v in Pile.Cards) v.SetGrabbable(true);
             rayUi.Restore(); // 연출 중 꺼 둔 오른손 레이 UI 복귀 (결과 단계에서는 트리거를 쓰지 않음)
             packRoutine = null;
+            context?.Events.RaiseHappened(GameMoment.RevealFinished);
         }
 
         // 상자 결과판: 팩마다 5점 줄 → 합계 → 하이라이트 카드. 결과판 · 하이라이트는 다음 상자 · 영업 시작 때 정리
@@ -297,6 +298,7 @@ namespace CardShop.Presentation
             stage = PackStage.None;
             rayUi.Restore();
             packRoutine = null;
+            context?.Events.RaiseHappened(GameMoment.RevealFinished);
         }
 
         // 상자 카드 묶음 자리: 단일 팩을 눈앞에 들었을 때와 같은 곳(머리 정면 45cm, 8cm 아래). 카메라가 없으면 카운터 위.

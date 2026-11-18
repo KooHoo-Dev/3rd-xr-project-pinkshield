@@ -95,7 +95,11 @@ namespace CardShop.Core
         /// <summary>손님이 매장을 나감. 청소 구역 생성용 (자리는 CleanupPlacement가 정함).</summary>
         public event Action CustomerLeft;
 
+        /// <summary>플레이어가 겪은 "처음이면 안내할 만한 순간" (튜토리얼_설계 8-4). 지금은 튜토리얼만 듣습니다.</summary>
+        public event Action<GameMoment> Happened;
+
         public void RaiseCustomerLeft() => CustomerLeft?.Invoke();
+        public void RaiseHappened(GameMoment moment) => Happened?.Invoke(moment);
         public void RaiseNotice(string message)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
