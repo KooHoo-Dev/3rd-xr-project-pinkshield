@@ -67,6 +67,20 @@ namespace CardShop.DebugTools
             Ctx.Events.RaiseNotice("[치트] 일시정지");
         }
 
+        public void SpawnThiefNow()
+        {
+            var thief = FindAnyObjectByType<CardShop.Customers.ThiefDirector>();
+            bool ok = thief != null && thief.DebugSpawnNow();
+            Ctx.Events.RaiseNotice(ok ? "[치트] 도둑 등장" : "[치트] 도둑은 영업 중 · 팩이 제자리 · 도둑이 없을 때만");
+        }
+
+        public void SpawnCustomerNow()
+        {
+            var customers = FindAnyObjectByType<CardShop.Customers.CustomerDirector>();
+            bool ok = customers != null && customers.DebugSpawnNow();
+            Ctx.Events.RaiseNotice(ok ? "[치트] 손님 1명" : "[치트] 손님은 영업 중에만");
+        }
+
         public void CalibrateHeight()
         {
             var calibrator = FindAnyObjectByType<CardShop.Interaction.PlayerHeightCalibrator>();
@@ -93,6 +107,8 @@ namespace CardShop.DebugTools
         public void SkipToAfterHours() { }
         public void CalibrateHeight() { }
         public void PauseNow() { }
+        public void SpawnThiefNow() { }
+        public void SpawnCustomerNow() { }
 #endif
     }
 }

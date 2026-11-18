@@ -379,14 +379,17 @@ namespace CardShop.EditorTools
             var cheats = canvasGo.AddComponent<DebugCheats>();
             cheats.Configure(flow);
 
-            // 버튼: 위에서부터 한 줄씩. 높이 56mm, 간격 20mm (시연 피드백 C2: 6mm였을 때 옆 버튼이 눌림)
-            string[] names = { "다음 (Advance)", "퇴근 전으로 건너뛰기", "재화 +100", "다음 팩: 갓팩", "다음 팩: 레전더리 확정", "다음 팩: 유니크 히트", "눈높이 맞추기 (1.6m)", "일시정지 (테스트)" };
-            UnityAction[] actions = { null, cheats.SkipToAfterHours, cheats.AddMoney100, cheats.ForceGodPack, cheats.ForceLegendaryPack, cheats.ForceUniqueHit, cheats.CalibrateHeight, cheats.PauseNow };
+            // 버튼: 두 칸씩 위에서부터. 높이 56mm, 줄 간격 20mm (시연 피드백 C2: 6mm였을 때 옆 버튼이 눌림), 칸 사이 20mm.
+            // 11-19 밤: 도둑 · 손님 바로 부르기 추가로 10개 → 두 칸
+            string[] names = { "다음 (Advance)", "퇴근 전으로", "재화 +100", "다음 팩: 갓팩", "레전더리 확정 팩", "유니크 히트", "도둑 지금 등장", "손님 1명 지금", "눈높이 1.6m", "일시정지" };
+            UnityAction[] actions = { null, cheats.SkipToAfterHours, cheats.AddMoney100, cheats.ForceGodPack, cheats.ForceLegendaryPack, cheats.ForceUniqueHit, cheats.SpawnThiefNow, cheats.SpawnCustomerNow, cheats.CalibrateHeight, cheats.PauseNow };
             Button advance = null;
             for (int i = 0; i < names.Length; i++)
             {
-                float top = 0.62f - i * ButtonStep;
-                Button b = WorldUi.AddButton(canvasGo.transform, names[i], new Vector2(0.08f, top - ButtonHeight), new Vector2(0.92f, top), font);
+                float top = 0.62f - (i / 2) * ButtonStep;
+                float left = i % 2 == 0 ? 0.04f : 0.52f;
+                Button b = WorldUi.AddButton(canvasGo.transform, names[i], new Vector2(left, top - ButtonHeight), new Vector2(left + 0.44f, top), font);
+                b.GetComponentInChildren<TMP_Text>().fontSize = 24f;
                 if (actions[i] != null) UnityEventTools.AddPersistentListener(b.onClick, actions[i]);
                 else advance = b;
             }

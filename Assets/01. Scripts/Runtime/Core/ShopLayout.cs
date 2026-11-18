@@ -65,8 +65,11 @@ namespace CardShop.Core
         };
         /// <summary>계산대 줄 뒤를 지나는 길 (z): 줄 끝에 합류할 때 다가오는 길이자, 줄 중간에서 떠날 때 문으로 가는 길. 줄 맨 뒤 칸(z 2.8)에서 0.46m</summary>
         public const float QueueBackLaneZ = 2.8f + 0.46f;
-        /// <summary>입장 통로가 꺾이는 곳 (지금은 카드 도둑 길에만 씀: 문 → 앞벽을 따라 왼쪽 → 진열대 오른쪽 통로)</summary>
-        public static readonly Vector3 EntryTurnPos = new Vector3(-0.65f, 0f, 3.6f);
+        /// <summary>
+        /// 입장 통로가 꺾이는 곳 (지금은 카드 도둑 길에만 씀: 문 → 계산대 줄 뒤 길 → 진열대 오른쪽 통로).
+        /// 11-19 밤: 창가 구매 대기 줄(z 3.72)을 스치지 않게 z 3.6 → 줄 뒤 길(QueueBackLaneZ)로 내림
+        /// </summary>
+        public static readonly Vector3 EntryTurnPos = new Vector3(-0.65f, 0f, QueueBackLaneZ);
         /// <summary>진열대 오른쪽 통로의 아래 끝 (카운터 앞 · 구경 자리 앞을 지나는 낮은 통로가 시작되는 곳)</summary>
         public static readonly Vector3 AisleLowPos = new Vector3(-0.65f, 0f, 1.3f);
         /// <summary>결제를 마친 손님이 줄을 가로지르지 않고 카운터 앞을 따라 오른쪽으로 빠지는 곳</summary>
