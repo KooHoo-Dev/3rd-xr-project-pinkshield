@@ -56,6 +56,26 @@ namespace CardShop.Core
         public static readonly Vector3 StandPos = new Vector3(-1.9f, 0f, 2.4f);
         public static readonly Vector3 StandSize = new Vector3(1.54f, 0.77f, 0.52f);
 
+        // ---------------------------------------------------------------- 청소 (기획서 5-1, 인테리어 설계 S5 · S6)
+        /// <summary>쓰레기통 바닥 가운데 (카운터 오른쪽 옆, 플레이어 자리에서 한 걸음)</summary>
+        public static readonly Vector3 TrashBinPos = new Vector3(1.6f, 0f, 0.55f);
+        /// <summary>앞벽 창 안쪽 면의 z. 얼룩은 이 면에서 1cm 안쪽에 붙음</summary>
+        public const float WindowInnerZ = FrontZ - WallHalf;
+        /// <summary>창문 얼룩이 생길 수 있는 자리 (파노라마 창 3장 안, 눈~가슴 높이)</summary>
+        public static readonly Vector3[] SmudgePositions =
+        {
+            new Vector3(-3.4f, 1.35f, WindowInnerZ - 0.01f),
+            new Vector3(-2.0f, 1.5f, WindowInnerZ - 0.01f),
+            new Vector3(-0.9f, 1.25f, WindowInnerZ - 0.01f),
+            new Vector3(0.5f, 1.45f, WindowInnerZ - 0.01f),
+        };
+        /// <summary>걸레를 올려 둔 청소 도구 받침 (창 앞, 손님 동선 밖)</summary>
+        public static readonly Vector3 RagStandPos = new Vector3(-0.5f, 0f, 3.55f);
+        public static readonly Vector3 RagStandSize = new Vector3(0.35f, 0.45f, 0.35f);
+        /// <summary>판매 진열대 위 팩 꽂이 칸 수 · 칸 간격 (흐트러진 팩 청소)</summary>
+        public const int PackRackSlots = 4;
+        public const float PackRackSpacing = 0.3f;
+
         // ---------------------------------------------------------------- 집 (가게에서 30m 떨어진 같은 씬 구역)
         public static readonly Vector3 HomeOrigin = new Vector3(30f, 0f, 0f);
         // 집 로컬 좌표의 벽 중심선 (2.5m 모듈 2 × 2). 책상(z 1.6)이 뒷벽에 붙도록 뒷벽을 z 2.0에 둠.

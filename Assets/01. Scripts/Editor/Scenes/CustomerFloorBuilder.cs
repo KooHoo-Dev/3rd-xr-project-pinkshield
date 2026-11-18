@@ -251,7 +251,7 @@ namespace CardShop.EditorTools
             return t;
         }
 
-        static void Label(Transform parent, string text, Vector3 pos, TMP_FontAsset font, float size = 0.5f)
+        internal static void Label(Transform parent, string text, Vector3 pos, TMP_FontAsset font, float size = 0.5f)
         {
             var go = new GameObject("Label", typeof(RectTransform));
             go.transform.SetParent(parent);
