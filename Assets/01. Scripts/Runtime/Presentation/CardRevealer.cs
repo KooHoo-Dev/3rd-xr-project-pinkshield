@@ -139,13 +139,10 @@ namespace CardShop.Presentation
         [SerializeField] float stashSeconds = 0.45f;
         [SerializeField] float stashStagger = 0.05f;
 
-        CardRevealPool cardPool; // 카드 오브젝트 재사용
-        // 카운터 더미 장부: 높이 순번 · 덩어리 · 오래된 카드 (순수 C#, CounterPileTests)
-        readonly CounterPile<CardRevealView> counter = new CounterPile<CardRevealView>(v => v.Card, v => v.IsNew, v => v.IsHeld);
-        readonly List<CardRevealView> recycleBuffer = new List<CardRevealView>();
+        CardRevealPool cardPool;     // 카드 오브젝트 재사용
+        CounterPileView counterPile; // 카운터 카드 더미 (장부는 CounterPile, CounterPileTests)
         PackResultPanel pileInfo;
         Coroutine pileInfoHide;
-        readonly List<CardRevealView> stashing = new List<CardRevealView>();   // 보관함으로 날아가는 중
         readonly List<CardRevealView> stackViews = new List<CardRevealView>(); // 눈앞 묶음에 실체화된 카드 (맨 앞부터)
         GameContext context;
         TextMeshPro boxBoard;
@@ -153,7 +150,6 @@ namespace CardShop.Presentation
         BoxOpenEffect boxEffect;
         SkipHoldGauge gauge;
         RevealBurst burst;
-        Transform pileBlock;
         Coroutine packRoutine;
         Coroutine warmRoutine;
         PackStage stage;
@@ -161,8 +157,6 @@ namespace CardShop.Presentation
         ICardStash stash;
         HoldToSkipTimer skipTimer;
         Advance advance;
-        Pose pileBasePose;
-        float blockThickness = 0.002f;
 
         // 연출 중 오른손 레이의 UI 클릭을 잠시 끔 (트리거 하나가 넘기기 · 넣기 · UI 클릭을 동시에 하지 않게)
         readonly RayUiSuppressor rayUi = new RayUiSuppressor();
@@ -171,7 +165,7 @@ namespace CardShop.Presentation
         public bool IsBusy => stage == PackStage.Tearing || stage == PackStage.Flipping || stage == PackStage.Summary;
 
         /// <summary>카운터에 아직 보관하지 않은 카드 더미가 있음 (단일 팩).</summary>
-        public bool HasPile => counter.HasCards;
+        public bool HasPile => Pile.HasCards;
 
         /// <summary>카운터 위 위치 (상자 안내 말풍선 자리).</summary>
         public Vector3 AnchorPosition => anchor.position;
@@ -234,7 +228,7 @@ namespace CardShop.Presentation
         public void RevealPack(PackResult pack, Pose stackPose, PackTearEffect tear = null)
         {
             // 이전 더미는 퇴근 전까지 테이블에 그대로 둠. 너무 많이 쌓였을 때만 보관함으로 옮김.
-            if (counter.CardCount >= pileMaxCards)
+            if (Pile.CardCount >= pileMaxCards)
             {
                 StashPile();
                 context?.Events.RaiseNotice("카드 더미가 가득 차서 보관함으로 옮겼어요");
@@ -279,14 +273,13 @@ namespace CardShop.Presentation
         IEnumerator PackSequence(List<PackResult> packs, Pose stack, PackTearEffect tear)
         {
             bool isBox = packs.Count > 1;
-            blockThickness = isBox ? boxPileThickness : pileThickness;
             curStackScale = !isBox && tear != null ? tear.transform.lossyScale.y * packFitRatio : stackScale;
             stage = PackStage.Tearing;
             XRBaseInputInteractor hand = HandFinder.Find(InteractorHandedness.Right);
             rayUi.Suppress(hand); // 연출 중 오른손 트리거가 Ray UI 클릭까지 하지 않게
             skipTimer = new HoldToSkipTimer(fastForwardHoldSeconds, holdGaugeGrace);
             skipTimer.RequireRelease(); // 자르기 제스처로 트리거를 누른 채 열렸을 수 있음
-            pileBasePose = PileBase();
+            Pile.Begin(PileBase(), isBox);
             List<RevealItem> queue = RevealQueue.BuildAll(packs);
 
             // ① 개봉 연출
@@ -341,7 +334,7 @@ namespace CardShop.Presentation
                 float pause = AnnounceCard(front, card, confirmed, hand);
                 yield return WaitForAdvance(hand, pause, !godPack, gaugePose);
                 stackViews.RemoveAt(0);
-                SendToPile(front, isBox, 0f);
+                Pile.Send(front, isBox, 0f);
                 qi++;
 
                 if (advance == Advance.Skip && !skipped)
@@ -364,14 +357,14 @@ namespace CardShop.Presentation
 
             // 마지막 카드가 더미에 내려앉는 것까지 (건너뛰면 카드가 조금씩 늦게 출발하므로 그만큼 더 기다림 — 날아가는 중에 잡히지 않게)
             yield return new WaitForSeconds(flySeconds + (skipped ? (packs[0].Cards.Length - 1) * skipFlyStagger : 0f));
-            CompressPile();
+            Pile.Compress(); // 실제 카드로 두는 수를 넘으면 오래된 카드부터 옆면 덩어리로
 
             // 결과함 UI: 이번 팩 카드 더미 위, 월드 고정. 카드는 퇴근 전까지 테이블에 남아 있고 잡아서 볼 수 있음.
             stage = PackStage.Result;
-            float packBase = CardPileLayout.Height(counter.NextIndex - packs[0].Cards.Length, pileThickness);
+            float packBase = Pile.HeightAt(Pile.NextIndex - packs[0].Cards.Length);
             EnsureResultPanel().Show(packs[0], cardPrefab != null ? cardPrefab.Styles : null,
-                pileBasePose.position + Vector3.up * (packBase + resultPanelHeight), anchor.rotation, resultFontSize, resultPopSeconds);
-            foreach (CardRevealView v in counter.Pile) v.SetGrabbable(true);
+                Pile.BasePose.position + Vector3.up * (packBase + resultPanelHeight), anchor.rotation, resultFontSize, resultPopSeconds);
+            foreach (CardRevealView v in Pile.Cards) v.SetGrabbable(true);
             rayUi.Restore(); // 연출 중 꺼 둔 오른손 레이 UI 복귀 (결과 단계에서는 트리거를 쓰지 않음)
             packRoutine = null;
         }
@@ -379,11 +372,11 @@ namespace CardShop.Presentation
         // ---- 카드 더미 정보: 더미의 카드를 집으면 테이블에 쌓인 카드 전체의 요약을 옆에 띄움 (줄어든 오래된 카드도 포함)
         void OnCardGrabbed(CardRevealView v)
         {
-            if (!counter.Contains(v) || stage == PackStage.Tearing || stage == PackStage.Flipping) return;
+            if (!Pile.Contains(v) || stage == PackStage.Tearing || stage == PackStage.Flipping) return;
             if (pileInfoHide != null) { StopCoroutine(pileInfoHide); pileInfoHide = null; }
             if (pileInfo == null) pileInfo = PackResultPanel.Create(transform, Font);
-            float top = CardPileLayout.Height(counter.NextIndex, pileThickness);
-            Vector3 at = pileBasePose.position + anchor.right * pileInfoOffset + Vector3.up * (top + resultPanelHeight);
+            float top = Pile.HeightAt(Pile.NextIndex);
+            Vector3 at = Pile.BasePose.position + anchor.right * pileInfoOffset + Vector3.up * (top + resultPanelHeight);
             pileInfo.ShowText(BuildPileInfo(v), at, anchor.rotation, resultFontSize, 0.15f);
         }
 
@@ -410,17 +403,9 @@ namespace CardShop.Presentation
         string BuildPileInfo(CardRevealView held)
         {
             var cards = new List<CardData>();
-            int newCount = counter.CollectCards(cards);
+            int newCount = Pile.CollectCards(cards);
             return RevealText.PileInfo(cards, newCount, held != null ? held.Card : null, held != null && held.IsNew,
                 cardPrefab != null ? cardPrefab.Styles : null);
-        }
-
-        // 눈앞 · 테이블에 실제 카드로 두는 수를 넘으면 가장 오래된 카드부터 옆면 덩어리로 바꿉니다 (손에 든 카드는 건드리지 않음).
-        void CompressPile()
-        {
-            counter.Compress(pileVisibleCards, recycleBuffer);
-            RecycleBuffered();
-            UpdatePileBlock();
         }
 
         // 트리거를 새로 누르면 다음(Next), 1.5초 꾹이면 건너뛰기(Skip). 결과는 advance 필드에.
@@ -512,7 +497,7 @@ namespace CardShop.Presentation
                 if (isBox)
                 {
                     if (v != null) Recycle(v);
-                    CountOnPile(1);
+                    Pile.CountSkipped(1); // 오브젝트 없이 더미 높이로만
                     continue;
                 }
                 if (v == null)
@@ -522,7 +507,7 @@ namespace CardShop.Presentation
                         curStackScale);
                     v.SetGrabbable(false);
                 }
-                SendToPile(v, false, flyIndex++ * skipFlyStagger);
+                Pile.Send(v, false, flyIndex++ * skipFlyStagger);
             }
             stackViews.Clear();
             return kept;
@@ -562,65 +547,6 @@ namespace CardShop.Presentation
                 if (popIn) v.FlyTo(pos, stack.rotation, popInSeconds, curStackScale, arcHeight: 0f, grabbableOnArrive: false);
                 stackViews.Add(v);
             }
-        }
-
-        // 넘긴 카드를 카운터 더미로. 단일 팩은 모두 남기고(결과함 · 보관함), 상자는 위쪽 몇 장만 남기고 아래는 덩어리로 바꿉니다.
-        void SendToPile(CardRevealView v, bool isBox, float delay)
-        {
-            int index = counter.Place(v, isBox, Time.time + delay + flySeconds);
-            Pose p = CardPileLayout.GetPose(index, pileBasePose, isBox ? boxPileThickness : pileThickness, pileJitterAngle, pileJitterOffset);
-            v.FlyTo(p.position, p.rotation, flySeconds, counterScale, grabbableOnArrive: false, delay: delay);
-            if (!isBox) return;
-            // 상자 더미: 다 내려앉은 아래쪽 카드부터 풀로 돌려보내고, 그 높이만큼 덩어리를 키웁니다.
-            counter.TrimBox(Time.time, boxPileVisible, recycleBuffer);
-            RecycleBuffered();
-            UpdatePileBlock();
-        }
-
-        // 건너뛴 카드는 오브젝트 없이 더미 높이로만 셉니다.
-        void CountOnPile(int count)
-        {
-            counter.CountSkipped(count);
-            UpdatePileBlock();
-        }
-
-        void RecycleBuffered()
-        {
-            foreach (CardRevealView v in recycleBuffer) Recycle(v);
-            recycleBuffer.Clear();
-        }
-
-        // 카드 옆면 색 상자 하나로 더미 아래쪽을 표시 (카드 50장을 다 두지 않음)
-        void UpdatePileBlock()
-        {
-            int blockTop = counter.BlockTop;
-            if (blockTop <= 0)
-            {
-                if (pileBlock != null) pileBlock.gameObject.SetActive(false);
-                return;
-            }
-            Transform block = EnsurePileBlock();
-            float cardT = CardView.Thickness * counterScale;
-            float h = CardPileLayout.Height(blockTop - 1, blockThickness) + cardT;
-            block.gameObject.SetActive(true);
-            block.SetPositionAndRotation(pileBasePose.position + Vector3.up * (h * 0.5f - cardT * 0.5f), pileBasePose.rotation);
-            // 눕힌 카드 기준: 로컬 X = 가로, Y = 세로, Z = 두께(아래쪽)
-            block.localScale = new Vector3(CardView.Width * counterScale * 0.98f, CardView.Height * counterScale * 0.98f, h);
-        }
-
-        Transform EnsurePileBlock()
-        {
-            if (pileBlock != null) return pileBlock;
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            go.name = "BoxPileBlock";
-            go.transform.SetParent(transform, false);
-            Destroy(go.GetComponent<Collider>()); // 보기만 함 (잡기 · 물리 X)
-            var r = go.GetComponent<MeshRenderer>();
-            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            Material edge = EdgeMaterial();
-            if (edge != null) r.sharedMaterial = edge;
-            pileBlock = go.transform;
-            return pileBlock;
         }
 
         // 카드 옆면 머티리얼(CardPrefabBuilder의 "CardEdge")을 빌려 써서 더미 덩어리가 카드 옆면처럼 보이게
@@ -701,20 +627,8 @@ namespace CardShop.Presentation
         public void StashPile()
         {
             EndPackRoutine();
-            if (!counter.HasCards) return;
-
-            var batch = new List<CardRevealView>();
-            var cards = new List<CardData>();
-            counter.TakeAll(batch, cards);
-            if (pileBlock != null) pileBlock.gameObject.SetActive(false);
-            foreach (CardRevealView v in batch)
-            {
-                Pool.Detach(v);
-                stashing.Add(v);
-            }
-            float seconds = Stash.Send(batch);
-            StartCoroutine(RecycleAfter(batch, seconds));
-            PileStashed?.Invoke(cards);
+            List<CardData> cards = Pile.Stash(Stash);
+            if (cards != null) PileStashed?.Invoke(cards);
         }
 
         // 뜯기 · 넘기기 · 결과판 채우는 도중이면(더미가 다 쌓이지 않음) 보관 대신 그냥 비웁니다.
@@ -722,16 +636,6 @@ namespace CardShop.Presentation
         {
             if (IsBusy) Clear();
             else StashPile();
-        }
-
-        IEnumerator RecycleAfter(List<CardRevealView> batch, float seconds)
-        {
-            if (seconds > 0f) yield return new WaitForSeconds(seconds);
-            foreach (CardRevealView v in batch)
-            {
-                if (!stashing.Remove(v)) continue; // 이미 Clear로 거둬 감
-                Pool.Rest(v);
-            }
         }
 
         RarityRevealProfile Profile
@@ -800,8 +704,7 @@ namespace CardShop.Presentation
         public void Clear()
         {
             ClearShown();
-            foreach (CardRevealView v in stashing) Pool.Rest(v);
-            stashing.Clear();
+            Pile.StopStashing();
         }
 
         // 보관함으로 날아가는 중인 카드는 건드리지 않고, 나머지 연출 · 카드만 정리합니다.
@@ -815,9 +718,12 @@ namespace CardShop.Presentation
             if (boxEffect != null) boxEffect.Stop();
             if (burst != null) burst.Stop();
             RecycleRevealArea(keepPile);
-            if (keepPile) Pool.RecycleAll(counter.Contains);
-            else Pool.RecycleAll();
-            if (!keepPile) counter.Reset();
+            if (keepPile) Pool.RecycleAll(Pile.Contains);
+            else
+            {
+                Pool.RecycleAll();
+                Pile.Reset();
+            }
         }
 
         // 눈앞 묶음과 상자 더미(실제 카드 + 덩어리)를 풀로 돌려보냅니다. 단일 팩 더미(pile)는 그대로.
@@ -825,9 +731,7 @@ namespace CardShop.Presentation
         {
             foreach (CardRevealView v in stackViews) Recycle(v);
             stackViews.Clear();
-            counter.ClearBox(recycleBuffer, keepBlock);
-            RecycleBuffered();
-            if (!keepBlock && pileBlock != null) pileBlock.gameObject.SetActive(false);
+            Pile.ClearBox(keepBlock);
         }
 
         // 진행을 끝냄: 코루틴 정지, 결과함 · 게이지 닫기, 오른손 레이 UI 되돌리기
@@ -850,6 +754,18 @@ namespace CardShop.Presentation
         void Recycle(CardRevealView view) => Pool.Recycle(view);
 
         CardRevealPool Pool => cardPool ??= new CardRevealPool(Create);
+
+        CounterPileView Pile => counterPile ??= new CounterPileView(this, Pool, EdgeMaterial, () => new CounterPileView.Settings
+        {
+            CounterScale = counterScale,
+            FlySeconds = flySeconds,
+            PileThickness = pileThickness,
+            BoxPileThickness = boxPileThickness,
+            JitterAngle = pileJitterAngle,
+            JitterOffset = pileJitterOffset,
+            PileVisibleCards = pileVisibleCards,
+            BoxPileVisible = boxPileVisible,
+        });
 
         CardRevealView Create()
         {
