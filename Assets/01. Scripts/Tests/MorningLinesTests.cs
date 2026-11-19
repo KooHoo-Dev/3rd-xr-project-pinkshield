@@ -62,5 +62,25 @@ namespace CardShop.Tests
             Assert.AreEqual("내 문장", MorningLines.For(3, 7, Ledger(3), custom));
             Assert.IsNotEmpty(MorningLines.For(3, 7, Ledger(2), custom), "SuperRare는 기본 문장");
         }
+
+        [Test]
+        public void Endless_HasNoLastDay_AndRareResultsStillWin()
+        {
+            Assert.AreEqual(MorningMood.Endless, MorningLines.MoodFor(8, 7, Ledger(1), endless: true), "연장 날은 마지막 날이 아님");
+            Assert.AreEqual(MorningMood.Endless, MorningLines.MoodFor(9, 7, Ledger(-1, 0), endless: true), "팩 안 연 날도 연장 기분");
+            Assert.AreEqual(MorningMood.Endless, MorningLines.MoodFor(8, 7, null, endless: true));
+            Assert.AreEqual(MorningMood.Unique, MorningLines.MoodFor(8, 7, Ledger(3), endless: true), "수퍼레어 이상은 그 기분이 우선");
+            Assert.AreEqual(MorningMood.Legendary, MorningLines.MoodFor(8, 7, Ledger(1, god: true), endless: true));
+        }
+
+        [Test]
+        public void Endless_DefaultLinesHaveNoDayNumber_AndRotate()
+        {
+            string a = MorningLines.For(8, 7, null, null, endless: true);
+            string b = MorningLines.For(9, 7, null, null, endless: true);
+            Assert.IsNotEmpty(a);
+            Assert.AreNotEqual(a, b, "연속 연장 날 대사가 같음");
+            StringAssert.DoesNotContain("{day}", a);
+        }
     }
 }

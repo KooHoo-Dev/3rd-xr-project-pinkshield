@@ -13,6 +13,7 @@ namespace CardShop.Core
         Unique = 3,     // 어제 최고 유니크
         Legendary = 4,  // 어제 레전더리 또는 갓팩 · 레전더리 확정 팩
         LastDay = 5,    // 마지막 날 (다른 기분보다 우선)
+        Endless = 6,    // 무한 모드 연장 근무 날 (어제 수퍼레어 이상이면 그 기분이 우선, J4)
     }
 
     /// <summary>
@@ -57,24 +58,40 @@ namespace CardShop.Core
                 "마지막 날이다. 오늘 레전더리 한 장만 나오면 소원이 없겠다!",
                 "마지막 {day}일차. 후회 없이 끝까지 가 보자!",
             },
+            // 연장 날에는 일차 숫자가 8, 9…라 어색해서 {day}를 쓰지 않음
+            [MorningMood.Endless] = new[]
+            {
+                "오늘도 연장 근무다! 계약서는 이미 끝났는데…",
+                "이 정도면 거의 정직원 아닌가?",
+                "사장님은 내가 그만둘 생각이 없다는 걸 아시는 걸까.",
+                "연장 근무도 근무다. 오늘도 팩 좋은 거 나와라!",
+                "사직서는 책상 위에 있다. 근데 오늘은 아직 아니야.",
+            },
         };
 
-        /// <summary>전날(prev) 기록으로 오늘 아침의 기분을 정합니다. prev가 없으면 Plain.</summary>
-        public static MorningMood MoodFor(int day, int dayCount, DayLedger prev)
+        /// <summary>
+        /// 전날(prev) 기록으로 오늘 아침의 기분을 정합니다. prev가 없으면 Plain.
+        /// 무한 모드(endless)에는 마지막 날이 없고, 어제 수퍼레어 이상이 아니면 연장 근무 기분입니다.
+        /// </summary>
+        public static MorningMood MoodFor(int day, int dayCount, DayLedger prev, bool endless = false)
         {
-            if (dayCount > 1 && day >= dayCount) return MorningMood.LastDay;
+            if (!endless && dayCount > 1 && day >= dayCount) return MorningMood.LastDay;
+            if (prev != null)
+            {
+                if (prev.godPack || prev.legendaryPack || prev.bestRarity >= (int)CardRarity.Legendary) return MorningMood.Legendary;
+                if (prev.bestRarity >= (int)CardRarity.Unique) return MorningMood.Unique;
+                if (prev.bestRarity >= (int)CardRarity.SuperRare) return MorningMood.SuperRare;
+            }
+            if (endless) return MorningMood.Endless;
             if (prev == null) return MorningMood.Plain;
-            if (prev.godPack || prev.legendaryPack || prev.bestRarity >= (int)CardRarity.Legendary) return MorningMood.Legendary;
-            if (prev.bestRarity >= (int)CardRarity.Unique) return MorningMood.Unique;
-            if (prev.bestRarity >= (int)CardRarity.SuperRare) return MorningMood.SuperRare;
             if (prev.packsOpened == 0) return MorningMood.NoPacks;
             return MorningMood.Plain;
         }
 
         /// <param name="custom">MorningLineSet에서 파싱한 문장들. 없거나 해당 기분이 비어 있으면 기본 문장.</param>
-        public static string For(int day, int dayCount, DayLedger prev, IReadOnlyDictionary<MorningMood, List<string>> custom = null)
+        public static string For(int day, int dayCount, DayLedger prev, IReadOnlyDictionary<MorningMood, List<string>> custom = null, bool endless = false)
         {
-            MorningMood mood = MoodFor(day, dayCount, prev);
+            MorningMood mood = MoodFor(day, dayCount, prev, endless);
             IReadOnlyList<string> pool = null;
             if (custom != null && custom.TryGetValue(mood, out List<string> list) && list.Count > 0) pool = list;
             if (pool == null) pool = Defaults[mood];

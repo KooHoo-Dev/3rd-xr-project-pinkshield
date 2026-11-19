@@ -37,6 +37,7 @@ namespace CardShop.Tutorial
         Func<bool> available;
         float skipArmedUntil = -1f;
         readonly List<Button> order = new List<Button>();
+        int knownChildren; // 나중에 다른 코드가 복제해 붙인 버튼(무한 모드 [근무 끝내기])도 줄 세우려고 셈
 
         /// <param name="isAvailable">튜토리얼이 아직 진행 중인가 (아니면 두 버튼을 숨김)</param>
         public void Configure(PauseMenu pauseMenu, Action skipAll, Action replayLast, Func<bool> isAvailable)
@@ -64,7 +65,17 @@ namespace CardShop.Tutorial
                 order.Add(b);
                 if (b == menu.ResumeButton) { order.Add(replay); order.Add(skip); }
             }
+            knownChildren = menu.MainPanel.transform.childCount;
             menu.Root.sizeDelta = new Vector2(menu.Root.sizeDelta.x, menuHeight);
+        }
+
+        // 나중에 붙은 버튼은 튜토리얼 두 버튼 바로 아래에 끼움 (튜토리얼이 끝나 두 버튼이 숨으면 [이어서 하기] 바로 아래)
+        void AddLateButtons()
+        {
+            knownChildren = menu.MainPanel.transform.childCount;
+            int at = order.IndexOf(skip) + 1;
+            foreach (Button b in menu.MainPanel.GetComponentsInChildren<Button>(true))
+                if (!order.Contains(b)) order.Insert(at++, b);
         }
 
         Button Clone(string name, string label)
@@ -82,6 +93,7 @@ namespace CardShop.Tutorial
         void LateUpdate()
         {
             if (menu == null || menu.Root == null || !menu.Root.gameObject.activeInHierarchy) return;
+            if (menu.MainPanel.transform.childCount != knownChildren) AddLateButtons();
             bool on = available == null || available();
             if (replay.gameObject.activeSelf != on) replay.gameObject.SetActive(on);
             if (skip.gameObject.activeSelf != on) skip.gameObject.SetActive(on);
