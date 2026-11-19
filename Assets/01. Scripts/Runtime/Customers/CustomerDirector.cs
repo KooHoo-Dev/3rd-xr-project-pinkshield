@@ -182,8 +182,16 @@ namespace CardShop.Customers
         public void CheerThiefCaught(float bonusSeconds)
         {
             checkout.Cheer(bonusSeconds);
+            Vector3? cheerAt = null;
             foreach (CustomerAgent a in agents)
-                if (a.State != CustomerState.Leave && a.Bubble != null && Chance(0.6f)) a.Bubble.Say(Pick(HeroLines), 2.2f);
+            {
+                if (a.State == CustomerState.Leave || a.Bubble == null) continue;
+                if (cheerAt == null) cheerAt = a.Bubble.transform.position;
+                if (Chance(0.6f)) a.Bubble.Say(Pick(HeroLines), 2.2f);
+            }
+            // 환호 "후~"는 가게 손님 쪽에서 (11-20 G6: 도둑 자리에서 나니 도둑이 환호하는 것 같았음). 손님이 없으면 플레이어 쪽
+            if (cheerAt != null) Sfx.Play(SoundId.ThiefCaughtCheer, cheerAt.Value);
+            else Sfx.Play(SoundId.ThiefCaughtCheer);
         }
 
         static readonly string[] HeroLines = { "와, 멋있다!", "나이스!", "(짝짝짝)", "알바생 최고!", "잡았다!" };

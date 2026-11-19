@@ -64,7 +64,9 @@ namespace CardShop.Cards
         ThiefCaughtCheer = 66,        // 도둑을 잡았을 때 머리 위치에서 환호
         // 가게 배경 음악 변형 (ShopBgm이 고름)
         BgmShopChill = 70,            // 2일차부터 BgmShop과 번갈아
-        BgmShopLucky = 71,            // 전날 유니크 이상을 뽑은 다음 날 (기분 좋은 날)
+        BgmShopLucky = 71,
+        ThiefHurtMale = 72,           // 대걸레에 맞은 도둑 "아야" (11-20 G6, 임시: 화남 클립 음높이 올림)
+        ThiefHurtFemale = 73,            // 전날 유니크 이상을 뽑은 다음 날 (기분 좋은 날)
     }
 
     /// <summary>

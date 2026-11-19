@@ -64,7 +64,7 @@ MonoBehaviour:
   - id: 11
     clips:
     - {fileID: 8300000, guid: 367b1c9ae4a9ef0107cb7ea814445d79, type: 3}
-    volume: 0.8
+    volume: 1
     pitch: {x: 0.95, y: 1.05}
   - id: 12
     clips:
@@ -75,7 +75,7 @@ MonoBehaviour:
   - id: 13
     clips:
     - {fileID: 8300000, guid: 439dc7082599683b7daeb73c30b8710c, type: 3}
-    volume: 0.8
+    volume: 1
     pitch: {x: 0.95, y: 1.05}
   - id: 14
     clips:
@@ -97,13 +97,15 @@ MonoBehaviour:
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 17
-    clips: []
-    volume: 0.8
-    pitch: {x: 0.95, y: 1.05}
+    clips:
+    - {fileID: 8300000, guid: 2f1cbd27491f9c7fb8758ee2e85bbed1, type: 3}
+    volume: 0.35
+    pitch: {x: 0.7, y: 0.85}
   - id: 18
-    clips: []
-    volume: 0.8
-    pitch: {x: 0.95, y: 1.05}
+    clips:
+    - {fileID: 8300000, guid: 204328f79d67a26cd88791e2ec5fe581, type: 3}
+    volume: 0.9
+    pitch: {x: 1.3, y: 1.4}
   - id: 20
     clips:
     - {fileID: 8300000, guid: ec05096433d8c97979ea0b64453fe7db, type: 3}
@@ -276,3 +278,13 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 9c55fb277a3a81a15200564df4a5af05, type: 3}
     volume: 0.34
     pitch: {x: 1, y: 1}
+  - id: 72
+    clips:
+    - {fileID: 8300000, guid: 271d6dd0d876693394e9c0668d5eea23, type: 3}
+    volume: 0.9
+    pitch: {x: 1.25, y: 1.35}
+  - id: 73
+    clips:
+    - {fileID: 8300000, guid: d41797f883db6732fd649be96ce05299, type: 3}
+    volume: 0.9
+    pitch: {x: 1.15, y: 1.25}

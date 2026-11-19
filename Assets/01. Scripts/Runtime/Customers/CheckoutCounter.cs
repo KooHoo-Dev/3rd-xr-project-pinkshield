@@ -172,6 +172,7 @@ namespace CardShop.Customers
             // 진열 카드면 진열대에서 빼서 장부에 기록. 그새 진열대에서 사라졌으면 가게 재고를 산 것으로 봄 (SalesRules)
             CardData bought = ctx.Sales.CompleteSale(ctx.Session, card, ctx.PopularToday, out int net) ? card : null;
             Sfx.Play(SoundId.PosPay, pos != null ? pos.transform.position : transform.position);
+            Sfx.Play(SoundId.MoneyIn, pos != null ? pos.transform.position : transform.position); // 동전 "띠링" (11-20 G1)
             Clear(); // 손님이 물건을 가져감
             ctx.Events.RaiseHappened(GameMoment.CheckoutPaid);
             paid?.Invoke(bought, count, net);
