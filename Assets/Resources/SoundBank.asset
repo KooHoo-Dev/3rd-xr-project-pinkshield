@@ -96,6 +96,14 @@ MonoBehaviour:
     - {fileID: 8300000, guid: a4c7117cd85f18e72a1a0ff7a27e224c, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
+  - id: 17
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 18
+    clips: []
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
   - id: 20
     clips: []
     volume: 0.8
