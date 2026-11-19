@@ -11,7 +11,8 @@ namespace CardShop.EditorTools
     /// </summary>
     public sealed class CustomerLookSorterWindow : EditorWindow
     {
-        const float Thumb = 128f; // AssetPreview 기본 해상도
+        const float BodyThumb = 128f; // AssetPreview 기본 해상도
+        const float FaceThumb = 180f; // 얼굴 보기 — 얼굴로 판단하므로 크게
         static readonly Color LocalColor = new Color(0.35f, 0.75f, 0.45f);
         static readonly Color ForeignColor = new Color(0.95f, 0.6f, 0.2f);
 
@@ -27,7 +28,20 @@ namespace CardShop.EditorTools
         [MenuItem("Tools/CardShop/Customers/Sort Customer Looks", priority = 62)]
         static void Open() => GetWindow<CustomerLookSorterWindow>("손님 외형 분류");
 
-        void OnEnable() => roster = AssetDatabase.LoadAssetAtPath<CustomerRoster>(CustomerRosterBuilder.RosterPath);
+        bool faceView = true; // true = 얼굴 확대, false = 전신(AssetPreview)
+        CustomerFacePreview faces;
+
+        void OnEnable()
+        {
+            roster = AssetDatabase.LoadAssetAtPath<CustomerRoster>(CustomerRosterBuilder.RosterPath);
+            faces = new CustomerFacePreview();
+        }
+
+        void OnDisable()
+        {
+            faces?.Dispose();
+            faces = null;
+        }
 
         void OnGUI()
         {
@@ -61,7 +75,10 @@ namespace CardShop.EditorTools
                 EditorGUILayout.LabelField("썸네일을 클릭하면 어른 ↔ 젊음이 바뀝니다. 파랑 = 젊음(젊은 목소리 칸), 회색 = 어른", EditorStyles.miniLabel);
             }
             genderFilter = GUILayout.Toolbar(genderFilter, new[] { "전체", "남성", "여성" });
+            faceView = GUILayout.Toolbar(faceView ? 0 : 1, new[] { "얼굴 크게", "전신" }) == 0;
 
+            float Thumb = faceView ? FaceThumb : BodyThumb;
+            faces.BeginFrame();
             int columns = Mathf.Max(1, Mathf.FloorToInt((position.width - 20f) / (Thumb + 8f)));
             bool loading = false;
             scroll = EditorGUILayout.BeginScrollView(scroll);
@@ -73,8 +90,17 @@ namespace CardShop.EditorTools
                 if (genderFilter == 1 && e.gender != CustomerGender.Male) continue;
                 if (genderFilter == 2 && e.gender != CustomerGender.Female) continue;
 
-                Texture2D preview = AssetPreview.GetAssetPreview(e.prefab);
-                if (preview == null && AssetPreview.IsLoadingAssetPreview(e.prefab.GetInstanceID())) loading = true;
+                Texture preview;
+                if (faceView)
+                {
+                    preview = faces.Get(e.prefab, (int)FaceThumb * 2); // 2배로 찍어 선명하게
+                    if (preview == null) loading = true;
+                }
+                else
+                {
+                    preview = AssetPreview.GetAssetPreview(e.prefab);
+                    if (preview == null && AssetPreview.IsLoadingAssetPreview(e.prefab.GetInstanceID())) loading = true;
+                }
 
                 EditorGUILayout.BeginVertical(GUILayout.Width(Thumb));
                 Rect r = GUILayoutUtility.GetRect(Thumb, Thumb);
