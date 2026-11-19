@@ -48,6 +48,7 @@ namespace CardShop.Interaction
                 SetLabel(false);
             }
             base.Start();
+            Refresh(); // OnEnable 때는 스위치가 없어 첫 갱신이 비었음 → 만든 뒤 바로 숨김 상태로
         }
 
         static PokeButton FindSleepButton()

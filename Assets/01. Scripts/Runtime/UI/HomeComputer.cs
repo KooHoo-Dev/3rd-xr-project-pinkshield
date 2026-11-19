@@ -62,6 +62,12 @@ namespace CardShop.UI
             market = (RectTransform)screen.transform;
             marketGroup = market.gameObject.AddComponent<CanvasGroup>();
             market.gameObject.AddComponent<ScreenSwipeArea>().Swiped += OnSwiped;
+            // 마켓 바탕 · 카드는 레이를 받지 않으므로, 빈 곳에서 시작한 끌기도 받게 맨 뒤에 투명 판 (버튼은 그 앞이라 그대로 눌림)
+            if (market.childCount > 0)
+            {
+                Image hit = WorldUiKit.AddImage(market.GetChild(0), "SwipeHit", Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
+                hit.transform.SetAsFirstSibling();
+            }
 
             // 커뮤니티 쪽 끌기 판: 글자 앞의 투명 판 (모니터 크기)
             RectTransform swipe = WorldUiKit.CreateCanvas("CommunitySwipe", community.parent, 1300f, 900f, out GameObject swipeContent);
@@ -76,7 +82,7 @@ namespace CardShop.UI
             sideButtons.transform.SetParent(community.parent, false);
             prevButton = SideButton(rot, forward, -0.78f, "◀\n커뮤\n니티", font, () => GoTo(0));
             nextButton = SideButton(rot, forward, 0.78f, "슬라\n임\n마켓\n▶", font, () => GoTo(1));
-            ApplyPage(true);
+            Refresh(); // AddComponent 때(OnEnable)는 아직 화면이 없어 첫 갱신이 비었음
         }
 
         Button SideButton(Quaternion rot, Vector3 forward, float side, string text, TMP_FontAsset font, UnityEngine.Events.UnityAction onClick)
