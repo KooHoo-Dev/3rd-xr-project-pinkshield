@@ -210,6 +210,7 @@ namespace CardShop.Customers
             context.Events.RaiseHappened(GameMoment.ThiefCaught);
             Sfx.Play(SoundId.BroomHit, thief.transform.position + Vector3.up);
             Sfx.Play(SoundId.ThiefCaught, thief.transform.position);
+            Sfx.Play(SoundId.ThiefCaughtCheer); // 플레이어 쪽 환호 "후~"
             thief.Gesture(CustomerAnim.Hit); // 전신 휘청 (Kevin Iglesias Stun01, 11-19 피드백: 맞아도 반응이 없어 어색)
             Say(CaughtLines);
 

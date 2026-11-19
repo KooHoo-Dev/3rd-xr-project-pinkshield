@@ -256,10 +256,8 @@ namespace CardShop.Customers
             if (agent == null || agent.Bubble == null) return;
             lines ??= new CustomerLines(lineSet != null ? lineSet.lines : null, context != null ? context.Random : null);
             agent.Bubble.Say(lines.Pick(moment, cardName), lineSet != null ? lineSet.bubbleSeconds : 2.8f);
-            // 말풍선과 함께 짧은 감탄 소리 (오, 아하, 와우 / 화내기) — SoundBank 칸이 비면 조용
-            SoundId voice = moment == CustomerMoment.Angry ? SoundId.CustomerAngry
-                : agent.IsFemale ? SoundId.CustomerVoiceFemale : SoundId.CustomerVoiceMale;
-            Sfx.Play(voice, agent.Bubble.transform.position);
+            // 말풍선과 함께 짧은 목소리 (오 · 와우 · 재촉 · 화남, 성별 · 나이별) — 칸이 모두 비면 조용
+            Sfx.PlayFirst(CustomerVoices.Candidates(moment, agent.IsFemale, agent.IsYoung), agent.Bubble.transform.position, agent.VoiceSeed);
         }
 
         void Remove(CustomerAgent agent)

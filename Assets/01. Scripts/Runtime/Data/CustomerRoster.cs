@@ -6,6 +6,9 @@ namespace CardShop.Cards
 {
     public enum CustomerGender { Male, Female }
 
+    /// <summary>나이대. 손님 목소리 칸을 고르는 데만 씁니다 (CustomerVoices). 외형 분류 창의 '나이' 보기에서 정합니다.</summary>
+    public enum CustomerAge { Adult, Young }
+
     /// <summary>외형 분류. 손님 비율(아시아계 대부분 · 가끔 외국인)을 정하는 데만 씁니다.</summary>
     public enum CustomerLook { Local, Foreign }
 
@@ -23,6 +26,7 @@ namespace CardShop.Cards
             public GameObject prefab;
             public CustomerGender gender;
             public CustomerLook look = CustomerLook.Local;
+            public CustomerAge age = CustomerAge.Adult;
         }
 
         public List<Entry> entries = new List<Entry>();
