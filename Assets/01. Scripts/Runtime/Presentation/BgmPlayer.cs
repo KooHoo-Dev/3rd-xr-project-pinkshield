@@ -1,13 +1,15 @@
 using System.Collections;
 using CardShop.Cards;
 using CardShop.Core;
+using CardShop.Logic;
 using UnityEngine;
 
 namespace CardShop.Presentation
 {
     /// <summary>
     /// 배경 음악 · 거리 환경음 (11-19 필수 사운드 목록): 페이즈마다 곡을 바꾸고 부드럽게 겹쳐 넘깁니다.
-    /// 타이틀 = BgmTitle, 영업 · 퇴근 전 = BgmShop + 거리 환경음, 집 = BgmHome. 곡은 SoundBank 칸에서 고르고, 비어 있으면 조용합니다.
+    /// 타이틀 = BgmTitle, 영업 · 퇴근 전 = 가게 곡(ShopBgm: 1일차 고정 · 이후 번갈아 · 전날 유니크 이상을 뽑은 다음 날) + 거리 환경음, 집 = BgmHome.
+    /// 곡은 SoundBank 칸에서 고르고, 비어 있으면 조용합니다.
     /// 씬을 다시 빌드하지 않아도 되게, 씬이 열리면 GameContext 오브젝트에 스스로 붙습니다.
     /// </summary>
     public sealed class BgmPlayer : PhaseListener
@@ -19,6 +21,7 @@ namespace CardShop.Presentation
         int current;
         SoundId? playing;
         Coroutine fade;
+        bool chillToday;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
@@ -43,6 +46,20 @@ namespace CardShop.Presentation
             return s;
         }
 
+        protected override void OnDayStarted(int day)
+        {
+            chillToday = Random.value < 0.5f; // 2일차부터 하루에 한 번 정함 (ShopBgm)
+            base.OnDayStarted(day);
+        }
+
+        SoundId ShopSong()
+        {
+            GameSession s = Context != null ? Context.Session : null;
+            int yesterday = s != null && s.Previous != null ? s.Previous.bestRarity : -1; // 전날 유니크 이상 → 기분 좋은 날
+            SoundId id = s != null ? ShopBgm.Pick(s.Day, yesterday, chillToday) : SoundId.BgmShop;
+            return Sfx.Has(id) ? id : SoundId.BgmShop; // 변형 칸이 비면 기본 곡
+        }
+
         protected override void Refresh()
         {
             SoundId? song = CurrentPhase switch
@@ -50,7 +67,7 @@ namespace CardShop.Presentation
                 GamePhaseId.Title or GamePhaseId.Final => SoundId.BgmTitle,
                 GamePhaseId.Home or GamePhaseId.DayEnd => SoundId.BgmHome,
                 GamePhaseId.None => null,
-                _ => SoundId.BgmShop,
+                _ => ShopSong(),
             };
             bool street = CurrentPhase == GamePhaseId.Title || CurrentPhase == GamePhaseId.Intro ||
                           CurrentPhase == GamePhaseId.Business || CurrentPhase == GamePhaseId.AfterHours;
