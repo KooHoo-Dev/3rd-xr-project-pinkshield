@@ -49,7 +49,23 @@ namespace CardShop.Logic
             string rank = r.Rank != null ? r.Rank.name : "-";
             sb.Append($"<size=120%><b>랭크 {rank}</b></size>");
             if (!string.IsNullOrEmpty(ending)) sb.Append($"  {ending}");
+            string room = RoomTitle(r.FurnitureValue, r.ShowcaseCards.Count);
+            if (room != null) sb.Append($" <size=80%>· {room}</size>");
             return sb.ToString();
+        }
+
+        // 내 방 칭호 기준 (가구 값, 달러). 설계서 표 가격 기준: 꾸미기만 ≈ $15~90, 한 분야 끝까지 ≈ $140~290, 전부 ≈ $1,000
+        public const int CozyRoomMin = 1, DecoratedRoomMin = 150, RichRoomMin = 400;
+
+        /// <summary>
+        /// 엔딩 뒤에 붙는 내 방 칭호 한 마디 (집_업그레이드_설계 3장 "엔딩 문구"). 가구를 안 샀고 진열도 없으면 null.
+        /// </summary>
+        public static string RoomTitle(int furnitureValue, int showcaseCount)
+        {
+            if (furnitureValue >= RichRoomMin) return "원룸 카드 부자";
+            if (furnitureValue >= DecoratedRoomMin) return "꾸민 원룸의 수집가";
+            if (furnitureValue >= CozyRoomMin) return "아늑한 원룸";
+            return showcaseCount > 0 ? "진열장 있는 원룸" : null;
         }
     }
 }

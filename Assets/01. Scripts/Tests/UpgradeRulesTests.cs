@@ -176,6 +176,23 @@ namespace CardShop.Tests
             StringAssert.Contains("진열장 1장", text);
         }
 
+        [TestCase(0, 0, null)]
+        [TestCase(0, 2, "진열장 있는 원룸")]
+        [TestCase(15, 0, "아늑한 원룸")]
+        [TestCase(149, 0, "아늑한 원룸")]
+        [TestCase(150, 0, "꾸민 원룸의 수집가")]
+        [TestCase(400, 0, "원룸 카드 부자")]
+        public void RoomTitle_ByFurnitureValue(int furniture, int showcase, string expected) =>
+            Assert.AreEqual(expected, ResultTexts.RoomTitle(furniture, showcase));
+
+        [Test]
+        public void FinalText_RoomTitleFollowsEnding()
+        {
+            rules.TryBuy(s, UpgradeKind.Showcase, out _);
+            string text = ResultTexts.Final(new ScoreRules(f.Score, f.Rarity, f.Db).Calculate(s), "정직원 전환");
+            StringAssert.Contains("정직원 전환 <size=80%>· 아늑한 원룸</size>", text);
+        }
+
         void BuyAndOpen(UpgradeKind kind)
         {
             Assert.AreEqual(BuyResult.Ok, rules.TryBuy(s, kind, out _), kind.ToString());
