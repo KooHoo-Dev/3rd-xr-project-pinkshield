@@ -1,4 +1,5 @@
 using System;
+using CardShop.UI;
 using UnityEngine;
 
 namespace CardShop.Tutorial
@@ -14,7 +15,7 @@ namespace CardShop.Tutorial
         const float HideHysteresis = 5f; // 들어올 때는 이만큼 더 안쪽이어야 숨김 (깜빡임 방지)
 
         [Tooltip("이 각도(머리 정면 기준)를 넘으면 화살표를 띄움")]
-        [SerializeField] float offscreenAngle = 40f;
+        [SerializeField] float offscreenAngle = 30f; // 11-20 H1: 40°는 잘 안 떠서
         [Tooltip("머리에서 화살표까지 (m)")]
         [SerializeField] float distance = 0.9f;
         [Tooltip("시야 가운데에서 대상 쪽으로 밀어내는 거리 (m)")]
@@ -22,8 +23,8 @@ namespace CardShop.Tutorial
         [Tooltip("따라가는 빠르기 (클수록 머리에 붙은 느낌)")]
         [SerializeField] float followSharpness = 6f;
         [Tooltip("화살표 길이 (m)")]
-        [SerializeField] float size = 0.08f;
-        [SerializeField] Color color = new Color(1f, 0.6f, 0.15f, 0.95f);
+        [SerializeField] float size = 0.12f;
+        [SerializeField] Color color = UiTheme.Accent; // 튜토리얼 대상 분홍과 같게 (11-20 H1)
 
         Func<Vector3?> target;
         MeshRenderer meshRenderer;

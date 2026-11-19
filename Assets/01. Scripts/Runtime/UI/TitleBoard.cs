@@ -20,7 +20,11 @@ namespace CardShop.UI
         public Button RecalibrateButton => recalibrateButton;
 
         // [크레딧] 버튼은 씬을 다시 빌드하지 않도록 실행 중에 붙임 (음악 출처 표기)
-        void Awake() => gameObject.AddComponent<CreditsButton>().Configure(this);
+        void Awake()
+        {
+            gameObject.AddComponent<AudioVolumeButtons>().Configure(this); // 크레딧 판보다 먼저 붙여 크레딧이 덮게 (11-20 H3)
+            gameObject.AddComponent<CreditsButton>().Configure(this);
+        }
 
         protected override void OnEnable()
         {

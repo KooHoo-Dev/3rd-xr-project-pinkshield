@@ -19,7 +19,7 @@ namespace CardShop.Tutorial
     {
         const float Distance = 1.0f;          // 눈에서 (m)
         const float PitchDown = 32f;          // 눈높이보다 아래로 (도). 손 · 물건을 가리지 않게 더 아래 (11-19 2차)
-        const float FollowAngle = 15f;        // 이만큼 넘게 고개를 돌리면 따라옴 (도)
+        const float FollowAngle = 35f;        // 이만큼 넘게 고개를 돌리면 따라옴 (도). 11-20 H2: 15°는 둘러볼 때마다 따라다녀 35°로
         const float FollowSharpness = 7.5f;   // 약 0.4초에 따라옴
         const float PopSeconds = 0.2f;
         const float DoneSeconds = 0.6f;       // ✓를 보여 주는 시간

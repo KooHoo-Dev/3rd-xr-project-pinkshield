@@ -75,7 +75,7 @@ namespace CardShop.Presentation
             go.transform.position = position;
             var src = go.AddComponent<AudioSource>();
             src.clip = clip;
-            src.volume = e.volume;
+            src.volume = e.volume * AudioVolume.Effects; // 타이틀 판 [효과음] 크기 (11-20 H3)
             src.pitch = Random.Range(Mathf.Min(e.pitch.x, e.pitch.y), Mathf.Max(e.pitch.x, e.pitch.y));
             src.spatialBlend = spatial;
             src.rolloffMode = AudioRolloffMode.Linear;

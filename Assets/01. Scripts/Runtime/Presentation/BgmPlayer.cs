@@ -22,6 +22,7 @@ namespace CardShop.Presentation
         SoundId? playing;
         Coroutine fade;
         bool chillToday;
+        SoundId? ambienceId;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
@@ -34,6 +35,16 @@ namespace CardShop.Presentation
         {
             music = new[] { Source(), Source() };
             ambience = Source();
+            AudioVolume.Changed += ApplyVolume;
+        }
+
+        void OnDestroy() => AudioVolume.Changed -= ApplyVolume;
+
+        // 타이틀 판에서 [음악] 크기를 바꿈 (11-20 H3). 겹쳐 넘기는 중이면 끝날 때 새 크기가 됨
+        void ApplyVolume()
+        {
+            SetLoop(ambience, ambienceId);
+            if (fade == null && music != null) music[current].volume = Assign(music[current], playing);
         }
 
         AudioSource Source()
@@ -71,7 +82,8 @@ namespace CardShop.Presentation
             };
             bool street = CurrentPhase == GamePhaseId.Title || CurrentPhase == GamePhaseId.Intro ||
                           CurrentPhase == GamePhaseId.Business || CurrentPhase == GamePhaseId.AfterHours;
-            SetLoop(ambience, street ? SoundId.AmbienceStreet : (SoundId?)null);
+            ambienceId = street ? SoundId.AmbienceStreet : (SoundId?)null;
+            SetLoop(ambience, ambienceId);
             if (song == playing) return;
             playing = song;
             if (fade != null) StopCoroutine(fade);
@@ -112,7 +124,7 @@ namespace CardShop.Presentation
             if (clip == null) { s.Stop(); s.clip = null; return 0f; }
             if (s.clip != clip) { s.clip = clip; s.Play(); }
             else if (!s.isPlaying) s.Play();
-            return e.volume;
+            return e.volume * AudioVolume.Music;
         }
     }
 }

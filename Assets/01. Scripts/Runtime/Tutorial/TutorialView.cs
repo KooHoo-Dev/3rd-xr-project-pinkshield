@@ -43,7 +43,7 @@ namespace CardShop.Tutorial
             Retarget();
             bool wantsAction = s.kind != TutorialStepKind.Say;
             caption.Show(s.speaker, text, wantsAction ? s.idleHint : null);
-            arrow.SetTarget(wantsAction && targets.Count > 0 ? (System.Func<Vector3?>)TargetCenter : null);
+            arrow.SetTarget(targets.Count > 0 ? (System.Func<Vector3?>)TargetCenter : null); // 말 안내도 대상이 있으면 (11-20 H1)
             buttons.Show(wantsAction ? s.idleHint : null);
         }
 

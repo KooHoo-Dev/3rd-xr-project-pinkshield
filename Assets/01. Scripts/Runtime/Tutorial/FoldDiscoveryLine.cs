@@ -17,9 +17,12 @@ namespace CardShop.Tutorial
     public sealed class FoldDiscoveryLine : MonoBehaviour
     {
         [Tooltip("눈에서 팩까지 이 거리 안이어야 '자세히 봄' (m)")]
-        [SerializeField] float lookDistance = 0.3f;
+        [SerializeField] float lookDistance = 0.45f; // 11-20 D2: 30cm · 25°는 오래 봐도 안 걸렸음
         [Tooltip("시선과 팩 방향의 각도가 이 안이어야 함 (도)")]
-        [SerializeField] float lookAngle = 25f;
+        [SerializeField] float lookAngle = 35f;
+        [Tooltip("접힌 팩을 이만큼 들고만 있으면(자세히 안 봐도) 사장님이 살짝 귀띔 (초, 한 판에 한 번)")]
+        [SerializeField] float nudgeSeconds = 4f;
+        [SerializeField] string nudgeLine = "어? 그 팩… 윗부분이\n좀 다르게 생기지 않았어?";
         [Tooltip("이만큼 계속 바라보면 반응 (초)")]
         [SerializeField] float lookSeconds = 1f;
         [Tooltip("말풍선이 보이는 시간 (초)")]
@@ -30,8 +33,8 @@ namespace CardShop.Tutorial
         BossBubble bubble;
         readonly TutorialGrabWatcher grabs = new TutorialGrabWatcher();
         readonly List<TutorialSignal> ignored = new List<TutorialSignal>();
-        bool sharedThisGame;
-        float looked, hideAt = -1f, refreshIn;
+        bool sharedThisGame, nudged;
+        float held, looked, hideAt = -1f, refreshIn;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
@@ -57,7 +60,7 @@ namespace CardShop.Tutorial
             if (ctx != null) ctx.Events.SessionStarted -= OnSessionStarted;
         }
 
-        void OnSessionStarted(GameSession _) => sharedThisGame = false;
+        void OnSessionStarted(GameSession _) => sharedThisGame = nudged = false;
 
         void Update()
         {
@@ -69,8 +72,16 @@ namespace CardShop.Tutorial
             if (refreshIn <= 0f) { refreshIn = 2f; grabs.Refresh(); }
             grabs.Scan(ignored, null);
 
-            if (LookingAtFoldedPack(Camera.main.transform)) looked += Time.unscaledDeltaTime;
+            if (LookingAtFoldedPack(Camera.main.transform, out bool holding)) looked += Time.unscaledDeltaTime;
             else looked = 0f;
+            held = holding ? held + Time.unscaledDeltaTime : 0f;
+            // 처음 하는 사람은 단서를 모를 수 있음 (11-20 D2) → 들고만 있어도 한 번 귀띔. 답(좋은 팩)은 말하지 않음
+            if (!nudged && held >= nudgeSeconds && looked < lookSeconds)
+            {
+                nudged = true;
+                bubble.Show(TutorialSpeaker.Boss, nudgeLine, null);
+                hideAt = Time.unscaledTime + showSeconds;
+            }
             if (looked < lookSeconds) return;
 
             sharedThisGame = true;
@@ -78,12 +89,14 @@ namespace CardShop.Tutorial
             hideAt = Time.unscaledTime + showSeconds;
         }
 
-        bool LookingAtFoldedPack(Transform head)
+        bool LookingAtFoldedPack(Transform head, out bool holding)
         {
+            holding = false;
             foreach (Transform t in grabs.Held)
             {
                 var pack = t.GetComponentInParent<PackView>();
                 if (pack == null || (pack.Clue & PackClue.FoldedTop) == 0) continue;
+                holding = true;
                 Vector3 to = pack.transform.position - head.position;
                 if (to.magnitude <= lookDistance && Vector3.Angle(head.forward, to) <= lookAngle) return true;
             }
