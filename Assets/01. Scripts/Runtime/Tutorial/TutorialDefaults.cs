@@ -6,7 +6,8 @@ namespace CardShop.Tutorial
     /// <summary>
     /// 기본 튜토리얼 대본 (튜토리얼_설계 5장). TutorialSequence 에셋을 넣지 않으면 이 내용을 씁니다.
     /// 사장님은 가게에서 "알바야"라고 부르며 반말로 가르치고(9장 Q6), 집에서는 알바생 혼잣말로 안내합니다.
-    /// 정지(Hold)는 1일차 첫 계산 · 3일차 첫 도둑 두 곳뿐입니다 (0장, 테스트로 고정).
+    /// 정지(Hold)는 처음 하는 업무마다: 첫 계산 · 첫 쓰레기 · 첫 마감 청소 · 첫 흐트러진 팩 · 첫 얼룩 · 판매 등록 카드 첫 손님 · 첫 도둑
+    /// (DEC-028이 DEC-026의 "2번만"을 바꿈, 테스트로 고정). 정지마다 행동 1개만 시키고 바로 풉니다.
     /// 숫자는 {packPrice} 같은 자리표시로 두고 TutorialDirector가 설정값으로 채웁니다.
     /// </summary>
     public static class TutorialDefaults
@@ -24,6 +25,7 @@ namespace CardShop.Tutorial
         public const string PackRack = "pack-rack";
         public const string Thief = "thief";
         public const string Broom = "broom";
+        public const string Stain = "stain";
         public const string SettlementBoard = "settlement-board";
         public const string FreePack = "free-pack";
         public const string PackShelf = "pack-shelf";
@@ -69,32 +71,27 @@ namespace CardShop.Tutorial
                 "초록 결제 버튼을 손끝으로 눌러!", PosPay), "pay-bag"),
             Then(Say("pay-done", GamePhaseId.Business, "잘했어! 다음 손님부턴 오래 못 기다려.\n빨리 하면 보너스야.", 4.5f), "pay-pay"),
 
-            // 청소 (처음 생길 때)
-            Say("trash-1", GamePhaseId.Business, "누가 쓰레기를 버렸네…\n집어서 쓰레기통 위에서 놓아.", 5f,
-                startOn: TutorialSignal.TrashSpawned, targets: new[] { Trash, TrashBin }),
-            Then(new TutorialStep
-            {
-                key = "trash-move", phase = GamePhaseId.Business, startOn = TutorialSignal.None, doneOn = TutorialSignal.TrashBinned,
-                seconds = 4f, timeout = 20f, line = "멀면 왼쪽 스틱으로 걸어가거나\n레이저로 집어도 돼.", targets = new[] { Trash, TrashBin },
-            }, "trash-1"),
+            // 청소 (처음 생길 때 정지, DEC-028)
+            On(Hold("trash-1", TutorialSignal.TrashBinned, "누가 쓰레기를 버렸네…\n집어서 쓰레기통 위에서 놓아.",
+                "멀면 레이저로 집거나 왼쪽 스틱으로 걸어가!", Trash, TrashBin), TutorialSignal.TrashSpawned),
             Say("trash-done", GamePhaseId.Business, "깨끗! 치운 만큼 알바비 +{cleanupBonus}야.", 3.5f, startOn: TutorialSignal.TrashBinned),
             Say("closing", GamePhaseId.Business, "문 닫았어! 남은 손님 계산하고\n{closingCleanupSeconds}초 안에 청소 마무리!", 5f,
                 day: 1, startOn: TutorialSignal.BusinessClosing),
+            // 첫 마감 청소: 읽는 동안만 마감 시계를 멈춤 (행동 없이 시간으로 끝남)
+            On(Hold("closing-cleanup", TutorialSignal.None, "손님 다 갔다! {closingCleanupSeconds}초 안에\n남은 곳을 다 치우자.",
+                null, Trash, MessyPack, Stain), TutorialSignal.ClosingCleanupStarted, seconds: 4.5f),
 
             // 2일차부터: 흐트러진 팩 (1일차는 쓰레기만 나옴, CampaignConfig)
-            new TutorialStep
-            {
-                key = "messy-1", phase = GamePhaseId.Business, startOn = TutorialSignal.MessyPackSpawned, doneOn = TutorialSignal.MessyPackFixed,
-                seconds = 4f, timeout = 25f, line = "팩이 떨어졌어! 진열대\n빈 칸에 다시 꽂아.", targets = new[] { MessyPack, PackRack },
-            },
-            // 바닥 얼룩 (FIX F5 · F6 ④): 처음 생길 때 대걸레를 가리킴. 정지는 C1(DEC-028)에서
-            new TutorialStep
-            {
-                key = "stain-1", phase = GamePhaseId.Business, startOn = TutorialSignal.StainSpawned, doneOn = TutorialSignal.StainCleaned,
-                seconds = 5f, timeout = 25f, line = "음료를 쏟았네! 오른쪽 대걸레로\n얼룩 위를 쓱쓱 문질러.", targets = new[] { Broom },
-            },
+            On(Hold("messy-1", TutorialSignal.MessyPackFixed, "팩이 떨어졌어! 진열대\n빈 칸에 다시 꽂아.",
+                "떨어진 팩을 그립으로 잡아 빈 칸에 꽂아!", MessyPack, PackRack), TutorialSignal.MessyPackSpawned),
+            // 바닥 얼룩 (FIX F5 · F6 ④)
+            On(Hold("stain-1", TutorialSignal.StainCleaned, "음료를 쏟았네! 오른쪽 대걸레로\n얼룩 위를 쓱쓱 문질러.",
+                "대걸레를 그립으로 잡고 바닥에 대고 문질러!", Broom, Stain), TutorialSignal.StainSpawned),
+            // 판매 등록 카드 첫 손님: 읽는 동안만 멈춤, 계산은 평소처럼
+            On(Hold("listed-1", TutorialSignal.None, "판매 등록한 카드를 사 가는 손님이야!\n찍어서 팔면 카드 값이 들어와.",
+                null, CounterItems), TutorialSignal.ListedCardCheckout, seconds: 4.5f),
 
-            // 3일차부터: 정지 2 — 첫 도둑
+            // 3일차부터: 첫 도둑
             new TutorialStep
             {
                 key = "thief-hold", phase = GamePhaseId.Business, startOn = TutorialSignal.ThiefAppeared, doneOn = TutorialSignal.BroomGrabbed,
@@ -186,6 +183,14 @@ namespace CardShop.Tutorial
                 key = key, phase = GamePhaseId.Home, fromDay = fromDay, speaker = TutorialSpeaker.Self,
                 seconds = seconds, line = line, targets = new[] { target },
             };
+
+        // 이 신호가 오면 시작 (Hold 도우미는 startOn None). seconds > 0이면 보여 주는 시간도 바꿈
+        static TutorialStep On(TutorialStep step, TutorialSignal startOn, float seconds = 0f)
+        {
+            step.startOn = startOn;
+            if (seconds > 0f) step.seconds = seconds;
+            return step;
+        }
 
         // 앞 단계가 끝나면 바로 이어서 (startOn None + after)
         static TutorialStep Then(TutorialStep step, string afterKey)

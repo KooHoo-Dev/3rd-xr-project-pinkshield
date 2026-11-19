@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+using CardShop.UI;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace CardShop.Tutorial
 {
     /// <summary>
-    /// 튜토리얼 대상을 감싸는 빛나는 선 상자 + 바닥 고리 (포스트 프로세싱 없이).
+    /// 튜토리얼 대상 강조 (포스트 프로세싱 없이, FIX C2): 물건 모양 그대로의 분홍 외곽선(OutlineMarker) + 바닥 고리,
+    /// 정지 단계에서는 위에서 내려오는 가짜 무대 조명(TargetStageLight). 외곽선을 못 붙이는 얇은 물건 · UI는 예전 선 상자로 그립니다.
+    /// 외곽선 두께 · 밝기와 선은 1초 주기로 커졌다 작아집니다.
     /// 대상은 손에 들려 움직이므로 bounds를 매 프레임 다시 잽니다. 꺼지거나 사라진 대상은 그리지 않습니다.
     /// 선은 LineRenderer, 머티리얼은 Awake에서 한 번만 만듭니다 (Sprites/Default: 항상 포함 셰이더라 Quest 빌드에서도 빠지지 않음).
     /// </summary>
@@ -20,9 +24,11 @@ namespace CardShop.Tutorial
         [Tooltip("대상 bounds 바깥으로 띄우는 여백 (m)")]
         [SerializeField] float padding = 0.03f;
         [Tooltip("깜빡임 속도 (회/초)")]
-        [SerializeField] float pulseSpeed = 1.2f;
-        [Tooltip("선 색 (주황)")]
-        [SerializeField] Color color = new Color(1f, 0.6f, 0.15f, 1f);
+        [SerializeField] float pulseSpeed = 1f;
+        [Tooltip("선 · 외곽선 색 (분홍 = 튜토리얼 대상, UiTheme.Accent)")]
+        [SerializeField] Color color = UiTheme.Accent;
+        [Tooltip("외곽선 두께 (m)")]
+        [SerializeField] float outlineWidth = 0.006f;
         [Tooltip("선 굵기 (m)")]
         [SerializeField] float lineWidth = 0.008f;
         [Tooltip("깜빡일 때 가장 옅은 알파")]
@@ -34,7 +40,11 @@ namespace CardShop.Tutorial
         readonly Vector3[] corners = new Vector3[8];
         readonly Vector3[] boxPoints = new Vector3[16];
         readonly Vector3[] ringPoints = new Vector3[RingPoints];
-        Material material;
+        readonly bool[] outlined = new bool[MaxTargets];
+        Material material, coneMaterial;
+        OutlineMarker outline;
+        TargetStageLight stage;
+        bool spotlight;
         float flashLeft;
 
         void Awake()
@@ -48,20 +58,28 @@ namespace CardShop.Tutorial
                 rings[i].alignment = LineAlignment.TransformZ;
                 rings[i].transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             }
+            outline = new OutlineMarker();
+            coneMaterial = new Material(material) { name = "TutorialStageLight", color = Color.Lerp(color, Color.white, 0.6f) };
+            stage = new TargetStageLight(transform, coneMaterial, MaxTargets);
         }
 
         void OnDestroy()
         {
+            outline?.Dispose();
             if (material != null) Destroy(material);
+            if (coneMaterial != null) Destroy(coneMaterial);
         }
 
-        /// <summary>대상 목록을 복사해 강조를 켭니다 (앞에서 최대 4개).</summary>
-        public void Show(IReadOnlyList<HighlightTarget> list)
+        /// <summary>대상 목록을 복사해 강조를 켭니다 (앞에서 최대 4개). stageLight면 무대 조명도 (정지 단계)</summary>
+        public void Show(IReadOnlyList<HighlightTarget> list, bool stageLight = false)
         {
             targets.Clear();
+            outline.Clear();
             if (list != null)
                 for (int i = 0; i < list.Count && targets.Count < MaxTargets; i++)
                     if (list[i] != null) targets.Add(list[i]);
+            for (int i = 0; i < targets.Count; i++) outlined[i] = outline.Mark(targets[i]);
+            spotlight = stageLight;
             enabled = true;
             if (targets.Count == 0) HideLines();
         }
@@ -69,6 +87,7 @@ namespace CardShop.Tutorial
         public void Hide()
         {
             targets.Clear();
+            outline.Clear();
             flashLeft = 0f;
             HideLines();
         }
@@ -96,6 +115,8 @@ namespace CardShop.Tutorial
             Color c = color;
             c.a = Mathf.Max(Mathf.Lerp(minAlpha, 1f, wave), flash);
             float width = lineWidth * (1f + 0.3f * wave + 1.5f * flash);
+            Color glow = Color.Lerp(color, Color.white, 0.35f * wave + 0.5f * flash);
+            outline.Paint(glow, outlineWidth * (1f + 0.5f * wave + 1.5f * flash));
 
             for (int i = 0; i < MaxTargets; i++)
             {
@@ -103,14 +124,16 @@ namespace CardShop.Tutorial
                 if (t == null || !t.TryGetBounds(out Bounds b))
                 {
                     SetShown(i, false);
+                    stage.Place(i, null);
                     continue;
                 }
+                stage.Place(i, spotlight && !InHand(t) ? b : (Bounds?)null); // 손에 든 물건 위 조명은 어색함
                 b.Expand(padding * 2f);
                 DrawBox(boxes[i], b);
                 DrawRing(rings[i], b);
                 Paint(boxes[i], c, width);
                 Paint(rings[i], c, width);
-                SetShown(i, true);
+                SetShown(i, true, !outlined[i]);
             }
         }
 
@@ -149,15 +172,23 @@ namespace CardShop.Tutorial
             line.widthMultiplier = width;
         }
 
-        void SetShown(int i, bool on)
+        // box: 외곽선을 못 붙인 대상만 선 상자
+        void SetShown(int i, bool on, bool box = true)
         {
-            if (boxes[i].enabled != on) boxes[i].enabled = on;
+            if (boxes[i].enabled != (on && box)) boxes[i].enabled = on && box;
             if (rings[i].enabled != on) rings[i].enabled = on;
         }
 
         void HideLines()
         {
             for (int i = 0; i < MaxTargets; i++) SetShown(i, false);
+            stage?.HideAll();
+        }
+
+        static bool InHand(HighlightTarget t)
+        {
+            var grab = t.GetComponentInParent<XRBaseInteractable>();
+            return grab != null && grab.isSelected;
         }
 
         LineRenderer CreateLine(string name, int count, bool loop)

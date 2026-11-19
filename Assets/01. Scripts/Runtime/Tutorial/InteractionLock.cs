@@ -1,51 +1,77 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace CardShop.Tutorial
 {
-    /// <summary>튜토리얼 중 엉뚱한 물건을 잡았을 때 (확정 결정: 기본은 알려 주기)</summary>
+    /// <summary>튜토리얼 중 엉뚱한 물건을 잡았을 때 (DEC-028: 기본은 잠그기)</summary>
     public enum OutsideGrabMode
     {
         Notify = 0, // 막지 않고 알려 주기
-        Lock = 1,   // 대상 말고는 잡히지 않게
+        Lock = 1,   // 대상 말고는 바로 놓게 함
     }
 
     /// <summary>
-    /// 튜토리얼의 "다른 물건 잠그기" 선택지 (확정 결정: 기본은 막지 않고 알려 주기, 잠그기는 인스펙터 선택지로만).
-    /// 기다림 · 정지 단계 동안 대상과 그 짝(스캐너 · 계산대 물건)을 뺀 물건의 interactionLayers를 비워 잡히지 않게 하고,
-    /// Unlock · OnDisable에서 반드시 원래 값으로 되돌립니다. 이미 손에 든 물건은 잠그지 않습니다(놓을 수 없게 되는 일 방지).
-    /// 잠근 뒤 새로 생긴 물건(쓰레기 등)은 잠기지 않습니다.
+    /// 튜토리얼의 "다른 물건 잠그기" (DEC-028). 기다림 · 정지 단계 동안 대상과 그 짝(스캐너 · 계산대 물건)이 아닌 물건을 손이 잡으면
+    /// 바로 놓게 하고 그 손을 진동시킨 뒤 <see cref="Denied"/>를 알립니다(자막 "지금은 이것부터!").
+    /// 잡히지 않게 막는 방식(interactionLayers 비우기)은 플레이어가 왜 안 잡히는지 몰라서 쓰지 않습니다.
+    /// 잠글 때 이미 손에 든 물건은 그대로 둡니다(놓을 수 없게 되는 일 방지). 손은 잡기 버튼을 새로 눌러야 다시 잡으므로(StateChange) 놓고 잡기가 반복되지 않습니다.
     /// </summary>
     public sealed class InteractionLock : MonoBehaviour
     {
-        readonly Dictionary<XRBaseInteractable, InteractionLayerMask> saved = new Dictionary<XRBaseInteractable, InteractionLayerMask>();
+        readonly List<Transform> keep = new List<Transform>();
+        readonly List<XRBaseInputInteractor> hands = new List<XRBaseInputInteractor>();
+        readonly HashSet<IXRSelectInteractable> heldAtLock = new HashSet<IXRSelectInteractable>();
+        readonly List<IXRSelectInteractable> release = new List<IXRSelectInteractable>();
 
-        public bool IsLocked => saved.Count > 0;
+        public bool IsLocked { get; private set; }
 
-        /// <param name="keep">잠그지 않을 대상들 (그 자식 · 부모 물건도 함께 남김)</param>
-        public void Lock(IReadOnlyList<Transform> keep)
+        /// <summary>엉뚱한 물건을 놓게 했을 때</summary>
+        public event Action Denied;
+
+        /// <param name="keepList">놓게 하지 않을 대상들 (그 자식 · 부모 물건도 함께 남김)</param>
+        public void Lock(IReadOnlyList<Transform> keepList)
         {
             Unlock();
-            foreach (XRBaseInteractable it in FindObjectsByType<XRBaseInteractable>(FindObjectsSortMode.None))
+            keep.AddRange(keepList);
+            foreach (XRBaseInputInteractor hand in FindObjectsByType<XRBaseInputInteractor>(FindObjectsSortMode.None))
             {
-                if (it == null || it.isSelected || Keeps(it.transform, keep) || TutorialGrabWatcher.IsHelper(it.transform)) continue;
-                saved[it] = it.interactionLayers;
-                it.interactionLayers = default; // 아무 층도 아님 = 잡히지 않음
+                hands.Add(hand);
+                foreach (IXRSelectInteractable it in hand.interactablesSelected) heldAtLock.Add(it);
             }
+            IsLocked = true;
         }
 
         public void Unlock()
         {
-            foreach (KeyValuePair<XRBaseInteractable, InteractionLayerMask> kv in saved)
-                if (kv.Key != null) kv.Key.interactionLayers = kv.Value;
-            saved.Clear();
+            IsLocked = false;
+            keep.Clear();
+            hands.Clear();
+            heldAtLock.Clear();
         }
 
         void OnDisable() => Unlock();
 
-        static bool Keeps(Transform t, IReadOnlyList<Transform> keep)
+        void LateUpdate()
+        {
+            if (!IsLocked) return;
+            foreach (XRBaseInputInteractor hand in hands)
+            {
+                if (hand == null || !hand.hasSelection || hand.interactionManager == null) continue;
+                release.Clear();
+                foreach (IXRSelectInteractable it in hand.interactablesSelected)
+                    if (it is Component c && c != null && !heldAtLock.Contains(it) && !Keeps(c.transform) && !TutorialGrabWatcher.IsHelper(c.transform))
+                        release.Add(it);
+                if (release.Count == 0) continue;
+                foreach (IXRSelectInteractable it in release) hand.interactionManager.SelectExit(hand, it);
+                hand.SendHapticImpulse(0.6f, 0.12f);
+                Denied?.Invoke();
+            }
+        }
+
+        bool Keeps(Transform t)
         {
             for (int i = 0; i < keep.Count; i++)
                 if (TutorialGrabWatcher.Related(t, keep[i])) return true;

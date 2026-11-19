@@ -119,7 +119,10 @@ namespace CardShop.Core.Phases
             {
                 sinceLastCustomer = 0f;
                 if (pending > 0 && !skipCleanup)
+                {
                     Context.Events.RaiseNotice($"손님이 다 갔어요. 마감 정리 {Context.Campaign.closingCleanupSeconds:0}초! (남은 청소 {pending}곳)");
+                    Context.Events.RaiseHappened(GameMoment.ClosingCleanupStarted);
+                }
             }
             else sinceLastCustomer += deltaTime;
 

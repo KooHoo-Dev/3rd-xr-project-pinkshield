@@ -58,7 +58,7 @@ namespace CardShop.Tutorial
             if (step == null || step.targets == null) { highlighter.Hide(); return; }
             foreach (string key in step.targets)
                 if (!string.IsNullOrEmpty(key)) HighlightTarget.Find(key, targets);
-            if (targets.Count > 0) highlighter.Show(targets);
+            if (targets.Count > 0) highlighter.Show(targets, step.kind == TutorialStepKind.Hold); // 정지 중에만 무대 조명
             else highlighter.Hide();
         }
 

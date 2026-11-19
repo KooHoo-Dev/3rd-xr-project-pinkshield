@@ -50,6 +50,12 @@ namespace CardShop.Tutorial
 
         void OnDisable() => active.Remove(this);
 
+        /// <summary>자식 Renderer (꺼진 것 포함). 외곽선용</summary>
+        public IReadOnlyList<Renderer> Renderers
+        {
+            get { if (renderers == null || HasMissingRenderer()) RefreshRenderers(); return renderers; }
+        }
+
         /// <summary>자식 Renderer 목록을 다시 모읍니다 (모양이 바뀌었을 때).</summary>
         public void RefreshRenderers() => renderers = GetComponentsInChildren<Renderer>(true);
 

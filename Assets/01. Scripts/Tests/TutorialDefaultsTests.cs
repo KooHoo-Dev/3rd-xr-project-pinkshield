@@ -21,12 +21,14 @@ namespace CardShop.Tests
         }
 
         [Test]
-        public void Defaults_StopTheGameOnlyAtFirstCheckoutAndFirstThief()
+        public void Defaults_StopTheGameAtEachFirstTimeTask()
         {
             var holdStarts = new List<string>();
             foreach (TutorialStep s in TutorialDefaults.Steps())
                 if (s.kind == TutorialStepKind.Hold && s.startOn != TutorialSignal.None) holdStarts.Add(s.key); // 이어지는 정지 단계는 같은 정지로 셈
-            CollectionAssert.AreEquivalent(new[] { TutorialDefaults.PayHoldKey, "thief-hold" }, holdStarts, "정지 안내는 2회만");
+            CollectionAssert.AreEquivalent(
+                new[] { TutorialDefaults.PayHoldKey, "trash-1", "closing-cleanup", "messy-1", "stain-1", "listed-1", "thief-hold" },
+                holdStarts, "처음 하는 업무마다 정지 (DEC-028)");
         }
 
         [Test]

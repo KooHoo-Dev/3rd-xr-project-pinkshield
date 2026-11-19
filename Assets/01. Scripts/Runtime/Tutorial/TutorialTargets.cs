@@ -44,6 +44,8 @@ namespace CardShop.Tutorial
                 if (!t.IsDone) HighlightTarget.Mark(t.gameObject, TutorialDefaults.Trash);
             foreach (MessyPackSpot m in Object.FindObjectsByType<MessyPackSpot>(FindObjectsSortMode.None))
                 if (!m.IsDone) HighlightTarget.Mark(m.gameObject, TutorialDefaults.MessyPack);
+            foreach (StainSpot s in Object.FindObjectsByType<StainSpot>(FindObjectsSortMode.None))
+                if (!s.IsDone) HighlightTarget.Mark(s.gameObject, TutorialDefaults.Stain);
             foreach (PackView p in Object.FindObjectsByType<PackView>(FindObjectsSortMode.None))
             {
                 if (p.IsFree) HighlightTarget.Mark(p.gameObject, TutorialDefaults.FreePack);

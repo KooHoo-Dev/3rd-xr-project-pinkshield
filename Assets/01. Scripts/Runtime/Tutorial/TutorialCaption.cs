@@ -1,4 +1,5 @@
 using CardShop.Cards;
+using CardShop.Core;
 using CardShop.Presentation;
 using TMPro;
 using UnityEngine;
@@ -12,6 +13,7 @@ namespace CardShop.Tutorial
     /// ① 말하는 사람 칩 ② 대사(큰 흰 글씨) ③ 할 일(노란 굵은 글씨). 카드 · 물건에 가려지지 않게 맨 위에 그립니다.
     /// 머리를 15° 넘게 돌리면 천천히 따라옵니다 (완전 고정은 멀미). 새 안내가 뜨면 커지며 등장 + 띵 + 양손 약한 진동,
     /// 할 일을 마치면 할 일 줄이 초록 ✓로 바뀌고 잠깐 보여 준 뒤 다음 안내로 넘어갑니다.
+    /// 튜토리얼 정지(GameFlow.IsHeld) 중에는 칩 옆에 "[시간 멈춤]", 풀리면 잠깐 "▶ 다시 시작!" (DEC-028).
     /// </summary>
     public sealed class TutorialCaption : MonoBehaviour
     {
@@ -21,6 +23,7 @@ namespace CardShop.Tutorial
         const float FollowSharpness = 7.5f;   // 약 0.4초에 따라옴
         const float PopSeconds = 0.2f;
         const float DoneSeconds = 0.6f;       // ✓를 보여 주는 시간
+        const float ResumeSeconds = 1.5f;     // "▶ 다시 시작!"을 보여 주는 시간
         const float FontSize = 0.42f;         // 말풍선(0.28)의 1.5배
         const float Width = 0.9f;
         const string Panel = "#2A1E45F5";     // 진보라 불투명 (UiTheme A)
@@ -32,7 +35,9 @@ namespace CardShop.Tutorial
         TutorialSpeaker speaker;
         string body, task;
         float yaw, shownFor, doneUntil = -1f;
-        bool following;
+        bool following, held;
+        float resumedUntil = -1f;
+        GameFlow flow;
         System.Action afterDone; // ✓ 보여 주는 동안 들어온 다음 Show / Hide
 
         public static TutorialCaption Create(Transform parent, TMP_FontAsset font)
@@ -121,7 +126,9 @@ namespace CardShop.Tutorial
         {
             string who = speaker == TutorialSpeaker.Boss ? "사장님" : "혼잣말";
             string bodyColor = speaker == TutorialSpeaker.Boss ? "#FFFFFF" : "#D1DBFF";
-            string s = $"<mark={Panel} padding=\"30,30,16,16\"><size=55%><color={Chip}><b>● {who}</b></color></size>\n" +
+            string state = held ? $"   <color={Task}>[시간 멈춤] 따라 해 보세요</color>"
+                         : resumedUntil >= 0f ? $"   <color={Done}>▶ 다시 시작!</color>" : "";
+            string s = $"<mark={Panel} padding=\"30,30,16,16\"><size=55%><color={Chip}><b>● {who}</b></color><b>{state}</b></size>\n" +
                        $"<color={bodyColor}>{body}</color>";
             if (!string.IsNullOrEmpty(task))
                 s += done ? $"\n<size=85%><color={Done}><b>✓ 완료!</b></color></size>"
@@ -132,6 +139,7 @@ namespace CardShop.Tutorial
         void LateUpdate()
         {
             float dt = Time.unscaledDeltaTime;
+            WatchHold();
             if (doneUntil >= 0f && Time.unscaledTime >= doneUntil)
             {
                 doneUntil = -1f;
@@ -162,6 +170,18 @@ namespace CardShop.Tutorial
         {
             Vector3 dir = Quaternion.Euler(PitchDown, yaw, 0f) * Vector3.forward;
             transform.SetPositionAndRotation(head.position + dir * Distance, Quaternion.LookRotation(dir, Vector3.up));
+        }
+
+        // 정지가 바뀌면 칩 옆 상태 글자를 다시 그림
+        void WatchHold()
+        {
+            if (flow == null && GameContext.Instance != null) flow = GameContext.Instance.GetComponent<GameFlow>();
+            bool now = flow != null && flow.IsHeld;
+            bool expired = resumedUntil >= 0f && Time.unscaledTime >= resumedUntil;
+            if (now == held && !expired) return;
+            if (expired) resumedUntil = -1f;
+            if (now != held) { held = now; resumedUntil = now ? -1f : Time.unscaledTime + ResumeSeconds; }
+            Redraw(doneUntil >= 0f);
         }
 
         static void Buzz()

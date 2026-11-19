@@ -19,8 +19,10 @@ namespace CardShop.Core
         MessyPackFixed,
         StainSpawned,   // 바닥 얼룩 (FIX F5)
         StainCleaned,
+        ClosingCleanupStarted, // 손님이 다 가고 마감 청소 시간이 시작됨 (남은 청소가 있을 때만, FIX C1)
         // 영업 · 도둑
         BusinessClosing,
+        ListedCardCheckout,    // 판매 등록 카드를 산 손님이 계산대에 올림 (FIX C1)
         ThiefAppeared,
         ThiefCaught,
         ThiefEscaped,

@@ -23,8 +23,8 @@ namespace CardShop.Tutorial
         [SerializeField] float idleHintSeconds = 4f;
         [Tooltip("[안내 다시 보기]로 띄운 말풍선이 보이는 시간 (초)")]
         [SerializeField] float replaySeconds = 5f;
-        [Tooltip("엉뚱한 물건을 잡았을 때: 알려 주기(기본) / 잠그기")]
-        [SerializeField] OutsideGrabMode outsideGrab = OutsideGrabMode.Notify;
+        [Tooltip("엉뚱한 물건을 잡았을 때: 잠그기(기본, DEC-028) / 알려 주기")]
+        [SerializeField] OutsideGrabMode outsideGrab = OutsideGrabMode.Lock;
         [Tooltip("카운터 메모 자리 (월드)")]
         [SerializeField] Vector3 memoPosition = new Vector3(0.45f, ShopLayout.CounterTop + 0.002f, 0.55f);
 
@@ -91,6 +91,7 @@ namespace CardShop.Tutorial
             idle = gameObject.AddComponent<IdleHint>();
             dim = gameObject.AddComponent<TutorialLightDim>();
             locker = gameObject.AddComponent<InteractionLock>();
+            locker.Denied += SayWrong;
             memo = CounterMemo.Create(transform, font);
             memo.Place(new Pose(memoPosition, Quaternion.LookRotation(Vector3.down, Vector3.forward)));
             memo.Hide();
@@ -224,8 +225,14 @@ namespace CardShop.Tutorial
             bool checkWrong = s != null && s.kind != TutorialStepKind.Say;
             bool wrong = grabs.Scan(grabSignals, checkWrong ? isTarget : null);
             foreach (TutorialSignal g in grabSignals) progress.Notify(g);
-            // 막지 않고 알려 주기 (확정 결정): 한 단계에 한 번만 말하고 대상을 깜빡임
-            if (!wrong || wrongSaid || s == null) return;
+            if (wrong) SayWrong(); // 알려 주기 모드. 잠그기 모드는 InteractionLock이 놓게 한 뒤 Denied로 부름
+        }
+
+        // 한 단계에 한 번만 말하고 대상을 깜빡임
+        void SayWrong()
+        {
+            TutorialStep s = progress.Active;
+            if (wrongSaid || s == null) return;
             wrongSaid = true;
             view.ChangeText(Format(s.line) + "\n<size=80%><color=#FFD27F>그건 나중에! 지금은 이것부터.</color></size>");
             view.Flash();

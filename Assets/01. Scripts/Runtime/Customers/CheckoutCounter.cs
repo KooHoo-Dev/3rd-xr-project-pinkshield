@@ -80,6 +80,7 @@ namespace CardShop.Customers
             }
             if (pos != null) pos.Show(basket);
             ctx.Events.RaiseHappened(GameMoment.CheckoutStarted);
+            if (card != null) ctx.Events.RaiseHappened(GameMoment.ListedCardCheckout);
         }
 
         void Update()
