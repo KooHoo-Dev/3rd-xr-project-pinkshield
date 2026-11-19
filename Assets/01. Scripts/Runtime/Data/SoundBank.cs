@@ -29,9 +29,10 @@ namespace CardShop.Cards
         MopScrub = 17,       // 대걸레로 얼룩 문지르기 (FIX F5, 문지르는 동안 짧게 반복)
         StainClean = 18,     // 얼룩을 다 지움
         // 손님 · 도둑
-        CustomerVoiceMale = 20,   // 말풍선 뜰 때 짧은 감탄 (오, 아하, 와우)
-        CustomerVoiceFemale = 21,
-        CustomerAngry = 22,
+        // 손님 목소리는 CustomerVoices가 상황(가벼운 반응 · 와우 · 재촉 · 화남) · 성별 · 나이로 칸을 고름
+        CustomerVoiceMale = 20,   // 남자 가벼운 반응 (오)
+        CustomerVoiceFemale = 21, // 여자(어른) 가벼운 반응
+        CustomerAngry = 22,       // 남자 화남 (기다리다 떠남)
         ThiefLaughMale = 23,      // 도둑 등장 힌트
         ThiefLaughFemale = 24,
         ThiefCaught = 25,
@@ -53,6 +54,17 @@ namespace CardShop.Cards
         BgmShop = 51,
         BgmHome = 52,
         AmbienceStreet = 53,
+        // 손님 목소리 추가 (11-19, 성별 · 나이 · 상황별)
+        CustomerWowMale = 60,
+        CustomerWowFemale = 61,
+        CustomerAngryFemale = 62,
+        CustomerImpatientFemale = 63, // 한숨 · 헛기침 (줄 재촉)
+        CustomerVoiceGirl = 64,       // 젊은 여자 가벼운 반응 (비면 어른 칸)
+        CustomerWowGirl = 65,
+        ThiefCaughtCheer = 66,        // 도둑을 잡았을 때 머리 위치에서 환호
+        // 가게 배경 음악 변형 (ShopBgm이 고름)
+        BgmShopChill = 70,            // 2일차부터 BgmShop과 번갈아
+        BgmShopLucky = 71,            // 전날 유니크 이상을 뽑은 다음 날 (기분 좋은 날)
     }
 
     /// <summary>
@@ -88,6 +100,10 @@ namespace CardShop.Cards
             return map.TryGetValue(id, out Entry entry) ? entry : null;
         }
 
+        /// <summary>BgmPlayer가 반복 재생하는 칸 (배경 음악 · 환경음)</summary>
+        public static bool IsLoop(SoundId id) =>
+            (id >= SoundId.BgmTitle && id <= SoundId.AmbienceStreet) || id == SoundId.BgmShopChill || id == SoundId.BgmShopLucky;
+
         /// <summary>칸이 모두 있는지 맞춤 (새 SoundId가 생기면 빈 칸 추가). 에디터 도구가 부름.</summary>
         public int EnsureAllEntries()
         {
@@ -95,7 +111,8 @@ namespace CardShop.Cards
             foreach (SoundId id in Enum.GetValues(typeof(SoundId)))
             {
                 if (entries.Exists(e => e != null && e.id == id)) continue;
-                entries.Add(new Entry { id = id, volume = id >= SoundId.BgmTitle ? 0.35f : 0.8f, pitch = id >= SoundId.BgmTitle ? Vector2.one : new Vector2(0.95f, 1.05f) });
+                bool music = IsLoop(id);
+                entries.Add(new Entry { id = id, volume = music ? 0.35f : 0.8f, pitch = music ? Vector2.one : new Vector2(0.95f, 1.05f) });
                 added++;
             }
             entries.Sort((a, b) => a.id.CompareTo(b.id));
