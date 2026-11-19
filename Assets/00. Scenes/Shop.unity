@@ -4887,6 +4887,68 @@ MonoBehaviour:
   hoverScale: 1.06
   hapticAmplitude: 0.12
   hapticSeconds: 0.02
+--- !u!1001 &189638427
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1299757314}
+    m_Modifications:
+    - target: {fileID: 6306637728688488230, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_Name
+      value: ShopStreetDetails
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+--- !u!4 &189638428 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+  m_PrefabInstance: {fileID: 189638427}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &195113642
 GameObject:
   m_ObjectHideFlags: 0
@@ -7385,6 +7447,7 @@ MonoBehaviour:
   radius: 0.32
   dropHeight: 1.3
   hint: {fileID: 1995993018}
+  climbBlocker: {x: 0.5, y: 1.1, z: 0.5}
 --- !u!4 &316958064
 Transform:
   m_ObjectHideFlags: 0
@@ -18713,6 +18776,7 @@ MonoBehaviour:
   - {fileID: 1283035092}
   - {fileID: 2135284076}
   - {fileID: 1365994531}
+  trashScale: 1.5
   rack: {fileID: 634572446}
   packsPerMess: 2
   outOfViewChance: 0.15
@@ -26875,6 +26939,7 @@ Transform:
   - {fileID: 1598081955}
   - {fileID: 531102733}
   - {fileID: 765587920}
+  - {fileID: 189638428}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1307103886
@@ -30997,6 +31062,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Customers.PosTerminal
   screen: {fileID: 1767393103}
   idleText: "\uC5B4\uC11C \uC624\uC138\uC694!"
+  textScale: 1.4
 --- !u!1 &1506656876
 GameObject:
   m_ObjectHideFlags: 0
