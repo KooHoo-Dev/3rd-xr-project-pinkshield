@@ -85,7 +85,7 @@ namespace CardShop.Core.Phases
         public float CleanupTimeLeft => IsCleaningUp ? Mathf.Max(0f, Context.Campaign.closingCleanupSeconds - sinceLastCustomer) : 0f;
 
         float sinceLastCustomer = -1f; // 음수 = 아직 손님이 남음
-        bool skipCleanup;
+        bool skipCleanup, fastForwarding;
 
         public override void Enter()
         {
@@ -93,15 +93,25 @@ namespace CardShop.Core.Phases
             IsClosing = false;
             sinceLastCustomer = -1f;
             skipCleanup = false;
+            fastForwarding = false;
             Log($"영업 시작 ({TimeLeft:0}초)");
         }
 
         public override void Tick(float deltaTime)
         {
             if (Flow.IsTimeStopped) return; // 일시정지 · 튜토리얼 정지
+            int pending = Flow.Cleanup?.PendingCount ?? 0;
             if (!IsClosing)
             {
-                TimeLeft -= deltaTime;
+                CampaignConfig.DayEntry day = Context.Campaign.GetDay(Context.Session.Day);
+                float speed = BusinessClockRules.Speed(day.fastForwardWhenIdle, 1f - TimeLeft / day.businessSeconds,
+                    Context.Campaign.spawnWindowRatio, HasCustomers(), pending, Context.Campaign.idleFastForward);
+                if (speed > 1f && !fastForwarding)
+                {
+                    fastForwarding = true;
+                    Context.Events.RaiseNotice("오늘은 한가하네요! 빨리 마감할게요.");
+                }
+                TimeLeft -= deltaTime * speed;
                 if (TimeLeft > 0f) return;
                 TimeLeft = 0f;
                 IsClosing = true;
@@ -112,9 +122,7 @@ namespace CardShop.Core.Phases
             }
 
             // 도둑을 쫓는 중이면 손님처럼 끝날 때까지 기다림 (카드도둑_설계 3장)
-            bool hasCustomers = (Flow.Customers != null && Flow.Customers.HasCustomers) || (Flow.Thief != null && Flow.Thief.IsActive);
-            if (hasCustomers) return;
-            int pending = Flow.Cleanup?.PendingCount ?? 0;
+            if (HasCustomers()) return;
             if (sinceLastCustomer < 0f)
             {
                 sinceLastCustomer = 0f;
@@ -135,6 +143,8 @@ namespace CardShop.Core.Phases
                 Flow.GoTo(GamePhaseId.Settlement);
             }
         }
+
+        bool HasCustomers() => (Flow.Customers != null && Flow.Customers.HasCustomers) || (Flow.Thief != null && Flow.Thief.IsActive);
 
         public override void Exit()
         {

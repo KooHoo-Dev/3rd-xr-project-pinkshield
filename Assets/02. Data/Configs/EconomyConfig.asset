@@ -19,9 +19,15 @@ MonoBehaviour:
   dailyBasePay: 40
   cleanupBonus: 5
   cleanupPenalty: 3
+  checkoutBonus: 2
+  checkoutPenalty: 0
+  checkoutFastSeconds: 20
+  checkoutFastPerExtraItemSeconds: 8
   commissionRate: 0.1
   minSellPrice: 1
   salesDisplaySlots: 4
+  minDisplayRarity: 2
+  instantSellRate: 0.6
   popularElementEnabled: 1
   popularMultiplier: 1.5
   popularCycleDays: 2

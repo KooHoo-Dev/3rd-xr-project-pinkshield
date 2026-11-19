@@ -17,31 +17,65 @@ MonoBehaviour:
     customerMin: 4
     customerMax: 4
     cleanupKinds: 1
+    fastForwardWhenIdle: 1
   - businessSeconds: 135
     customerMin: 5
     customerMax: 6
     cleanupKinds: 13
+    fastForwardWhenIdle: 0
   - businessSeconds: 135
     customerMin: 5
     customerMax: 6
     cleanupKinds: 13
+    fastForwardWhenIdle: 0
   - businessSeconds: 150
     customerMin: 6
     customerMax: 7
     cleanupKinds: 13
+    fastForwardWhenIdle: 0
   - businessSeconds: 150
     customerMin: 6
     customerMax: 7
     cleanupKinds: 13
+    fastForwardWhenIdle: 0
   - businessSeconds: 165
     customerMin: 7
     customerMax: 8
     cleanupKinds: 13
+    fastForwardWhenIdle: 0
   - businessSeconds: 165
     customerMin: 8
     customerMax: 9
     cleanupKinds: 13
+    fastForwardWhenIdle: 0
   spawnWindowRatio: 0.7
   closingCleanupSeconds: 30
+  idleFastForward: 6
   customerPatienceSeconds: 30
+  patiencePerExtraItemSeconds: 10
+  cleanup:
+    chance: 0.35
+    firstDayChance: 0.25
+    maxActive: 3
+    guaranteeAfter: 4
+    trashWeight: 35
+    messyPackWeight: 20
+    floorStainWeight: 45
+  useWaves: 1
+  waves:
+    waveSize: {x: 2, y: 3}
+    inWaveGapSeconds: {x: 3, y: 6}
+    secondsPerCustomer: 10
+    lullSeconds: {x: 7, y: 11}
+  thief:
+    firstDay: 3
+    perDay: 1
+    spawnWindow: {x: 0.25, y: 0.6}
+    runSpeed: 1.8
+    lingerSeconds: 1.5
+    tauntSeconds: 1
+    escapeDistance: 10
+    hitSpeed: 1
+    hitRadius: 0.35
+    heroPatienceBonus: 10
   shelfSlotCount: 12

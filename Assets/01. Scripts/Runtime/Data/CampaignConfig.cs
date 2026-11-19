@@ -28,12 +28,14 @@ namespace CardShop.Cards
             public int customerMin = 3;
             public int customerMax = 4;
             public CleanupKinds cleanupKinds = CleanupKinds.All;
+            [Tooltip("손님이 다 나오고 다 나간 뒤 남은 청소가 없으면 남은 영업 시간을 빨리 감음 (FIX D6, 1일차)")]
+            public bool fastForwardWhenIdle;
         }
 
         public List<DayEntry> days = new List<DayEntry>
         {
             // 11-19 A9: 손님이 적게 느껴짐 → 영업 시간 · 손님 수 상향 (물결 크기 2~3은 그대로, 물결 수가 늘어남)
-            new DayEntry { businessSeconds = 120f, customerMin = 4, customerMax = 4 },
+            new DayEntry { businessSeconds = 120f, customerMin = 4, customerMax = 4, fastForwardWhenIdle = true },
             new DayEntry { businessSeconds = 135f, customerMin = 5, customerMax = 6 },
             new DayEntry { businessSeconds = 135f, customerMin = 5, customerMax = 6 },
             new DayEntry { businessSeconds = 150f, customerMin = 6, customerMax = 7 },
@@ -47,6 +49,8 @@ namespace CardShop.Cards
         [Range(0.1f, 1f)] public float spawnWindowRatio = 0.7f;
         [Tooltip("마지막 손님 퇴장 후 마감 정리 시간(초)")]
         public float closingCleanupSeconds = 30f;
+        [Tooltip("한가할 때 빨리 감는 배율 (DayEntry.fastForwardWhenIdle)")]
+        [Min(1f)] public float idleFastForward = 6f;
         [Tooltip("결제를 기다리는 손님의 인내 시간(초)")]
         public float customerPatienceSeconds = 30f;
         [Tooltip("계산대 물건이 2개째부터 한 개당 더 기다려 주는 시간(초) (계산시스템_확장_설계 K6)")]

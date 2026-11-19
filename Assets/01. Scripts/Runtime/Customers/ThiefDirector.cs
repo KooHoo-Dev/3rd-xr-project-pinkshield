@@ -171,6 +171,7 @@ namespace CardShop.Customers
 
             state = State.Taunt;
             thief.Gesture(CustomerAnim.Cheer);
+            Sfx.Play(thief.IsFemale ? SoundId.ThiefLaughFemale : SoundId.ThiefLaughMale, thief.transform.position); // 훔친 순간 그 자리에서 (빨간 외곽선 대신 소리로 찾기)
             Say(StealLines);
             context.Events.RaiseNotice("도둑이야! 오늘 무료 팩을 들고 도망가요. 카운터 오른쪽 대걸레로 한 대!");
             thief.Wait(settings.tauntSeconds, Flee);
