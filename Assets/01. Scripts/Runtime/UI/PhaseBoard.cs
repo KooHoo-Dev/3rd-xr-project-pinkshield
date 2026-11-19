@@ -21,6 +21,9 @@ namespace CardShop.UI
 
         bool dirty;
 
+        /// <summary>페이즈를 넘기는 버튼 (최종 판이 복제해 [계속하기]를 만듦, J4)</summary>
+        protected Button AdvanceButton => advanceButton;
+
         /// <summary>이 판이 보이는 페이즈</summary>
         protected abstract GamePhaseId Phase { get; }
 

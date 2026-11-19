@@ -23,6 +23,8 @@ namespace CardShop.Logic
         public DayLedger Previous { get; private set; }
         public SessionStats Stats { get; } = new SessionStats();
         public int FreePacksLeft { get; set; }
+        /// <summary>7일 뒤 계속하기 (무한모드_설계 J4)</summary>
+        public EndlessState Endless { get; } = new EndlessState();
 
         public GameSession(int startingMoney) => Wallet = new Wallet(startingMoney);
 

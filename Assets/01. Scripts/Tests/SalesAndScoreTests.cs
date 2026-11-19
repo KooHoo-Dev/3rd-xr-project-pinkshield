@@ -314,7 +314,10 @@ namespace CardShop.Tests
                 else if (day > 1) Assert.AreNotEqual(schedule.For(day - 1), e, $"{day}일차에 새 주기 시작");
             }
             Assert.AreEqual(CardElement.None, schedule.For(0));
-            Assert.AreEqual(CardElement.None, schedule.For(8));
+            // 무한 모드 (11-20 J4): 처음 일정(7일) 뒤도 같은 규칙으로 이어 뽑음 — 8일차는 7일차와 같은 주기, 9일차에 새 주기
+            Assert.AreNotEqual(CardElement.None, schedule.For(8));
+            Assert.AreEqual(schedule.For(7), schedule.For(8), "8일차는 7일차와 같은 주기 (2일 주기의 둘째 날)");
+            Assert.AreNotEqual(schedule.For(8), schedule.For(9), "9일차에 새 주기");
         }
 
         [Test]

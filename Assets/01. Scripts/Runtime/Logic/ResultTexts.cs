@@ -11,7 +11,24 @@ namespace CardShop.Logic
         /// <summary>+12 / −3 / 0 (빼기는 읽기 쉬운 유니코드 마이너스)</summary>
         public static string Signed(int v) => v > 0 ? "+" + v : v < 0 ? "−" + (-v) : "0";
 
-        public static string SettlementTitle(int day, int dayCount) => $"{day}일차 정산 <size=60%>({day}/{dayCount}일)</size>";
+        public static string SettlementTitle(int day, int dayCount) => day > dayCount
+            ? $"{day}일차 정산 <size=60%>(연장 {day - dayCount}일)</size>" // 무한 모드 (J4)
+            : $"{day}일차 정산 <size=60%>({day}/{dayCount}일)</size>";
+
+        /// <summary>무한 모드 결과 판 본문 (J4): 7일 공식 기록 한 줄 + 연장 기간 요약. 랭크 없음</summary>
+        public static string EndlessFinal(EndlessState e, GameSession s)
+        {
+            if (e == null || s == null) return "";
+            var sb = new System.Text.StringBuilder();
+            FinalResult o = e.Official;
+            if (o != null) sb.Append("<size=80%>공식 기록 (7일)").Append(Col).Append(o.Score).Append("점 · ").Append(o.Rank != null ? o.Rank.name : "-").Append("</size>\n");
+            sb.Append("연장 근무").Append(Col).Append(e.ExtraDays(s.Day)).Append("일\n");
+            sb.Append("그동안 번 돈").Append(Col).Append(MoneyText.Signed(e.MoneyGained(s.Wallet.Money))).Append('\n');
+            sb.Append("연 팩").Append(Col).Append(e.PacksOpened(s.Stats.packsOpened)).Append("개\n");
+            sb.Append("새로 모은 카드").Append(Col).Append(e.NewKinds(s.Collection.DiscoveredCount)).Append("종\n");
+            sb.Append("지금 자산").Append(Col).Append(MoneyText.Format(s.Wallet.Money));
+            return sb.ToString();
+        }
 
         /// <param name="total">SettlementPhase.LastTotal (이미 지갑에 더해진 값)</param>
         /// <param name="money">더한 뒤 보유 금액</param>

@@ -143,7 +143,23 @@ namespace CardShop.Cards
         /// <summary>마지막 날인가 (집을 건너뛰고 최종 결과로 감)</summary>
         public bool IsLastDay(int day) => day >= DayCount;
 
-        /// <summary>1부터 시작하는 일차.</summary>
-        public DayEntry GetDay(int day) => days[Mathf.Clamp(day - 1, 0, days.Count - 1)];
+        [Header("무한 모드 (7일 뒤 계속하기, 무한모드_설계 Q3)")]
+        [Tooltip("연장 날에 손님을 이 날수마다 1명씩 더함")]
+        [Min(1)] public int endlessExtraEveryDays = 3;
+        [Tooltip("연장 날 손님 추가는 최대 이만큼")]
+        [Min(0)] public int endlessExtraMax = 3;
+
+        /// <summary>1부터 시작하는 일차. 7일 뒤(무한 모드)는 마지막 날 값 + 손님 추가 (DayRules.ExtraCustomers)</summary>
+        public DayEntry GetDay(int day)
+        {
+            DayEntry last = days[Mathf.Clamp(day - 1, 0, days.Count - 1)];
+            int extra = Logic.DayRules.ExtraCustomers(day, DayCount, endlessExtraEveryDays, endlessExtraMax);
+            if (extra <= 0) return last;
+            return new DayEntry
+            {
+                businessSeconds = last.businessSeconds, customerMin = last.customerMin + extra, customerMax = last.customerMax + extra,
+                cleanupKinds = last.cleanupKinds, fastForwardWhenIdle = last.fastForwardWhenIdle,
+            };
+        }
     }
 }

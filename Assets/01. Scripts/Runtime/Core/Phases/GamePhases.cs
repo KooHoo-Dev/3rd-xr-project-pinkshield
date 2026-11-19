@@ -199,10 +199,10 @@ namespace CardShop.Core.Phases
             Log("퇴근 전 시간 (퇴근 버튼 = Advance)");
         }
 
-        // 퇴근: 마지막 날은 집을 건너뛰고 바로 최종 정산(DayEnd → Final), 아니면 집으로.
+        // 퇴근: 마지막 날은 집을 건너뛰고 바로 최종 정산(DayEnd → Final), 아니면 집으로. 무한 모드에는 마지막 날이 없음 (J4)
         public override void OnAdvanceRequested()
         {
-            bool lastDay = Context.Campaign.IsLastDay(Context.Session.Day);
+            bool lastDay = DayRules.IsLastDay(Context.Session.Day, Context.Campaign.DayCount, Context.Session.Endless.Active);
             Flow.GoToFaded(lastDay ? GamePhaseId.DayEnd : GamePhaseId.Home);
         }
     }
@@ -224,6 +224,12 @@ namespace CardShop.Core.Phases
         }
 
         public override void OnAdvanceRequested() => Flow.GoToFaded(GamePhaseId.DayEnd);
+
+        /// <summary>무한 모드 그만두기 (사직서 · 일시정지 메뉴, J4 Q4): 무한 모드 결과 판으로</summary>
+        public void Resign()
+        {
+            if (Context.Session.Endless.Active && !Flow.IsTransitioning) Flow.GoToFaded(GamePhaseId.Final);
+        }
     }
 
     /// <summary>하루 마무리. 미판매 진열 카드는 HomePhase가 이미 돌려놨고, 여기서는 마지막 날에만 돌려놓습니다. 선반 재배치는 DayStarted를 받은 선반이 합니다. 마지막 날이면 최종 정산.</summary>
@@ -235,10 +241,11 @@ namespace CardShop.Core.Phases
         public override void Enter()
         {
             // 평소의 반환은 HomePhase가 합니다. 여기서 또 하면 집에서 등록한 카드가 사라지므로 마지막 날만(최종 점수용).
-            int returned = Context.Sales.ReturnUnsoldOnFinalDay(Context.Session, Context.Campaign.DayCount);
+            bool endless = Context.Session.Endless.Active;
+            int returned = endless ? 0 : Context.Sales.ReturnUnsoldOnFinalDay(Context.Session, Context.Campaign.DayCount);
             if (returned > 0) Log($"안 팔린 진열 카드 {returned}장 반환 (마지막 날)");
 
-            if (Context.Campaign.IsLastDay(Context.Session.Day))
+            if (DayRules.IsLastDay(Context.Session.Day, Context.Campaign.DayCount, endless))
             {
                 Flow.GoTo(GamePhaseId.Final);
                 return;
@@ -259,6 +266,15 @@ namespace CardShop.Core.Phases
 
         public override void Enter()
         {
+            EndlessState endless = Context.Session.Endless;
+            if (endless.Active)
+            {
+                // 무한 모드를 끝냄: 점수는 7일 공식 기록 그대로 (J4 Q2), 판은 연장 기간 요약
+                endless.Finish();
+                Result = endless.Official;
+                Log($"무한 모드 끝: 연장 {endless.ExtraDays(Context.Session.Day)}일");
+                return;
+            }
             Result = Context.ScoreRules.Calculate(Context.Session);
             ScoreConfig.Rank rank = Result.Rank;
             Log($"최종 {Result.Score}점 (재화 {Result.Money} + 카드 {Result.CardValue} + 도감 {Result.CollectionPoints}), " +
@@ -267,5 +283,17 @@ namespace CardShop.Core.Phases
 
         // 가게 앞 인도(타이틀)로 옮기므로 페이드 (DayTransition)
         public override void OnAdvanceRequested() => Flow.GoToFaded(GamePhaseId.Title);
+
+        /// <summary>
+        /// [계속하기] (무한모드_설계 J4): 7일 결과를 공식 기록으로 두고, 건너뛰었던 7일차 밤 집으로 (Q5). 랭크와 상관없이 누구나 (Q1).
+        /// </summary>
+        public void Continue()
+        {
+            GameSession s = Context.Session;
+            if (s.Endless.Active || Result == null || Flow.IsTransitioning) return;
+            s.Endless.Start(Result, s.Day, s.Wallet.Money, s.Stats.packsOpened, s.Collection.DiscoveredCount);
+            Context.Events.RaiseNotice(Result.Rank != null && Result.Rank.isSuccess ? "계약 연장이다! 내일도 나와." : "한 번 더 기회를 주지. 내일도 나와.");
+            Flow.GoToFaded(GamePhaseId.Home);
+        }
     }
 }

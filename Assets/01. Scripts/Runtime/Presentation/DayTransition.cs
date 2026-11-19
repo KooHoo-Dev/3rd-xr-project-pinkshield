@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using CardShop.Cards;
 using CardShop.Core;
+using CardShop.Logic;
 using TMPro;
 using Unity.XR.CoreUtils;
 using UnityEngine;
@@ -121,7 +122,7 @@ namespace CardShop.Presentation
                 case GamePhaseId.Home: return "퇴근, 이제 쉴 시간이다.";
                 case GamePhaseId.Business when ctx != null && ctx.Session.Previous != null: // 1일차는 '어제'가 없으니 아침 대사 없음
                     parsedLines ??= MorningLines.Parse(morningLines != null ? morningLines.lines : null);
-                    return MorningLines.For(ctx.Session.Day, ctx.Campaign.DayCount, ctx.Session.Previous, parsedLines);
+                    return MorningLines.For(ctx.Session.Day, DayRules.EffectiveDayCount(ctx.Campaign.DayCount, ctx.Session.Endless.Active), ctx.Session.Previous, parsedLines);
                 default: return null;
             }
         }

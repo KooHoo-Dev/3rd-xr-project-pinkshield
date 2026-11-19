@@ -12,7 +12,7 @@ namespace CardShop.Decor
         protected override void Refresh()
         {
             if (label == null || Context == null || Context.Session == null) return;
-            label.text = $"<size=55%>DAY</size>\n{Context.Session.Day}\n<size=45%>/ {Context.Campaign.DayCount}일</size>";
+            label.text = $"<size=55%>DAY</size>\n{Context.Session.Day}\n<size=45%>{Logic.DayRules.DaySuffix(Context.Session.Day, Context.Campaign.DayCount)}</size>";
         }
     }
 }

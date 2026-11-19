@@ -32,7 +32,7 @@ namespace CardShop.UI
             GameContext ctx = Context;
             if (ctx == null || ctx.Session == null || ctx.PopularElements == null) return;
 
-            int dayCount = ctx.Campaign.DayCount;
+            int dayCount = DayRules.EffectiveDayCount(ctx.Campaign.DayCount, ctx.Session.Endless.Active); // 무한 모드면 늘 내일 예보 (J4)
             var board = new CommunityBoard(ctx.PopularElements, ctx.Cards, ctx.EconomyRules);
             CommunityReport report = board.Build(ctx.Session.Day, dayCount, ctx.Session.Collection);
 
