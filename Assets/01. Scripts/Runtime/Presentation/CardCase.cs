@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CardShop.Cards;
 using CardShop.Core;
+using CardShop.Interaction;
 using CardShop.Logic;
 using CardShop.UI;
 using UnityEngine;
@@ -120,17 +121,8 @@ namespace CardShop.Presentation
             return new Pose(pos, Quaternion.LookRotation(toRoom, Vector3.up));
         }
 
-        GameObject Box(string name, Vector3 local, Vector3 size, Material mat)
-        {
-            GameObject b = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            b.name = name;
-            Destroy(b.GetComponent<Collider>());
-            b.transform.SetParent(transform, false);
-            b.transform.localPosition = local;
-            b.transform.localScale = size;
-            if (mat != null) b.GetComponent<Renderer>().sharedMaterial = mat;
-            return b;
-        }
+        GameObject Box(string name, Vector3 local, Vector3 size, Material mat) =>
+            RuntimeShapes.Create(PrimitiveType.Cube, name, transform, local, size, mat);
 
         static float RowY(int row) => (Rows - 1) / 2f * RowGap - row * RowGap;
         static Vector3 SlotLocal(int index) => new Vector3((index % PerRow - (PerRow - 1) / 2f) * Spacing, RowY(Mathf.Min(index / PerRow, Rows - 1)), 0.05f);
@@ -298,10 +290,6 @@ namespace CardShop.Presentation
             return best;
         }
 
-        static void Buzz(float amplitude)
-        {
-            foreach (var hand in FindObjectsByType<UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInputInteractor>(FindObjectsSortMode.None))
-                hand.SendHapticImpulse(amplitude, 0.06f);
-        }
+        static void Buzz(float amplitude) => Haptics.BothHands(amplitude, 0.06f);
     }
 }

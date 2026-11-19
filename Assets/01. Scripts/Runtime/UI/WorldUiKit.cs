@@ -102,12 +102,24 @@ namespace CardShop.UI
             return button;
         }
 
-        /// <summary>씬에 이미 있는 한글 글꼴을 빌려 씀 (런타임에 만드는 화면용: 에셋 경로로 불러올 수 없음).</summary>
-        public static TMP_FontAsset FindFont()
+        static TMP_FontAsset korean;
+
+        /// <summary>
+        /// 한글 글꼴. 런타임에 만드는 화면 · 글자는 모두 이것을 씁니다 (에셋 경로로 불러올 수 없어 씬에 이미 있는 글꼴을 빌림).
+        /// 처음 한 번만 씬을 훑고 기억합니다. 못 찾으면 TMP 기본 글꼴(기억하지 않음, 다음에 다시 찾음).
+        /// </summary>
+        public static TMP_FontAsset KoreanFont
         {
-            foreach (TMP_Text t in Object.FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (t.font != null && t.font.name.Contains("KR")) return t.font;
-            return TMP_Settings.defaultFontAsset;
+            get
+            {
+                if (korean != null) return korean;
+                foreach (TMP_Text t in Object.FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    if (t.font != null && t.font.name.Contains("KR")) return korean = t.font;
+                return TMP_Settings.defaultFontAsset;
+            }
         }
+
+        // 예전 이름 (shortcut: 맵 수정 작업 중인 ResignLetter가 아직 씀 → 그 작업이 끝나면 KoreanFont로 바꾸고 지움)
+        public static TMP_FontAsset FindFont() => KoreanFont;
     }
 }

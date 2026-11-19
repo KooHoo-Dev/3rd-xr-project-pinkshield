@@ -68,8 +68,7 @@ namespace CardShop.UI
             panel.localRotation = Quaternion.LookRotation(Vector3.left, Vector3.up);
 
             text = go.AddComponent<TextMeshPro>();
-            CardRevealer revealer = FindAnyObjectByType<CardRevealer>(); // 한글 글꼴은 카드 프리팹 것을 빌림
-            if (revealer != null && revealer.Font != null) text.font = revealer.Font;
+            text.font = WorldUiKit.KoreanFont;
             text.fontSize = 0.2f;
             text.alignment = TextAlignmentOptions.Center;
             text.textWrappingMode = TextWrappingModes.NoWrap;

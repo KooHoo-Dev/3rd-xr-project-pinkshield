@@ -184,11 +184,7 @@ namespace CardShop.Tutorial
             Redraw(doneUntil >= 0f);
         }
 
-        static void Buzz()
-        {
-            foreach (XRBaseInputInteractor hand in FindObjectsByType<XRBaseInputInteractor>(FindObjectsSortMode.None))
-                hand.SendHapticImpulse(0.25f, 0.06f);
-        }
+        static void Buzz() => Interaction.Haptics.BothHands(0.25f, 0.06f);
 
         static Transform Head()
         {

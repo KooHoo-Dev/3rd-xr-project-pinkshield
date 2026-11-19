@@ -106,7 +106,7 @@ namespace CardShop.Interaction
         {
             Sfx.Play(SoundId.UiDeny, at);
             GameContext.Instance.Events.RaiseNotice(message);
-            if (toast == null) toast = WorldToast.Create(transform, revealer.Font);
+            if (toast == null) toast = WorldToast.Create(transform, UI.WorldUiKit.KoreanFont);
             toast.Show(message, at);
             if (hand != null) StartCoroutine(DenyPulse(hand));
         }

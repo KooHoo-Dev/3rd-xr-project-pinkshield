@@ -144,18 +144,8 @@ namespace CardShop.Cleanup
                 if (t.text.StartsWith("빗자루")) t.text = "대걸레\n(청소 · 도둑 잡기)";
         }
 
-        static Transform Part(Transform parent, PrimitiveType shape, Vector3 size, Vector3 localPos, Material mat)
-        {
-            GameObject g = GameObject.CreatePrimitive(shape);
-            Destroy(g.GetComponent<Collider>());
-            g.transform.SetParent(parent, false);
-            g.transform.localScale = size;
-            g.transform.localPosition = localPos;
-            var r = g.GetComponent<MeshRenderer>();
-            r.sharedMaterial = mat;
-            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            return g.transform;
-        }
+        static Transform Part(Transform parent, PrimitiveType shape, Vector3 size, Vector3 localPos, Material mat) =>
+            Core.RuntimeShapes.Create(shape, shape.ToString(), parent, localPos, size, mat, castShadows: false).transform;
 
         static Material Tint(Material source, Color color) =>
             source != null ? new Material(source) { color = color } : null;

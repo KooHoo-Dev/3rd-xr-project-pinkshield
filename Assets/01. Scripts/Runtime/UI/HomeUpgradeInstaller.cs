@@ -33,7 +33,7 @@ namespace CardShop.UI
             }
 
             UpgradeCatalog catalog = GameContext.Instance.Upgrades.Catalog;
-            TMP_FontAsset font = WorldUiKit.FindFont();
+            TMP_FontAsset font = WorldUiKit.KoreanFont;
 
             ShowcasePanel.Create(binder, font, GameContext.Instance.Upgrades.MaxShowcaseSlots());
             CardCase.Create(interior, catalog, binder); // 모니터 위 벽 카드 보관함 (11-20 J5 · J6, 예전 책장 앞 진열대 대신)

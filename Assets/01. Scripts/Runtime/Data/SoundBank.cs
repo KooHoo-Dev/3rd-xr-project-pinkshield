@@ -49,6 +49,7 @@ namespace CardShop.Cards
         LightSwitch = 41,
         Sleep = 42,
         Rooster = 43,        // 아침
+        ResignStamp = 44,    // 사직서 도장 (무한 모드 끝내기, 비면 BagPut)
         // 배경 (BgmPlayer가 반복 재생)
         BgmTitle = 50,
         BgmShop = 51,

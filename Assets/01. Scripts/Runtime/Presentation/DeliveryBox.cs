@@ -47,13 +47,8 @@ namespace CardShop.Presentation
             }
             else
             {
-                look = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                Destroy(look.GetComponent<Collider>());
-                look.transform.SetParent(root.transform, false);
-                look.transform.localScale = FallbackSize;
-                look.transform.localPosition = new Vector3(0f, FallbackSize.y / 2f, 0f);
-                Material m = HomeRoom.Tinted(tintSource, Cardboard);
-                if (m != null) look.GetComponent<Renderer>().sharedMaterial = m;
+                look = Core.RuntimeShapes.Create(PrimitiveType.Cube, "Look", root.transform, new Vector3(0f, FallbackSize.y / 2f, 0f), FallbackSize,
+                    HomeRoom.Tinted(tintSource, Cardboard));
             }
             look.name = "Look";
 

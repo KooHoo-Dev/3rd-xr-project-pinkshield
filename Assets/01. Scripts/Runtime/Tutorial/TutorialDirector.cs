@@ -80,7 +80,7 @@ namespace CardShop.Tutorial
             thief = FindAnyObjectByType<ThiefDirector>();
             binder = FindAnyObjectByType<BinderView>(FindObjectsInactive.Include);
             counter = FindAnyObjectByType<CheckoutCounter>();
-            var font = revealer != null ? revealer.Font : null;
+            var font = WorldUiKit.KoreanFont;
 
             view = gameObject.AddComponent<TutorialView>();
             isTarget = view.IsTarget;

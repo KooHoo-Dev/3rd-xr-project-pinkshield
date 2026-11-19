@@ -112,8 +112,7 @@ namespace CardShop.UI
             page = target;
             slideT = 0f;
             Sfx.Play(SoundId.UiClick);
-            foreach (XRBaseInputInteractor hand in FindObjectsByType<XRBaseInputInteractor>(FindObjectsSortMode.None))
-                hand.SendHapticImpulse(0.2f, 0.04f);
+            Interaction.Haptics.BothHands(0.2f, 0.04f);
             ApplyPage(false);
         }
 

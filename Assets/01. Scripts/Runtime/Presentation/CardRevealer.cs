@@ -87,15 +87,8 @@ namespace CardShop.Presentation
         /// <summary>카운터 위 위치 (상자 안내 말풍선 자리).</summary>
         public Vector3 AnchorPosition => anchor.position;
 
-        /// <summary>한글 글꼴. 씬에 따로 연결하지 않도록 카드 프리팹의 글꼴을 빌려 씁니다.</summary>
-        public TMP_FontAsset Font
-        {
-            get
-            {
-                TMP_Text t = cardPrefab != null ? cardPrefab.GetComponentInChildren<TMP_Text>(true) : null;
-                return t != null ? t.font : null;
-            }
-        }
+        // 예전 이름 (shortcut: 맵 수정 작업 중인 TutorialSigns · ShopTimerBoard가 아직 씀 → 그 작업이 끝나면 KoreanFont로 바꾸고 지움)
+        public TMP_FontAsset Font => UI.WorldUiKit.KoreanFont;
 
         /// <summary>더미가 보관함으로 보내졌을 때 (아래 카드부터). 데이터는 이미 보유 목록에 있으므로 표시용입니다.</summary>
         public event Action<IReadOnlyList<CardData>> PileStashed;

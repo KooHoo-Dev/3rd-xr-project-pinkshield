@@ -216,18 +216,11 @@ namespace CardShop.Interaction
         // 팩 앞면(-Z) 바로 위에 얇은 막대. 머티리얼은 팩 것을 빌려 쓰고 색만 바꿉니다(빌드에서 셰이더가 빠지지 않도록).
         Transform CreateLine(string lineName, Color color, float thickness)
         {
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            go.name = lineName;
-            Destroy(go.GetComponent<Collider>());
-            go.transform.SetParent(transform, false);
+            Renderer source = GetComponentInChildren<MeshRenderer>(); // 만들기 전에 찾아야 새 막대 자신이 잡히지 않음
             float frontZ = -GetComponent<BoxCollider>().size.z * 0.5f - 0.001f;
-            go.transform.localPosition = new Vector3(0f, cutY, frontZ);
-            go.transform.localScale = new Vector3(width, thickness, 0.0008f);
-
+            GameObject go = RuntimeShapes.Create(PrimitiveType.Cube, lineName, transform, new Vector3(0f, cutY, frontZ),
+                new Vector3(width, thickness, 0.0008f), source != null ? source.sharedMaterial : null, castShadows: false);
             var r = go.GetComponent<MeshRenderer>();
-            Renderer source = GetComponentInChildren<MeshRenderer>();
-            if (source != null && source != r) r.sharedMaterial = source.sharedMaterial;
-            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             var mpb = new MaterialPropertyBlock();
             mpb.SetColor(BaseColorId, color);
             r.SetPropertyBlock(mpb);

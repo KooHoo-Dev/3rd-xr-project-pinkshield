@@ -48,11 +48,10 @@ namespace CardShop.Tutorial
             ctx = GameContext.Instance;
             if (ctx == null) { enabled = false; return; }
             ctx.Events.SessionStarted += OnSessionStarted;
-            var revealer = FindAnyObjectByType<CardRevealer>();
             var go = new GameObject("Bubble");
             go.transform.SetParent(transform, false);
             bubble = go.AddComponent<BossBubble>();
-            bubble.Configure(revealer != null ? revealer.Font : null);
+            bubble.Configure(UI.WorldUiKit.KoreanFont);
         }
 
         void OnDestroy()
