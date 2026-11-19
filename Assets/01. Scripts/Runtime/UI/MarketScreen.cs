@@ -9,8 +9,8 @@ using UnityEngine.UI;
 namespace CardShop.UI
 {
     /// <summary>
-    /// 슬라임마켓: 방 업그레이드 상점 화면 (집_업그레이드_설계 3장 E2). 컴퓨터 옆 벽에 걸린 화면으로, 분야마다 한 줄
-    /// (이름 · 지금 단계 · 다음 효과 · [가격 사기]). 사면 다음 날 아침 택배 상자로 오고(DEC-031 Q3), 쓴 돈은 최종 점수의 가구 값(Q2).
+    /// 슬라임마켓: 방 업그레이드 상점 화면 (집_업그레이드_설계 3장 E2). 컴퓨터 모니터의 두 번째 쪽(HomeComputer, 11-20 J1), 분야마다 상품 카드 1장
+    /// (이름 · 단계 점 · 다음 효과 · 가격 띠 버튼 · 상태 리본, 11-20 F8). 사면 다음 날 아침 택배 상자로 오고(DEC-031 Q3), 쓴 돈은 최종 점수의 가구 값(Q2).
     /// 실수로 사지 않게 한 번 누르면 "한 번 더 누르면 사요", ConfirmSeconds 안에 한 번 더 누르면 삽니다(판매 패널 모두 팔기와 같은 방식).
     /// 규칙은 순수 C# UpgradeRules. 씬을 다시 빌드하지 않도록 HomeUpgradeInstaller가 런타임에 만듭니다.
     /// </summary>
@@ -25,6 +25,13 @@ namespace CardShop.UI
         UpgradeKind[] kinds;
         TMP_Text[] rowLabels;
         Button[] buyButtons;
+        Image[] cardBacks;   // 상품 카드 바탕 (상태에 따라 색)
+        TMP_Text[] ribbons;  // 카드 위 상태 리본 (배송 중 · 도착 · 완료 · 돈 부족)
+        static readonly Color CardColor = new Color(0.38f, 0.3f, 0.56f, 1f);
+        static readonly Color OrderedColor = new Color(0.25f, 0.4f, 0.62f, 1f);
+        static readonly Color ArrivedColor = new Color(0.62f, 0.32f, 0.5f, 1f);
+        static readonly Color DoneColor = new Color(0.27f, 0.45f, 0.33f, 1f);
+        static readonly Color PoorColor = new Color(0.3f, 0.28f, 0.34f, 1f);
         TMP_Text statusLabel, messageLabel;
         string message = "";
         int armed = -1;            // 확인을 기다리는 줄
@@ -43,19 +50,32 @@ namespace CardShop.UI
             WorldUiKit.AddText(c, "Title", "슬라임마켓  <size=70%>방 꾸미기 · 산 물건은 다음 날 택배로 와요</size>",
                 new Vector2(0.03f, 0.9f), new Vector2(0.97f, 0.975f), 34f, UiTheme.Gold, font);
 
+            // 상품 카드 격자 (11-20 F8: 글자 줄 목록이 허접해 보임 → 쇼핑앱처럼 4열 카드 + 가격 띠 버튼 + 상태 리본)
             int n = catalog.tracks != null ? catalog.tracks.Length : 0;
             var kinds = new UpgradeKind[n];
             var labels = new TMP_Text[n];
             var buttons = new Button[n];
-            const float top = 0.885f, bottom = 0.17f;
-            float rowH = (top - bottom) / Mathf.Max(1, n);
+            var backs = new Image[n];
+            var ribbons = new TMP_Text[n];
+            const int cols = 4;
+            const float top = 0.885f, bottom = 0.17f, left = 0.03f, right = 0.97f, gap = 0.012f;
+            int rows = Mathf.Max(1, (n + cols - 1) / cols);
+            float cardW = (right - left - gap * (cols - 1)) / cols, cardH = (top - bottom - gap * (rows - 1)) / rows;
             for (int i = 0; i < n; i++)
             {
                 kinds[i] = catalog.tracks[i].kind;
-                float y1 = top - i * rowH, y0 = y1 - rowH + 0.012f;
-                labels[i] = WorldUiKit.AddText(c, $"Row_{kinds[i]}", "", new Vector2(0.04f, y0), new Vector2(0.72f, y1), 24f, UiTheme.Text, font);
-                labels[i].alignment = TextAlignmentOptions.MidlineLeft;
-                buttons[i] = WorldUiKit.AddButton(c, "사기", new Vector2(0.74f, y0), new Vector2(0.96f, y1), font);
+                int row = i / cols, col = i % cols;
+                float x0 = left + col * (cardW + gap), y1 = top - row * (cardH + gap);
+                backs[i] = WorldUiKit.AddImage(c, $"Card_{kinds[i]}", new Vector2(x0, y1 - cardH), new Vector2(x0 + cardW, y1), CardColor);
+                backs[i].raycastTarget = false;
+                Transform card = backs[i].transform;
+                ribbons[i] = WorldUiKit.AddText(card, "Ribbon", "", new Vector2(0f, 0.86f), new Vector2(1f, 1f), 17f, UiTheme.Gold, font);
+                labels[i] = WorldUiKit.AddText(card, "Body", "", new Vector2(0.05f, 0.27f), new Vector2(0.95f, 0.86f), 21f, UiTheme.Text, font);
+                labels[i].alignment = TextAlignmentOptions.Top;
+                labels[i].enableAutoSizing = true;
+                labels[i].fontSizeMin = 15f;
+                labels[i].fontSizeMax = 21f;
+                buttons[i] = WorldUiKit.AddButton(card, "사기", new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.25f), font);
                 buttons[i].GetComponentInChildren<TMP_Text>().fontSize = 22f;
             }
             TMP_Text status = WorldUiKit.AddText(c, "Status", "", new Vector2(0.03f, 0.09f), new Vector2(0.97f, 0.155f), 22f, UiTheme.SubText, font);
@@ -66,6 +86,8 @@ namespace CardShop.UI
             screen.kinds = kinds;
             screen.rowLabels = labels;
             screen.buyButtons = buttons;
+            screen.cardBacks = backs;
+            screen.ribbons = ribbons;
             screen.statusLabel = status;
             screen.messageLabel = msg;
             rt.gameObject.SetActive(true);
@@ -166,17 +188,22 @@ namespace CardShop.UI
                 UpgradeCatalog.Level next = rules.NextLevel(s.Upgrades, kind);
                 bool decor = UpgradeRules.IsDecor(kind); // 꾸미기는 단계 없이 "있음 / 없음"
                 string trackName = track != null ? track.displayName : kind.ToString();
-                string head = decor ? trackName : $"{trackName} <size=80%>Lv{level}/{max}</size>";
-                string tail =
-                    status == UpgradeStatus.Ordered ? "<color=#7FD1FF>내일 아침 도착</color>" :
-                    status == UpgradeStatus.Arrived ? "<color=#7FD1FF>택배 도착! 방의 상자를 잡아 열어요</color>" :
-                    next == null ? (decor ? "<color=#9CE59C>방에 있음</color>" : "<color=#9CE59C>최고 단계</color>") :
-                    next.effect;
-                rowLabels[i].text = $"{head}\n<size=80%><color=#CFC6EA>{tail}</color></size>";
+                // 상품 카드: 이름 · 단계 점(●●○) · 다음 효과 / 위 리본 = 상태 / 바탕색 = 상태 · 살 수 있는지 (F8)
+                string dots = decor ? "" : "\n<size=85%><color=#FFD27F>" + new string('●', level) + new string('○', Mathf.Max(0, max - level)) + "</color></size>";
+                string effect = next != null ? next.effect : decor ? "방에 있어요" : "모두 업그레이드했어요";
+                rowLabels[i].text = $"<b>{trackName}</b>{dots}\n<size=80%><color=#E2DBF5>{effect}</color></size>";
+                bool poor = next != null && s.Wallet.Money < next.price;
+                ribbons[i].text =
+                    status == UpgradeStatus.Ordered ? "<color=#9FDCFF>배송 중 · 내일 아침</color>" :
+                    status == UpgradeStatus.Arrived ? "<color=#FFB3D9>택배 도착! 방 상자를 열어요</color>" :
+                    next == null ? "<color=#9CE59C>완료</color>" :
+                    poor ? "<color=#B9B3C8>돈이 모자라요</color>" : "";
+                cardBacks[i].color = status == UpgradeStatus.Ordered ? OrderedColor : status == UpgradeStatus.Arrived ? ArrivedColor
+                    : next == null ? DoneColor : poor ? PoorColor : CardColor;
 
                 TMP_Text label = buyButtons[i].GetComponentInChildren<TMP_Text>();
                 bool canOrder = status == UpgradeStatus.None && next != null;
-                label.text = !canOrder ? "-" : armedValid && armed == i ? "한 번 더!" : $"{MoneyText.Format(next.price)} 사기";
+                label.text = !canOrder ? (next == null ? "완료" : "주문함") : armedValid && armed == i ? "한 번 더!" : MoneyText.Format(next.price);
                 buyButtons[i].interactable = canOrder;
             }
 
