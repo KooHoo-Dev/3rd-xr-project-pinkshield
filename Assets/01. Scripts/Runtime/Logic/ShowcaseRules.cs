@@ -39,6 +39,21 @@ namespace CardShop.Logic
             return ShowcaseResult.Ok;
         }
 
+        /// <summary>
+        /// 진열한 카드를 다른 칸으로 옮깁니다 (11-20 J5: 보관함에서 손으로 빼서 다른 칸에 꽂기). 칸은 앞에서부터 채워지므로
+        /// 빈 칸 번호를 주면 맨 뒤로. 범위 밖이면 false.
+        /// </summary>
+        public static bool MoveTo(GameSession s, int from, int to)
+        {
+            if (from < 0 || from >= s.Showcase.Count || to < 0) return false;
+            if (to >= s.Showcase.Count) to = s.Showcase.Count - 1;
+            if (from == to) return true;
+            string id = s.Showcase[from];
+            s.Showcase.RemoveAt(from);
+            s.Showcase.Insert(to, id);
+            return true;
+        }
+
         /// <summary>진열을 내리고 보유 목록으로 돌려놓습니다. 진열하지 않은 카드면 false.</summary>
         public static bool Remove(GameSession s, string cardId)
         {

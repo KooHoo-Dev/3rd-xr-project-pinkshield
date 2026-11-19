@@ -79,6 +79,17 @@ namespace CardShop.Tests
             Assert.AreEqual(1, after.ShowcaseCards.Count);
         }
 
+        [Test]
+        public void MoveTo_ReordersSlots_AndClampsToEnd()
+        {
+            s.Showcase.AddRange(new[] { "A", "B", "C" });
+            Assert.IsTrue(ShowcaseRules.MoveTo(s, 0, 2));
+            CollectionAssert.AreEqual(new[] { "B", "C", "A" }, s.Showcase);
+            Assert.IsTrue(ShowcaseRules.MoveTo(s, 2, 9), "빈 칸 번호면 맨 뒤");
+            CollectionAssert.AreEqual(new[] { "B", "C", "A" }, s.Showcase);
+            Assert.IsFalse(ShowcaseRules.MoveTo(s, 5, 0));
+        }
+
         [TestCase(2, 0, 0, "x2")]
         [TestCase(1, 0, 1, "x1 · 진열 1")]
         [TestCase(1, 1, 2, "x1 · 등록 1 · 진열 2")]
