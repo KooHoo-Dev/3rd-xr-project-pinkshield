@@ -38,8 +38,12 @@ namespace CardShop.UI
             ShowcasePanel.Create(binder, font, GameContext.Instance.Upgrades.MaxShowcaseSlots());
             ShowcaseShelf.Create(interior, catalog);
             // 화면은 집 페이즈 이벤트를 받아야 하므로 늘 켜져 있는 Home 루트 아래 (집 실내는 집에서만 켜짐 — ZoneVisibility)
-            Vector3 local = interior.parent.InverseTransformPoint(interior.TransformPoint(MarketPosition));
-            MarketScreen.Create(interior.parent, local, MarketYaw, catalog, font);
+            // 슬라임마켓은 컴퓨터 모니터의 두 번째 쪽으로 (11-20 J1). 모니터(커뮤니티 화면)가 없는 씬이면 예전처럼 오른쪽 벽
+            if (!HomeComputer.Create(catalog, font))
+            {
+                Vector3 local = interior.parent.InverseTransformPoint(interior.TransformPoint(MarketPosition));
+                MarketScreen.Create(interior.parent, local, MarketYaw, catalog, font);
+            }
             RoomUpgradeView.Create(interior, catalog, font, binder);
 
             FinalBoard final = Object.FindAnyObjectByType<FinalBoard>(FindObjectsInactive.Include);
