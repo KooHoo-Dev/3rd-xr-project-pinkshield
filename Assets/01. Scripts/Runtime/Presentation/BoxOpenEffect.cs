@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using CardShop.Cards;
+using TMPro;
 using UnityEngine;
 
 namespace CardShop.Presentation
@@ -52,15 +53,17 @@ namespace CardShop.Presentation
 
         SpriteRenderer slash;
         Coroutine routine;
+        TMP_FontAsset font; // 팩 앞면 "SLIME PACK" 글자 (단일 팩과 같게, FIX D2)
 
         /// <summary>i번째 팩의 윗띠가 뜯긴 순간 (팩 번호, 그 팩의 위치 · 회전). 등급 이펙트용 (FIX D2 BoxPackRarityFx)</summary>
         public event System.Action<int, Pose> PackTorn;
 
-        public static BoxOpenEffect Create(Transform parent, int prewarm)
+        public static BoxOpenEffect Create(Transform parent, int prewarm, TMP_FontAsset font = null)
         {
             var go = new GameObject("BoxOpenEffect");
             go.transform.SetParent(parent, false);
             var effect = go.AddComponent<BoxOpenEffect>();
+            effect.font = font;
             effect.EnsurePacks(prewarm);
             return effect;
         }
@@ -206,7 +209,25 @@ namespace CardShop.Presentation
             while (packs.Count < count) packs.Add(BuildPack(packs.Count));
         }
 
-        // 시각용 팩: 앞면 · 뒷면 · 아래 띠 · 윗띠(뜯겨 나갈 조각). 판 4장.
+        // 단일 팩 프리팹(PackPrefabBuilder.Label)과 같은 앞면 글자
+        void Label(Transform root)
+        {
+            var go = new GameObject("Label", typeof(RectTransform));
+            go.transform.SetParent(root, false);
+            var text = go.AddComponent<TextMeshPro>();
+            if (font != null) text.font = font;
+            text.text = "SLIME\nPACK";
+            text.fontStyle = FontStyles.Bold;
+            text.alignment = TextAlignmentOptions.Center;
+            text.fontSize = 0.22f;
+            text.color = Color.white;
+            text.GetComponent<MeshRenderer>().sortingOrder = 1; // 앞면 판(0) 위에
+            var rt = (RectTransform)go.transform;
+            rt.sizeDelta = new Vector2(W * 0.9f, 0.05f);
+            rt.localPosition = new Vector3(0f, -0.01f, -0.0008f);
+        }
+
+        // 시각용 팩: 앞면 · 뒷면 · 아래 띠 · 윗띠(뜯겨 나갈 조각) + 앞면 글자.
         VisualPack BuildPack(int index)
         {
             var root = new GameObject($"BoxPack{index}").transform;
@@ -215,6 +236,7 @@ namespace CardShop.Presentation
             RevealSprites.Quad(root, "Front", RevealSprites.Center, new Vector3(0f, 0f, -0.0004f), new Vector2(W, bodyH), FrontColor, 0);
             RevealSprites.Quad(root, "Back", RevealSprites.Center, new Vector3(0f, 0f, 0.0004f), new Vector2(W, bodyH), BackColor, 0);
             RevealSprites.Quad(root, "SealBottom", RevealSprites.Center, new Vector3(0f, -(H * 0.5f - SealH * 0.5f), 0f), new Vector2(W, SealH), SealColor, 0);
+            Label(root);
 
             var strip = new GameObject("TornStrip").transform;
             strip.SetParent(root, false);

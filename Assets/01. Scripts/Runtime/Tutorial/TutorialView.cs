@@ -15,6 +15,7 @@ namespace CardShop.Tutorial
         TutorialCaption caption;
         TargetHighlighter highlighter;
         OffscreenArrow arrow;
+        ControllerButtonGlow buttons; // 할 일 줄에 나온 버튼을 실제 컨트롤러에서 빛냄 (FIX C3)
         readonly List<HighlightTarget> targets = new List<HighlightTarget>();
         TutorialStep step;
 
@@ -25,6 +26,7 @@ namespace CardShop.Tutorial
             caption = TutorialCaption.Create(transform, font);
             highlighter = Child<TargetHighlighter>("TargetHighlighter");
             arrow = Child<OffscreenArrow>("OffscreenArrow");
+            buttons = Child<ControllerButtonGlow>("ControllerButtonGlow");
         }
 
         T Child<T>(string name) where T : Component
@@ -42,6 +44,7 @@ namespace CardShop.Tutorial
             bool wantsAction = s.kind != TutorialStepKind.Say;
             caption.Show(s.speaker, text, wantsAction ? s.idleHint : null);
             arrow.SetTarget(wantsAction && targets.Count > 0 ? (System.Func<Vector3?>)TargetCenter : null);
+            buttons.Show(wantsAction ? s.idleHint : null);
         }
 
         /// <summary>같은 단계의 말만 바꿈 (손 힌트 덧붙이기 등)</summary>
@@ -70,6 +73,7 @@ namespace CardShop.Tutorial
             if (caption != null) caption.Hide(now);
             if (highlighter != null) highlighter.Hide();
             if (arrow != null) arrow.SetTarget(null);
+            if (buttons != null) buttons.Clear();
         }
 
         /// <summary>엉뚱한 물건을 잡았을 때: 대상을 한 번 크게 깜빡임</summary>

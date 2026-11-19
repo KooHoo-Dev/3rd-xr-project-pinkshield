@@ -375,7 +375,7 @@ namespace CardShop.Presentation
         RevealStack CardStack => revealStack ??= new RevealStack(Pool, Pile, stackSettings);
         RevealInput TriggerInput => input ??= new RevealInput(() => SkipHoldGauge.Create(transform, Font), inputSettings);
         RevealFx Fx => fx ??= new RevealFx(this, () => Styles, fxSettings);
-        CounterPileView Pile => counterPile ??= new CounterPileView(this, Pool, EdgeMaterial, pileSettings);
+        CounterPileView Pile => counterPile ??= new CounterPileView(this, Pool, CardMaterial, pileSettings);
         BoxResultBoard BoxBoard => boxBoard ??= new BoxResultBoard(transform, anchor, Pool, () => Font, () => Styles, boardSettings);
         PileInfoPopup PileInfo => pileInfo ??= new PileInfoPopup(this, anchor, Pile, () => Font, () => Styles, pileInfoSettings);
 
@@ -392,12 +392,12 @@ namespace CardShop.Presentation
         }
 
         // 카드 옆면 머티리얼(CardPrefabBuilder의 "CardEdge")을 빌려 써서 더미 덩어리가 카드 옆면처럼 보이게
-        Material EdgeMaterial()
+        Material CardMaterial(string prefix)
         {
             if (cardPrefab == null) return null;
             foreach (Renderer r in cardPrefab.GetComponentsInChildren<Renderer>(true))
                 foreach (Material m in r.sharedMaterials)
-                    if (m != null && m.name.StartsWith("CardEdge")) return m;
+                    if (m != null && m.name.StartsWith(prefix)) return m;
             return null;
         }
     }

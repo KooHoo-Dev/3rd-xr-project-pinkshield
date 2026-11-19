@@ -82,7 +82,7 @@ namespace CardShop.Presentation
         BoxOpenEffect Effect()
         {
             if (effect != null) return effect;
-            effect = BoxOpenEffect.Create(parent, PrewarmPacks);
+            effect = BoxOpenEffect.Create(parent, PrewarmPacks, font());
             rarityFx = new BoxPackRarityFx(parent);
             effect.PackTorn += rarityFx.OnTorn;
             return effect;

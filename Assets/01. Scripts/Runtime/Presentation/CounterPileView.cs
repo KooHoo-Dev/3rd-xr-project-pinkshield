@@ -53,7 +53,7 @@ namespace CardShop.Presentation
 
         readonly MonoBehaviour host; // 보관 연출 기다리기(코루틴) · 덩어리 부모
         readonly CardRevealPool pool;
-        readonly Func<Material> edgeMaterial;
+        readonly Func<string, Material> cardMaterial;
         readonly Settings settings;
         readonly CounterPile<CardRevealView> ledger = new CounterPile<CardRevealView>(v => v.Card, v => v.IsNew, v => v.IsHeld);
         readonly List<CardRevealView> recycled = new List<CardRevealView>();
@@ -72,13 +72,13 @@ namespace CardShop.Presentation
         int thinCount;
         ICardStash stash;
 
-        /// <param name="edgeMaterial">덩어리에 입힐 카드 옆면 머티리얼 (없으면 기본)</param>
+        /// <param name="cardMaterial">이름 앞부분으로 카드 머티리얼 찾기 ("CardEdge" 옆면 · "CardBack" 뒷면, 없으면 null)</param>
         /// <param name="settings">인스펙터 묶음을 그대로 참조 (Play 중 값을 바꿔도 반영)</param>
-        public CounterPileView(MonoBehaviour host, CardRevealPool pool, Func<Material> edgeMaterial, Settings settings)
+        public CounterPileView(MonoBehaviour host, CardRevealPool pool, Func<string, Material> cardMaterial, Settings settings)
         {
             this.host = host;
             this.pool = pool;
-            this.edgeMaterial = edgeMaterial;
+            this.cardMaterial = cardMaterial;
             this.settings = settings;
         }
 
@@ -260,7 +260,7 @@ namespace CardShop.Presentation
             recycled.Clear();
         }
 
-        // 카드 옆면 색 상자 하나로 더미 아래쪽을 표시 (카드 50장을 다 두지 않음)
+        // 덩어리 하나로 더미 아래쪽을 표시 (카드 50장을 다 두지 않음). 생김새는 CardPileBlockLook (FIX D3)
         void UpdateBlock()
         {
             int blockTop = ledger.BlockTop;
@@ -273,6 +273,7 @@ namespace CardShop.Presentation
             b.SetPositionAndRotation(BasePose.position + Vector3.up * (h * 0.5f - cardT * 0.5f), BasePose.rotation);
             // 눕힌 카드 기준: 로컬 X = 가로, Y = 세로, Z = 두께(아래쪽)
             b.localScale = new Vector3(CardView.Width * scale * 0.98f, CardView.Height * scale * 0.98f, h);
+            b.GetComponent<CardPileBlockLook>().Fit(h / cardT);
         }
 
         void HideBlock()
@@ -283,15 +284,7 @@ namespace CardShop.Presentation
         Transform EnsureBlock()
         {
             if (block != null) return block;
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            go.name = "BoxPileBlock";
-            go.transform.SetParent(host.transform, false);
-            UnityEngine.Object.Destroy(go.GetComponent<Collider>()); // 보기만 함 (잡기 · 물리 X)
-            var r = go.GetComponent<MeshRenderer>();
-            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            Material edge = edgeMaterial();
-            if (edge != null) r.sharedMaterial = edge;
-            block = go.transform;
+            block = CardPileBlockLook.Create(host.transform, cardMaterial("CardEdge"), cardMaterial("CardBack")).transform; // 보기만 함 (콜라이더 없음)
             return block;
         }
     }
