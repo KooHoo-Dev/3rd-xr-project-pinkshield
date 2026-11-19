@@ -141,6 +141,8 @@ namespace CardShop.Tutorial
             Then(Self("home-bed", "★ 표시는 내일 잘 팔리는 속성이야.\n이제 불 끄고 자자.", 5f, BedButton), "home-binder"),
             Self("home-instant", "급하면 즉시 판매도 돼.\n대신 값은 좀 덜 받아.", 5f, SalesPanel, fromDay: 2),
             Then(Self("home-community", "컴퓨터로 내일 인기 속성을\n미리 볼 수 있었지!", 5f, Community, fromDay: 2), "home-instant"),
+            // 모니터 두 번째 쪽 = 슬라임마켓 (11-20 J1 Q7)
+            Then(Self("home-market", "모니터 옆 버튼을 누르거나 화면을 잡고\n옆으로 밀면 슬라임마켓이야!", 5f, Community, fromDay: 2), "home-community"),
             new TutorialStep
             {
                 key = "home-sales", phase = GamePhaseId.Home, fromDay = 2, after = "home-community", startOn = TutorialSignal.DisplayableCardOwned,
