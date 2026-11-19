@@ -283,6 +283,9 @@ namespace CardShop.Customers
         }
 
         /// <summary>무료 팩 받침 위 자리 (퇴근 후 FreePackOffer가 열 수 있는 팩을 놓는 곳). 무료 팩이 없는 씬이면 false.</summary>
+        /// <summary>영업 중 지킬 무료 팩 (겉모습을 바꿀 때 FreePackLook이 씀)</summary>
+        public Transform FreePack => freePack != null ? freePack.transform : null;
+
         public bool TryGetFreePackHome(out Pose pose)
         {
             pose = holder != null ? holder.HomePose : default;

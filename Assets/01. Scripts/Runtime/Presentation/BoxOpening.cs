@@ -41,8 +41,11 @@ namespace CardShop.Presentation
             this.font = font;
         }
 
-        /// <summary>좋은 팩일수록 뒤로 (G19 "좋은 건 마지막", DEC-029). 데이터(보유 목록)는 바뀌지 않고 보여 주는 순서만</summary>
-        public static List<PackResult> Order(PackResult[] packs) => RevealQueue.GoodLast(packs);
+        /// <summary>
+        /// 뽑힌 순서 그대로 (11-20 A2: 좋은 팩을 뒤로 모으니 "뒤에만 몰려 나와" 어색함). 금빛 폭죽 · 진동은 팩마다 그대로.
+        /// 예전 정렬은 RevealQueue.GoodLast로 남겨 둠.
+        /// </summary>
+        public static List<PackResult> Order(PackResult[] packs) => new List<PackResult>(packs);
 
         /// <summary>단일 팩을 눈앞에 들었을 때와 같은 곳(머리 정면, 조금 아래). 카메라가 없으면 anchor 위</summary>
         public Pose StackPose(Transform anchor)

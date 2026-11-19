@@ -18,9 +18,11 @@ namespace CardShop.EditorTools
         CustomerRoster roster;
         Vector2 scroll;
         int genderFilter; // 0 전체, 1 남, 2 여
-        int mode;         // 0 외형(Local/Foreign), 1 나이(어른/젊음 — 목소리 칸 고르기)
+        int mode;         // 0 외형(Local/Foreign), 1 나이(어른/젊음 — 목소리 칸 고르기), 2 성별(목소리 남녀, 11-20 C1)
         static readonly Color AdultColor = new Color(0.45f, 0.45f, 0.5f);
         static readonly Color YoungColor = new Color(0.35f, 0.6f, 0.95f);
+        static readonly Color MaleColor = new Color(0.3f, 0.5f, 0.85f);
+        static readonly Color FemaleColor = new Color(0.9f, 0.45f, 0.65f);
 
         [MenuItem("Tools/CardShop/Customers/Sort Customer Looks", priority = 62)]
         static void Open() => GetWindow<CustomerLookSorterWindow>("손님 외형 분류");
@@ -43,11 +45,15 @@ namespace CardShop.EditorTools
                 if (e.age == CustomerAge.Young) young++;
             }
 
-            mode = GUILayout.Toolbar(mode, new[] { "외형", "나이 (목소리)" });
+            mode = GUILayout.Toolbar(mode, new[] { "외형", "나이 (목소리)", "성별 (목소리)" });
             if (mode == 0)
             {
                 EditorGUILayout.LabelField($"Local {local}명 · Foreign {foreign}명 (등장 가중치 {roster.localWeight} : {roster.foreignWeight})", EditorStyles.boldLabel);
                 EditorGUILayout.LabelField("썸네일을 클릭하면 Local ↔ Foreign이 바뀝니다. 초록 = Local, 주황 = Foreign", EditorStyles.miniLabel);
+            }
+            else if (mode == 2)
+            {
+                EditorGUILayout.LabelField("썸네일을 클릭하면 남 ↔ 여가 바뀝니다. 파랑 = 남자 목소리, 분홍 = 여자 목소리. 모델과 다르면 고쳐 주세요", EditorStyles.boldLabel);
             }
             else
             {
@@ -72,16 +78,17 @@ namespace CardShop.EditorTools
 
                 EditorGUILayout.BeginVertical(GUILayout.Width(Thumb));
                 Rect r = GUILayoutUtility.GetRect(Thumb, Thumb);
-                Color frame = mode == 0
-                    ? (e.look == CustomerLook.Local ? LocalColor : ForeignColor)
+                Color frame = mode == 0 ? (e.look == CustomerLook.Local ? LocalColor : ForeignColor)
+                    : mode == 2 ? (e.gender == CustomerGender.Male ? MaleColor : FemaleColor)
                     : (e.age == CustomerAge.Young ? YoungColor : AdultColor);
                 EditorGUI.DrawRect(r, frame);
                 Rect inner = new Rect(r.x + 3, r.y + 3, r.width - 6, r.height - 6);
                 if (preview != null) GUI.DrawTexture(inner, preview, ScaleMode.ScaleToFit);
                 if (GUI.Button(r, GUIContent.none, GUIStyle.none))
                 {
-                    Undo.RecordObject(roster, mode == 0 ? "손님 외형 분류" : "손님 나이 분류");
+                    Undo.RecordObject(roster, mode == 0 ? "손님 외형 분류" : mode == 2 ? "손님 성별 분류" : "손님 나이 분류");
                     if (mode == 0) e.look = e.look == CustomerLook.Local ? CustomerLook.Foreign : CustomerLook.Local;
+                    else if (mode == 2) e.gender = e.gender == CustomerGender.Male ? CustomerGender.Female : CustomerGender.Male;
                     else e.age = e.age == CustomerAge.Young ? CustomerAge.Adult : CustomerAge.Young;
                     EditorUtility.SetDirty(roster);
                 }

@@ -11,7 +11,7 @@ namespace CardShop.Cleanup
     public sealed class TrashBin : MonoBehaviour
     {
         [Tooltip("통 입구 반지름 + 여유 (m)")]
-        [SerializeField] float radius = 0.32f;
+        [SerializeField] float radius = 0.4f; // 11-20: 쓰레기를 1.5배로 키워 0.32 → 0.4
         [Tooltip("통 바닥에서 이 높이까지 놓으면 버림 (m). 허리 높이에서 떨어뜨려도 되게")]
         [SerializeField] float dropHeight = 1.3f;
         [Tooltip("쓰레기를 들고 있을 때 보이는 표시")]
@@ -19,7 +19,21 @@ namespace CardShop.Cleanup
 
         readonly List<Transform> carried = new List<Transform>();
 
+        [Tooltip("플레이어가 통 위로 올라서지 못하게 막는 상자 (가로 · 높이 · 깊이, m). 0이면 안 만듦")]
+        [SerializeField] Vector3 climbBlocker = new Vector3(0.5f, 1.1f, 0.5f);
+
         public void Configure(DropHint dropHint) => hint = dropHint;
+
+        // 이동하다 통 위로 올라타던 것 막기 (11-20 C9). 보이지 않는 상자, 레이에는 덜 걸리게 Ignore Raycast 층
+        void Awake()
+        {
+            if (climbBlocker.sqrMagnitude <= 0f) return;
+            var go = new GameObject("ClimbBlocker") { layer = 2 };
+            go.transform.SetParent(transform, false);
+            var box = go.AddComponent<BoxCollider>();
+            box.size = climbBlocker;
+            box.center = new Vector3(0f, climbBlocker.y / 2f, 0f);
+        }
 
         /// <summary>일시정지 중이면 true (CleanupDirector가 넣음). 마감 시간이 멈춘 동안 청소를 받지 않음</summary>
         public System.Func<bool> IsPaused { get; set; }

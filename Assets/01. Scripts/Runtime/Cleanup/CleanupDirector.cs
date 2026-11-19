@@ -20,6 +20,8 @@ namespace CardShop.Cleanup
         [SerializeField] TrashBin bin;
         [Tooltip("쓰레기 모양 원본 (꺼 둠). 하나를 골라 복제")]
         [SerializeField] TrashSpot[] trashTemplates;
+        [Tooltip("쓰레기 크기 배율 (11-20: 여전히 작다는 피드백으로 1.5)")]
+        [SerializeField] float trashScale = 1.5f;
 
         [Header("흐트러진 팩")]
         [SerializeField] PackRack rack;
@@ -91,9 +93,10 @@ namespace CardShop.Cleanup
             CleanupKinds enabledToday = context.Campaign.GetDay(day).cleanupKinds;
             CleanupKinds kind = CleanupRules.Pick(enabledToday, Available(), rules, context.Random);
             if (kind == CleanupKinds.None) return;
-            // 얼룩은 나가는 손님 발밑에 쏟음 (F6 ②), 흐트러진 팩은 진열대 앞 (F3), 나머지는 플레이어가 보는 쪽
+            // 흐트러진 팩은 진열대 앞 (F3), 나머지(얼룩 포함)는 손님 쪽 바닥 아무 데나.
+            // 얼룩을 나가는 손님 발밑에 두면 손님이 늘 계산대 앞에서 나가 같은 자리에만 생겼음 (11-20 C2) → 자리는 고르고, 말은 나가는 손님이 함
             bool spill = kind == CleanupKinds.FloorStain && customer != null && ShopLayout.InsideShop(customer.position);
-            Vector3 around = spill ? customer.position : kind == CleanupKinds.MessyPack ? PickMessySpot() : PickSpot();
+            Vector3 around = kind == CleanupKinds.MessyPack ? PickMessySpot() : PickSpot();
 
             CleanupSpot spot = kind switch
             {
@@ -190,9 +193,11 @@ namespace CardShop.Cleanup
         {
             TrashSpot template = trashTemplates[context.Random.Range(0, trashTemplates.Length)];
             // PickSpot이 고른 바닥 자리 그대로
-            Vector3 pos = new Vector3(around.x, template.transform.position.y, around.z);
+            // 크기를 키우면 가운데 원점 물건이 바닥에 묻히므로 높이도 같은 배율 (바닥 y = 0)
+            Vector3 pos = new Vector3(around.x, template.transform.position.y * trashScale, around.z);
             Quaternion rot = Quaternion.Euler(0f, (float)context.Random.NextDouble() * 360f, 0f) * template.transform.rotation;
             TrashSpot trash = Instantiate(template, pos, rot, transform);
+            trash.transform.localScale = template.transform.localScale * trashScale; // 잡는 콜라이더도 같이 커짐
             trash.gameObject.SetActive(true);
             trash.Init(bin);
             context.Events.RaiseNotice("바닥에 쓰레기가 떨어졌어요. 주워서 카운터 오른쪽 쓰레기통에!");
