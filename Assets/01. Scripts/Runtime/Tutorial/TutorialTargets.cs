@@ -18,7 +18,6 @@ namespace CardShop.Tutorial
         public static void MarkFixed()
         {
             Mark<ShopClock>(TutorialDefaults.ShopClock);
-            Mark<CheckoutCounter>(TutorialDefaults.CounterItems);
             Mark<BarcodeScanner>(TutorialDefaults.Scanner);
             Mark<PaperBag>(TutorialDefaults.PaperBag);
             Mark<TrashBin>(TutorialDefaults.TrashBin);
@@ -50,6 +49,12 @@ namespace CardShop.Tutorial
             {
                 if (p.IsFree) HighlightTarget.Mark(p.gameObject, TutorialDefaults.FreePack);
                 if (p.IsGift) HighlightTarget.Mark(p.gameObject, TutorialDefaults.GiftPack);
+            }
+            // 계산대 물건은 계산대 전체가 아니라 지금 다룰 물건 하나하나를 강조. 찍기 · 담기에 따라 이름표를 바꿔 붙임
+            foreach (ScannableItem item in Object.FindObjectsByType<ScannableItem>(FindObjectsSortMode.None))
+            {
+                HighlightTarget.SetMarked(item.gameObject, TutorialDefaults.ItemToScan, !item.IsScanned);
+                HighlightTarget.SetMarked(item.gameObject, TutorialDefaults.ItemToBag, item.IsScanned && !item.IsBagged);
             }
             if (thief != null && thief.ActiveThief != null) HighlightTarget.Mark(thief.ActiveThief.gameObject, TutorialDefaults.Thief);
         }

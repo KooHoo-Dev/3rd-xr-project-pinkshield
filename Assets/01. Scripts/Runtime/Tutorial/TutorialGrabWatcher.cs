@@ -66,8 +66,12 @@ namespace CardShop.Tutorial
             }
         }
 
-        /// <summary>계산 정지 중에는 스캐너 · 계산대 물건 · 봉투를 함께 쓰므로 엉뚱한 물건으로 치지 않음</summary>
+        /// <summary>
+        /// 계산 정지 중에는 스캐너 · 계산대 물건 · 봉투를 함께 쓰므로 엉뚱한 물건으로 치지 않음.
+        /// 계산대 물건은 잡는 순간 XRGrabInteractable이 부모를 떼므로(SetParent(null)) CheckoutCounter 자식인지로는 못 알아봄 → ScannableItem으로 확인
+        /// </summary>
         public static bool IsHelper(Transform t) =>
+            t.GetComponentInParent<ScannableItem>() != null ||
             t.GetComponentInParent<CheckoutCounter>() != null || t.GetComponentInParent<BarcodeScanner>() != null;
 
         /// <summary>held가 target과 같은 물건이거나 그 자식 · 부모인가</summary>

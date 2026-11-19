@@ -66,7 +66,7 @@ namespace CardShop.Tutorial
                         release.Add(it);
                 if (release.Count == 0) continue;
                 foreach (IXRSelectInteractable it in release) hand.interactionManager.SelectExit(hand, it);
-                hand.SendHapticImpulse(0.6f, 0.12f);
+                hand.SendHapticImpulse(0.35f, 0.06f); // 짧고 약하게 (11-19 2차)
                 Denied?.Invoke();
             }
         }

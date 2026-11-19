@@ -42,6 +42,15 @@ namespace CardShop.Tutorial
             return added;
         }
 
+        /// <summary>on이면 이름표를 붙이고(Mark), 아니면 같은 key의 이름표를 떼어 냅니다 (바로 목록에서 빠짐).</summary>
+        public static void SetMarked(GameObject go, string key, bool on)
+        {
+            if (go == null) return;
+            if (on) { Mark(go, key); return; }
+            foreach (HighlightTarget t in go.GetComponents<HighlightTarget>())
+                if (t.key == key) { t.enabled = false; Destroy(t); } // Destroy는 프레임 끝에 되므로 먼저 꺼서 Find에서 빠지게
+        }
+
         void OnEnable()
         {
             if (!active.Contains(this)) active.Add(this);

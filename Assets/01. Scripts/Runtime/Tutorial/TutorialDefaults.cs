@@ -15,7 +15,8 @@ namespace CardShop.Tutorial
         // HighlightTarget 키 (TutorialTargets가 씬 물건에 붙임)
         public const string GiftPack = "gift-pack";
         public const string ShopClock = "shop-clock";
-        public const string CounterItems = "counter-items";
+        public const string ItemToScan = "item-to-scan"; // 계산대 위 아직 안 찍은 물건 (물건마다 따로 강조)
+        public const string ItemToBag = "item-to-bag";   // 찍었지만 아직 봉투에 안 넣은 물건
         public const string Scanner = "scanner";
         public const string PaperBag = "paper-bag";
         public const string PosPay = "pos-pay";
@@ -61,15 +62,15 @@ namespace CardShop.Tutorial
             new TutorialStep
             {
                 key = PayHoldKey, phase = GamePhaseId.Business, startOn = TutorialSignal.CheckoutStarted, kind = TutorialStepKind.Hold,
-                seconds = 3.5f, line = "첫 손님이다! 잠깐 기다려 달라고\n할게. 같이 해 보자.", targets = new[] { CounterItems },
+                seconds = 3.5f, line = "첫 손님이다! 잠깐 기다려 달라고\n할게. 같이 해 보자.", targets = new[] { ItemToScan },
             },
             // 스캐너는 처음엔 어색함(9장) → 잡기 · 찍기 두 단계로 (FIX C4)
             Then(Hold("pay-grab", TutorialSignal.ScannerGrabbed, "먼저 스캐너부터 잡자.\n계산대 위에 있어.",
                 "스캐너를 그립으로 꾹 잡아!", Scanner), PayHoldKey),
             Then(Hold("pay-scan", TutorialSignal.AllScanned, "빨간 빛을 물건 바코드에 대고\n트리거를 당겨.",
-                "빨간 빛을 바코드에 대고 트리거!", Scanner, CounterItems), "pay-grab"),
+                "빨간 빛을 바코드에 대고 트리거!", Scanner, ItemToScan), "pay-grab"),
             Then(Hold("pay-bag", TutorialSignal.AllBagged, "찍은 물건을 봉투 위로 가져가서\n손을 놓으면 쏙 들어가.",
-                "물건을 그립으로 잡고 봉투 위에서 그립을 놓아!", PaperBag), "pay-scan"),
+                "물건을 그립으로 잡고 봉투 위에서 그립을 놓아!", ItemToBag, PaperBag), "pay-scan"),
             Then(Hold("pay-pay", TutorialSignal.CheckoutPaid, "다 담았으면 결제 버튼을\n손끝으로 꾹!",
                 "초록 결제 버튼을 손끝으로 눌러!", PosPay), "pay-bag"),
             Then(Say("pay-done", GamePhaseId.Business, "잘했어! 다음 손님부턴 오래 못 기다려.\n빨리 하면 보너스야.", 4.5f), "pay-pay"),
@@ -92,7 +93,7 @@ namespace CardShop.Tutorial
                 "대걸레를 그립으로 잡고 바닥에 대고 문질러!", Broom, Stain), TutorialSignal.StainSpawned),
             // 판매 등록 카드 첫 손님: 읽는 동안만 멈춤, 계산은 평소처럼
             On(Hold("listed-1", TutorialSignal.None, "판매 등록한 카드를 사 가는 손님이야!\n찍어서 팔면 카드 값이 들어와.",
-                null, CounterItems), TutorialSignal.ListedCardCheckout, seconds: 4.5f),
+                null, ItemToScan), TutorialSignal.ListedCardCheckout, seconds: 4.5f),
 
             // 3일차부터: 첫 도둑
             new TutorialStep

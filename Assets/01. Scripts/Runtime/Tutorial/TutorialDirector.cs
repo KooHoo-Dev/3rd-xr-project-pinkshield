@@ -50,7 +50,6 @@ namespace CardShop.Tutorial
         bool bonusFreePack;         // 선물 팩을 못 받음 → 1일차 퇴근 후 무료 팩 +1 (9장 Q5)
         bool hintShown, wrongSaid, visible;
         float replayUntil = -1f;
-        TutorialLightDim dim;
         InteractionLock locker;
         readonly List<Transform> keep = new List<Transform>();
         readonly TutorialHomeWatch home = new TutorialHomeWatch();
@@ -89,7 +88,6 @@ namespace CardShop.Tutorial
             isTarget = view.IsTarget;
             view.Configure(font);
             idle = gameObject.AddComponent<IdleHint>();
-            dim = gameObject.AddComponent<TutorialLightDim>();
             locker = gameObject.AddComponent<InteractionLock>();
             locker.Denied += SayWrong;
             memo = CounterMemo.Create(transform, font);
@@ -198,8 +196,7 @@ namespace CardShop.Tutorial
                 OnEntered(flow.CurrentPhase);
             }
 
-            flow.IsHeld = Running && progress.NeedsHold; // 정지 단계 동안만 게임 시간이 멈춤 (8-3)
-            dim.Dimmed = flow.IsHeld; // 정지 중에만 조명을 살짝 낮춤
+            flow.IsHeld = Running && progress.NeedsHold; // 정지 단계 동안만 게임 시간이 멈춤 (8-3). 가게 조명은 그대로 (11-19 2차)
             SetVisible(!waiting && (progress.Active != null || Time.unscaledTime < replayUntil));
             if (waiting || !Running) return;
 

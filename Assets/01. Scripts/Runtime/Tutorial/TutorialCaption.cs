@@ -18,15 +18,15 @@ namespace CardShop.Tutorial
     public sealed class TutorialCaption : MonoBehaviour
     {
         const float Distance = 1.0f;          // 눈에서 (m)
-        const float PitchDown = 25f;          // 눈높이보다 아래로 (도)
+        const float PitchDown = 32f;          // 눈높이보다 아래로 (도). 손 · 물건을 가리지 않게 더 아래 (11-19 2차)
         const float FollowAngle = 15f;        // 이만큼 넘게 고개를 돌리면 따라옴 (도)
         const float FollowSharpness = 7.5f;   // 약 0.4초에 따라옴
         const float PopSeconds = 0.2f;
         const float DoneSeconds = 0.6f;       // ✓를 보여 주는 시간
         const float ResumeSeconds = 1.5f;     // "▶ 다시 시작!"을 보여 주는 시간
-        const float FontSize = 0.42f;         // 말풍선(0.28)의 1.5배
-        const float Width = 0.9f;
-        const string Panel = "#2A1E45F5";     // 진보라 불투명 (UiTheme A)
+        const float FontSize = 0.32f;         // 11-19 2차: 0.42는 시야를 너무 덮어 줄임
+        const float Width = 0.75f;
+        const string Panel = "#2A1E45D0";     // 진보라, 뒤가 살짝 비침 (UiTheme A)
         const string Chip = "#FF8CBF";        // 분홍 (UiTheme.Accent)
         const string Task = "#FFD84D";
         const string Done = "#7CF29A";
