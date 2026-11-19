@@ -37,5 +37,6 @@ namespace CardShop.Core
         SalesRegistered,
         InstantSold,
         BinderBrowsed,
+        WalletViewed,   // 손목 지갑이 보이게 손목을 돌림 (FIX C4)
     }
 }

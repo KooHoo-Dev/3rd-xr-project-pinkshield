@@ -89,6 +89,8 @@ namespace CardShop.UI
             panel.localScale = Vector3.one * Mathf.Lerp(1.25f, 1f, pop); // 돈이 바뀌면 툭 커졌다 돌아옴
 
             bool want = Visible();
+            if (want && !wasVisible) context?.Events.RaiseHappened(GameMoment.WalletViewed); // 튜토리얼 "손목 보기" (FIX C4)
+            wasVisible = want;
             alpha = Mathf.MoveTowards(alpha, want ? 1f : 0f, fadeSpeed * Time.unscaledDeltaTime);
             text.alpha = alpha;
             text.enabled = alpha > 0.001f;
@@ -116,6 +118,8 @@ namespace CardShop.UI
             string line = change == null ? "" : $"\n<size=60%><color={(change[0] == '+' ? "#7CF29A" : "#FF8C8C")}>{change}</color></size>";
             text.text = $"<mark={UiTheme.MarkStrong} padding=\"8,8,4,4\"><size=80%>내 자산</size>\n<b>{MoneyText.Format(money)}</b>{line}</mark>";
         }
+
+        bool wasVisible;
 
         // 손목 안쪽(글자 면)이 머리를 향하고, 손이 얼굴 가까이 있을 때
         bool Visible()

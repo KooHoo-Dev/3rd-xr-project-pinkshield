@@ -79,7 +79,8 @@ namespace CardShop.Tests
             Assert.AreEqual(TutorialDefaults.PayHoldKey, p.Active?.key);
             Assert.IsTrue(p.NeedsHold);
 
-            p.Notify(TutorialSignal.AllScanned); // 말이 끝나기 전에 먼저 찍어 버림
+            p.Notify(TutorialSignal.ScannerGrabbed); // 말이 끝나기 전에 먼저 잡고 찍어 버림
+            p.Notify(TutorialSignal.AllScanned);
             p.Tick(4f);
             Assert.AreEqual("pay-bag", p.Active?.key, "이미 찍었으면 찍기 안내는 건너뜀");
             p.Notify(TutorialSignal.AllBagged); p.Tick(2f);

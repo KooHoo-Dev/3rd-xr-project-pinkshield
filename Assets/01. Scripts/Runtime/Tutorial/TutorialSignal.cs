@@ -55,5 +55,6 @@ namespace CardShop.Tutorial
         // 처음 하는 업무 정지 (FIX C1 · DEC-028)
         ClosingCleanupStarted = 72,
         ListedCardCheckout = 73,
+        WalletViewed = 74,
     }
 }

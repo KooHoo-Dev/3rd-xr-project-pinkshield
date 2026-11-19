@@ -63,8 +63,11 @@ namespace CardShop.Tutorial
                 key = PayHoldKey, phase = GamePhaseId.Business, startOn = TutorialSignal.CheckoutStarted, kind = TutorialStepKind.Hold,
                 seconds = 3.5f, line = "첫 손님이다! 잠깐 기다려 달라고\n할게. 같이 해 보자.", targets = new[] { CounterItems },
             },
-            Then(Hold("pay-scan", TutorialSignal.AllScanned, "스캐너를 잡고 트리거로\n물건 바코드를 찍어.",
-                "스캐너를 그립으로 잡고, 빨간 빛을 바코드에 대고 트리거!", Scanner, CounterItems), PayHoldKey),
+            // 스캐너는 처음엔 어색함(9장) → 잡기 · 찍기 두 단계로 (FIX C4)
+            Then(Hold("pay-grab", TutorialSignal.ScannerGrabbed, "먼저 스캐너부터 잡자.\n계산대 위에 있어.",
+                "스캐너를 그립으로 꾹 잡아!", Scanner), PayHoldKey),
+            Then(Hold("pay-scan", TutorialSignal.AllScanned, "빨간 빛을 물건 바코드에 대고\n트리거를 당겨.",
+                "빨간 빛을 바코드에 대고 트리거!", Scanner, CounterItems), "pay-grab"),
             Then(Hold("pay-bag", TutorialSignal.AllBagged, "찍은 물건을 봉투 위로 가져가서\n손을 놓으면 쏙 들어가.",
                 "물건을 그립으로 잡고 봉투 위에서 그립을 놓아!", PaperBag), "pay-scan"),
             Then(Hold("pay-pay", TutorialSignal.CheckoutPaid, "다 담았으면 결제 버튼을\n손끝으로 꾹!",
@@ -104,9 +107,16 @@ namespace CardShop.Tutorial
             // ---------------------------------------------------------------- 정산 · 퇴근 전
             Say("settle-1", GamePhaseId.Settlement, "오늘 번 돈이야. 청소를 놓치면\n한 곳에 -{cleanupPenalty}니까 조심.", 6f,
                 day: 1, targets: SettlementBoard),
+            // 일당을 받은 뒤 지갑 보기 (FIX C4): 손목을 돌려 보면 끝
             new TutorialStep
             {
-                key = "after-free", phase = GamePhaseId.AfterHours, toDay = 1, doneOn = TutorialSignal.PackOpenedFree,
+                key = "after-wallet", phase = GamePhaseId.AfterHours, toDay = 1, doneOn = TutorialSignal.WalletViewed,
+                seconds = 3f, timeout = 15f, line = "오늘 일당 들어왔다!\n왼손 손목 안쪽을 얼굴로 돌려 봐.",
+            },
+            new TutorialStep
+            {
+                key = "after-free", phase = GamePhaseId.AfterHours, toDay = 1, after = "after-wallet", startOn = TutorialSignal.None,
+                doneOn = TutorialSignal.PackOpenedFree,
                 seconds = 5f, timeout = 30f, line = "수고했어! 계산대 위 팩은\n오늘 수고비야. 열어 봐!", targets = new[] { FreePack },
             },
             new TutorialStep
@@ -127,7 +137,7 @@ namespace CardShop.Tutorial
                 key = "home-binder", phase = GamePhaseId.Home, doneOn = TutorialSignal.BinderBrowsed, speaker = TutorialSpeaker.Self,
                 seconds = 4f, timeout = 20f, line = "오늘 뽑은 카드, 바인더에 들어왔겠지?\n책상으로 가 보자.", targets = new[] { Binder },
             },
-            Then(Self("home-bed", "★ 표시가 오늘 인기 속성이었지.\n이제 불 끄고 자자.", 5f, BedButton), "home-binder"),
+            Then(Self("home-bed", "★ 표시는 내일 잘 팔리는 속성이야.\n이제 불 끄고 자자.", 5f, BedButton), "home-binder"),
             Self("home-instant", "급하면 즉시 판매도 돼.\n대신 값은 좀 덜 받아.", 5f, SalesPanel, fromDay: 2),
             Then(Self("home-community", "컴퓨터로 내일 인기 속성을\n미리 볼 수 있었지!", 5f, Community, fromDay: 2), "home-instant"),
             new TutorialStep
