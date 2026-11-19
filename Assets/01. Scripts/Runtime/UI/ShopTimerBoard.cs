@@ -67,8 +67,7 @@ namespace CardShop.UI
                 : $"마감 {BusinessClockRules.Format(BusinessClockRules.CloseHour)}";
             bool warn = !business.IsClosing && business.TimeLeft <= WarnSeconds || business.IsCleaningUp;
             text.color = warn && Mathf.Repeat(Time.unscaledTime, 1f) < 0.5f ? Warn : Ink;
-            string message = $"<mspace=0.6em><b>{BusinessClockRules.Format(hour)}</b></mspace>
-<size=32%>{sub}</size>";
+            string message = "<mspace=0.6em><b>" + BusinessClockRules.Format(hour) + "</b></mspace>\n<size=32%>" + sub + "</size>";
             if (message == shown) return;
             shown = message;
             text.text = message;
