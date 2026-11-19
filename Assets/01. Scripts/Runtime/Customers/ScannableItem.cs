@@ -116,6 +116,16 @@ namespace CardShop.Customers
             }
         }
 
+        /// <summary>물건 크기 (가로 · 높이 · 깊이, m). 봉투에 놓을 자리를 정할 때 (BagLayout). 콜라이더가 없으면 5cm 상자에 1cm 높이.</summary>
+        public Vector3 Size
+        {
+            get
+            {
+                var box = GetComponent<BoxCollider>();
+                return box != null ? Vector3.Scale(box.size, transform.lossyScale) : new Vector3(0.05f, 0.01f, 0.05f);
+            }
+        }
+
         /// <summary>
         /// 물건 바닥이 <paramref name="surface"/>(월드 높이 기준점)에 닿게 놓고, 그 자리를 "제자리"로 삼습니다.
         /// 원점이 가운데인 카드 · 팩이 카운터 윗면에 반쯤 묻혀 안 보이던 문제(2026-11-18 기기 테스트 피드백) 때문에 씁니다.
