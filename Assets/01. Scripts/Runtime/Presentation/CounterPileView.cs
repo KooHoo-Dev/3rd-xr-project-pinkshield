@@ -268,7 +268,8 @@ namespace CardShop.Presentation
             float scale = settings.CounterScale;
             Transform b = EnsureBlock();
             float cardT = CardView.Thickness * scale;
-            float h = HeightAt(blockTop - 1) + cardT;
+            // 윗면을 카드 반 장 두께만큼 낮춤: 덩어리 윗면과 그 위 진짜 카드가 같은 높이에서 겹쳐 깜빡이던 것 (11-20 I2, z-fighting)
+            float h = HeightAt(blockTop - 1) + cardT * 0.5f;
             b.gameObject.SetActive(true);
             b.SetPositionAndRotation(BasePose.position + Vector3.up * (h * 0.5f - cardT * 0.5f), BasePose.rotation);
             // 눕힌 카드 기준: 로컬 X = 가로, Y = 세로, Z = 두께(아래쪽)

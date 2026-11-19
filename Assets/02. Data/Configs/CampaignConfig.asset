@@ -22,32 +22,32 @@ MonoBehaviour:
     customerMin: 5
     customerMax: 6
     cleanupKinds: 13
-    fastForwardWhenIdle: 0
+    fastForwardWhenIdle: 1
   - businessSeconds: 135
     customerMin: 5
     customerMax: 6
     cleanupKinds: 13
-    fastForwardWhenIdle: 0
+    fastForwardWhenIdle: 1
   - businessSeconds: 150
     customerMin: 6
     customerMax: 7
     cleanupKinds: 13
-    fastForwardWhenIdle: 0
+    fastForwardWhenIdle: 1
   - businessSeconds: 150
     customerMin: 6
     customerMax: 7
     cleanupKinds: 13
-    fastForwardWhenIdle: 0
+    fastForwardWhenIdle: 1
   - businessSeconds: 165
     customerMin: 7
     customerMax: 8
     cleanupKinds: 13
-    fastForwardWhenIdle: 0
+    fastForwardWhenIdle: 1
   - businessSeconds: 165
     customerMin: 8
     customerMax: 9
     cleanupKinds: 13
-    fastForwardWhenIdle: 0
+    fastForwardWhenIdle: 1
   spawnWindowRatio: 0.7
   closingCleanupSeconds: 30
   idleFastForward: 6

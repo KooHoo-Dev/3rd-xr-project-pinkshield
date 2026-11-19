@@ -104,8 +104,9 @@ namespace CardShop.Core.Phases
             if (!IsClosing)
             {
                 CampaignConfig.DayEntry day = Context.Campaign.GetDay(Context.Session.Day);
+                // 손님 일정이 남았는지는 HasCustomers(등장 시계의 HasPending)가 이미 봄 → 비율 문턱은 0 (11-20 I3: 다 받고도 70%까지 기다리던 것)
                 float speed = BusinessClockRules.Speed(day.fastForwardWhenIdle, 1f - TimeLeft / day.businessSeconds,
-                    Context.Campaign.spawnWindowRatio, HasCustomers(), pending, Context.Campaign.idleFastForward);
+                    0f, HasCustomers(), pending, Context.Campaign.idleFastForward);
                 if (speed > 1f && !fastForwarding)
                 {
                     fastForwarding = true;

@@ -24,6 +24,7 @@ namespace CardShop.Tutorial
         readonly List<Transform> keep = new List<Transform>();
         readonly List<XRBaseInputInteractor> hands = new List<XRBaseInputInteractor>();
         readonly HashSet<IXRSelectInteractable> heldAtLock = new HashSet<IXRSelectInteractable>();
+        readonly HashSet<IXRSelectInteractable> keepGrabs = new HashSet<IXRSelectInteractable>(); // 잠글 때 대상 밑에 있던 잡을 물건
         readonly List<IXRSelectInteractable> release = new List<IXRSelectInteractable>();
 
         public bool IsLocked { get; private set; }
@@ -36,6 +37,10 @@ namespace CardShop.Tutorial
         {
             Unlock();
             keep.AddRange(keepList);
+            // 잡는 순간 XRI가 부모를 떼므로(SetParent(null)) "대상의 자식인가"로는 못 알아봄 → 잠글 때 대상 밑의 잡을 물건을 미리 모아 둠 (11-20 I1)
+            foreach (Transform t in keep)
+                if (t != null)
+                    foreach (XRBaseInteractable it in t.GetComponentsInChildren<XRBaseInteractable>(true)) keepGrabs.Add(it);
             foreach (XRBaseInputInteractor hand in FindObjectsByType<XRBaseInputInteractor>(FindObjectsSortMode.None))
             {
                 hands.Add(hand);
@@ -48,6 +53,7 @@ namespace CardShop.Tutorial
         {
             IsLocked = false;
             keep.Clear();
+            keepGrabs.Clear();
             hands.Clear();
             heldAtLock.Clear();
         }
@@ -62,7 +68,7 @@ namespace CardShop.Tutorial
                 if (hand == null || !hand.hasSelection || hand.interactionManager == null) continue;
                 release.Clear();
                 foreach (IXRSelectInteractable it in hand.interactablesSelected)
-                    if (it is Component c && c != null && !heldAtLock.Contains(it) && !Keeps(c.transform) && !TutorialGrabWatcher.IsHelper(c.transform))
+                    if (it is Component c && c != null && !heldAtLock.Contains(it) && !keepGrabs.Contains(it) && !Keeps(c.transform) && !TutorialGrabWatcher.IsHelper(c.transform))
                         release.Add(it);
                 if (release.Count == 0) continue;
                 foreach (IXRSelectInteractable it in release) hand.interactionManager.SelectExit(hand, it);

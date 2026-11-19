@@ -41,8 +41,9 @@ namespace CardShop.Tutorial
         {
             foreach (TrashSpot t in Object.FindObjectsByType<TrashSpot>(FindObjectsSortMode.None))
                 if (!t.IsDone) HighlightTarget.Mark(t.gameObject, TutorialDefaults.Trash);
-            foreach (MessyPackSpot m in Object.FindObjectsByType<MessyPackSpot>(FindObjectsSortMode.None))
-                if (!m.IsDone) HighlightTarget.Mark(m.gameObject, TutorialDefaults.MessyPack);
+            // 흐트러진 팩: 기록만 하는 MessyPackSpot(모양 없음) 대신 바닥에 떨어진 팩 하나하나에 (11-20 I1)
+            foreach (RackPack p in Object.FindObjectsByType<RackPack>(FindObjectsSortMode.None))
+                HighlightTarget.SetMarked(p.gameObject, TutorialDefaults.MessyPack, !p.InRack);
             foreach (StainSpot s in Object.FindObjectsByType<StainSpot>(FindObjectsSortMode.None))
                 if (!s.IsDone) HighlightTarget.Mark(s.gameObject, TutorialDefaults.Stain);
             foreach (PackView p in Object.FindObjectsByType<PackView>(FindObjectsSortMode.None))
