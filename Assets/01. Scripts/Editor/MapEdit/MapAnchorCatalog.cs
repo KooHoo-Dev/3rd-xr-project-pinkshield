@@ -24,7 +24,7 @@ namespace CardShop.EditorTools
         {
             public string key;
             public string label;
-            /// <summary>코드 기본 자리. 기준 물건(잠자기 스위치 · 집 실내)이 씬에 없으면 null</summary>
+            /// <summary>코드 기본 자리. 기준 물건(책상 · 집 실내)이 씬에 없으면 null</summary>
             public Func<Pose?> defaultPose;
             public Vector3 previewCenter, previewSize;
         }
@@ -37,8 +37,8 @@ namespace CardShop.EditorTools
                 defaultPose = () => TutorialSigns.RulesDefault, previewSize = Board(TutorialSigns.RulesSize) },
             new Entry { key = ShopTimerBoard.AnchorKey, label = "가게 디지털 시계 (영업 중)",
                 defaultPose = () => ShopTimerBoard.DefaultPose, previewSize = Board(ShopTimerBoard.BoardSize) },
-            new Entry { key = ResignSwitch.AnchorKey, label = "사직서 스위치 (무한 모드 · 집)",
-                defaultPose = ResignSwitch.DefaultPose, previewSize = new Vector3(0.12f, 0.03f, 0.12f) },
+            new Entry { key = ResignLetter.AnchorKey, label = "사직서 봉투 (무한 모드 · 집 책상)",
+                defaultPose = ResignLetter.DefaultPose, previewCenter = new Vector3(0f, 0.02f, 0f), previewSize = new Vector3(0.24f, 0.04f, 0.14f) },
             new Entry { key = RoomUpgradeView.BoxAnchorKey, label = "택배 상자 줄 (집, 첫 상자 = 왼쪽 끝)",
                 defaultPose = () => HomeRoom.Interior() is Transform t ? RoomUpgradeView.DefaultBoxPose(t) : (Pose?)null,
                 // 한 줄 4개(0.45m 간격) + 상자 0.4m. 5개 넘게 오면 0.5m 뒤에 둘째 줄
@@ -56,7 +56,7 @@ namespace CardShop.EditorTools
             Pose? pose = e.defaultPose();
             if (pose == null)
             {
-                Debug.LogWarning($"[MapEdit] '{e.label}'의 기본 자리를 찾지 못했습니다 (집 실내 · 잠자기 스위치가 씬에 있는지 확인).");
+                Debug.LogWarning($"[MapEdit] '{e.label}'의 기본 자리를 찾지 못했습니다 (집 실내 · 책상이 씬에 있는지 확인).");
                 return null;
             }
 

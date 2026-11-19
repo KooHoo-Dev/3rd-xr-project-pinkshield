@@ -60,10 +60,18 @@ namespace CardShop.Interaction
         bool Place()
         {
             PlacementAnchor anchor = PlacementAnchor.Get(AnchorKey);
-            if (anchor != null) { transform.SetPositionAndRotation(anchor.transform.position, anchor.transform.rotation); return true; }
+            Pose? pose = anchor != null ? new Pose(anchor.transform.position, anchor.transform.rotation) : DefaultPose();
+            if (pose == null) { Debug.LogWarning("[ResignLetter] Desk · 자리표 Home/ResignLetter가 없어 사직서를 둘 자리가 없습니다."); return false; }
+            transform.SetPositionAndRotation(pose.Value.position, pose.Value.rotation);
+            return true;
+        }
+
+        /// <summary>기본 자리: 책상(Desk) 앞쪽 왼쪽 모서리 (맵 수정 도구도 씀). 책상이 없으면 null</summary>
+        public static Pose? DefaultPose()
+        {
             Transform desk = FindByName("Desk");
             Renderer deskRenderer = desk != null ? desk.GetComponent<Renderer>() : null;
-            if (deskRenderer == null) { Debug.LogWarning("[ResignLetter] Desk · 자리표 Home/ResignLetter가 없어 사직서를 둘 자리가 없습니다."); return false; }
+            if (deskRenderer == null) return null;
 
             Bounds b = deskRenderer.bounds;
             Transform monitor = FindByName("Monitor");
@@ -75,8 +83,7 @@ namespace CardShop.Interaction
             float halfWidth = Mathf.Abs(right.x) * b.extents.x + Mathf.Abs(right.z) * b.extents.z;
             Vector3 pos = new Vector3(b.center.x, b.max.y, b.center.z) + front * (halfDepth - 0.1f) + right * Mathf.Max(0f, halfWidth - 0.18f);
             // 반듯하지 않게 살짝 비틀어 놓음 (책상 위에 던져 둔 느낌)
-            transform.SetPositionAndRotation(pos, Quaternion.LookRotation(-front, Vector3.up) * Quaternion.Euler(0f, -8f, 0f));
-            return true;
+            return new Pose(pos, Quaternion.LookRotation(-front, Vector3.up) * Quaternion.Euler(0f, -8f, 0f));
         }
 
         static Transform FindByName(string name)
