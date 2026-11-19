@@ -121,13 +121,13 @@ namespace CardShop.Presentation
         }
 
         /// <summary>
-        /// 건너뛰기 (DEC-004): queue[from..]의 남은 카드를 전 등급 건너뛰고, 끝까지 보여 줄 갓팩 카드만 담은 새 대기열을 돌려줍니다 (DEC-008).
+        /// 건너뛰기 (DEC-004): queue[from..]의 남은 카드를 건너뛰고, 끝까지 보여 줄 카드(갓팩 DEC-008 · 상자 수퍼레어 이상 DEC-029)만 담은 새 대기열을 돌려줍니다.
         /// 단일 팩은 남은 카드가 모두 더미로 날아가고(결과함에 5장이 다 있어야 하므로), 상자는 더미 덩어리 카드로만 셉니다(오브젝트 없음).
         /// </summary>
         public List<RevealItem> Skip(List<PackResult> packs, List<RevealItem> queue, int from, bool isBox)
         {
             Settings s = settings;
-            List<RevealItem> kept = RevealQueue.GodOnly(packs, queue, from);
+            List<RevealItem> kept = RevealQueue.KeptOnSkip(packs, queue, from, isBox);
             Sfx.Play(SoundId.CardShuffle, Pose.position);
             Vector3 back = Pose.rotation * Vector3.forward;
             int flyIndex = 0;
@@ -136,9 +136,9 @@ namespace CardShop.Presentation
                 int slot = k - from;
                 CardRevealView v = slot < views.Count ? views[slot] : null;
                 RevealItem item = queue[k];
-                if (RevealQueue.IsGodPack(packs[item.Pack]))
+                if (RevealQueue.Keeps(packs, item, isBox))
                 {
-                    if (v != null) pool.Recycle(v); // 갓팩 카드는 마지막에 다시 하나씩 떠오르며 공개됨
+                    if (v != null) pool.Recycle(v); // 남기는 카드(갓팩 · 상자 수퍼레어 이상)는 마지막에 다시 하나씩 떠오르며 공개됨
                     continue;
                 }
                 if (isBox)

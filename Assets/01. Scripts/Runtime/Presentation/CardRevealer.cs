@@ -36,11 +36,8 @@ namespace CardShop.Presentation
         [SerializeField] int warmPoolCount = 12;
 
         [Header("상자 일괄 개봉 (B3)")]
-        [Tooltip("상자 카드 묶음 자리: 머리에서 정면으로 (m). 단일 팩을 눈앞에 들었을 때(TearGestureOpen)와 같게")]
-        [SerializeField] float boxStackDistance = 0.45f;
-        [SerializeField] float boxStackDrop = 0.08f;
-        [Tooltip("상자 팩 뜯는 소리. 비워 두면 없음")]
-        [SerializeField] AudioClip boxTearSound;
+        [Tooltip("상자 묶음 자리 · 뜯는 소리 (BoxOpening)")]
+        [SerializeField] BoxOpening.Settings boxSettings = new BoxOpening.Settings();
 
         [Header("결과함 UI (B2)")]
         [Tooltip("더미 바닥에서 결과함 UI 아래쪽까지 높이 (m)")]
@@ -71,8 +68,7 @@ namespace CardShop.Presentation
         BoxResultBoard boxBoard;
         PileInfoPopup pileInfo;
         PackResultPanel resultPanel;
-        BoxOpenEffect boxEffect;
-        BoxPackCounter packCounter; // 상자 넘기는 동안 "3 / 10 팩" (FIX B4)
+        BoxOpening box; // 상자 전용 부품: 뜯기 연출 · 좋은 팩 이펙트 · "3 / 10 팩" (FIX B4 · D2)
         GameContext context;
         Coroutine packRoutine;
         Coroutine warmRoutine;
@@ -156,7 +152,7 @@ namespace CardShop.Presentation
                 else StashOrClear();
             }
             ClearShown(keepPile: true);
-            packRoutine = StartCoroutine(PackSequence(new List<PackResult>(packs), BoxStackPose(), null));
+            packRoutine = StartCoroutine(PackSequence(BoxOpening.Order(packs), Box.StackPose(anchor), null));
         }
 
         /// <summary>
@@ -165,7 +161,7 @@ namespace CardShop.Presentation
         /// </summary>
         public void WarmUp()
         {
-            EnsureBoxEffect();
+            Box.WarmUp();
             TriggerInput.Prewarm();
             Fx.Prewarm();
             if (warmRoutine == null && isActiveAndEnabled) warmRoutine = StartCoroutine(WarmPool());
@@ -211,11 +207,7 @@ namespace CardShop.Presentation
             }
             else
             {
-                Transform head = Camera.main != null ? Camera.main.transform : null;
-                Vector3 headPos = head != null ? head.position : stack.position - stack.rotation * Vector3.forward * boxStackDistance;
-                Vector3 forward = stack.rotation * Vector3.forward;
-                float seconds = EnsureBoxEffect().Play(packs.Count, headPos, forward, stack, boxTearSound);
-                yield return new WaitForSeconds(seconds);
+                yield return new WaitForSeconds(Box.PlayOpen(packs, stack));
                 CardStack.Fill(packs, queue, 0, popIn: true);
                 yield return new WaitForSeconds(CardStack.PopInSeconds);
             }
@@ -233,7 +225,7 @@ namespace CardShop.Presentation
             {
                 RevealItem item = queue[qi];
                 PackResult p = packs[item.Pack];
-                if (isBox) PackCounter.Show(item.Pack + 1, packs.Count, stack);
+                if (isBox) Box.ShowCounter(item.Pack + 1, packs.Count, stack);
                 if (CardStack.IsEmpty) CardStack.Fill(packs, queue, qi, popIn: skipped);
 
                 bool godPack = RevealQueue.IsGodPack(p);
@@ -255,12 +247,12 @@ namespace CardShop.Presentation
                     queue = CardStack.Skip(packs, queue, qi, isBox);
                     qi = 0;
                     skipped = true;
-                    context?.Events.RaiseNotice(queue.Count > 0 ? "건너뛰기! 갓팩은 끝까지 열어 봐요" : "건너뛰기!");
+                    context?.Events.RaiseNotice(queue.Count > 0 ? "건너뛰기! 좋은 카드는 끝까지 봐요" : "건너뛰기!");
                 }
                 else CardStack.Fill(packs, queue, qi, popIn: false);
             }
             TriggerInput.HideGauge();
-            if (packCounter != null) packCounter.Hide();
+            box?.HideCounter();
 
             // ③ 결과
             if (isBox)
@@ -304,19 +296,6 @@ namespace CardShop.Presentation
             context?.Events.RaiseHappened(GameMoment.RevealFinished);
         }
 
-        // 상자 카드 묶음 자리: 단일 팩을 눈앞에 들었을 때와 같은 곳(머리 정면 45cm, 8cm 아래). 카메라가 없으면 카운터 위.
-        Pose BoxStackPose()
-        {
-            Camera cam = Camera.main;
-            if (cam == null)
-            {
-                Vector3 flat = Vector3.ProjectOnPlane(anchor.forward, Vector3.up);
-                if (flat.sqrMagnitude < 0.0001f) flat = Vector3.forward;
-                return new Pose(anchor.position + Vector3.up * 0.15f, Quaternion.LookRotation(flat.normalized, Vector3.up));
-            }
-            return HeadPose.InFront(cam.transform, boxStackDistance, boxStackDrop);
-        }
-
         // ------------------------------------------------------------------ 보관 · 정리
 
         /// <summary>
@@ -352,8 +331,7 @@ namespace CardShop.Presentation
             if (tearingPack != null) Destroy(tearingPack);
             tearingPack = null;
             if (boxBoard != null) boxBoard.Hide();
-            if (boxEffect != null) boxEffect.Stop();
-            if (packCounter != null) packCounter.Hide();
+            box?.Stop();
             Fx.Stop();
             RecycleRevealArea(keepPile);
             if (keepPile) Pool.RecycleAll(Pile.Contains);
@@ -402,8 +380,7 @@ namespace CardShop.Presentation
         PileInfoPopup PileInfo => pileInfo ??= new PileInfoPopup(this, anchor, Pile, () => Font, () => Styles, pileInfoSettings);
 
         PackResultPanel EnsureResultPanel() => resultPanel != null ? resultPanel : resultPanel = PackResultPanel.Create(transform, Font);
-        BoxPackCounter PackCounter => packCounter != null ? packCounter : packCounter = BoxPackCounter.Create(transform, Font);
-        BoxOpenEffect EnsureBoxEffect() => boxEffect != null ? boxEffect : boxEffect = BoxOpenEffect.Create(transform, 10);
+        BoxOpening Box => box ??= new BoxOpening(transform, boxSettings, () => Font);
 
         CardRevealView Create()
         {

@@ -53,6 +53,9 @@ namespace CardShop.Presentation
         SpriteRenderer slash;
         Coroutine routine;
 
+        /// <summary>i번째 팩의 윗띠가 뜯긴 순간 (팩 번호, 그 팩의 위치 · 회전). 등급 이펙트용 (FIX D2 BoxPackRarityFx)</summary>
+        public event System.Action<int, Pose> PackTorn;
+
         public static BoxOpenEffect Create(Transform parent, int prewarm)
         {
             var go = new GameObject("BoxOpenEffect");
@@ -147,6 +150,7 @@ namespace CardShop.Presentation
                     if (!torn[i])
                     {
                         torn[i] = true;
+                        PackTorn?.Invoke(i, new Pose(pos, rot));
                         if (tearSound != null) AudioSource.PlayClipAtPoint(tearSound, pos, tearVolume);
                         else Sfx.Play(SoundId.PackTear, pos); // 인스펙터 칸이 비면 SoundBank
                     }

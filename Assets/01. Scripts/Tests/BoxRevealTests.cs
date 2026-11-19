@@ -74,7 +74,7 @@ namespace CardShop.Tests
         }
 
         [Test]
-        public void GodOnly_KeepsOnlyGodPackItems_InOrder()
+        public void KeptOnSkip_SinglePack_KeepsOnlyGodPackItems_InOrder()
         {
             var packs = new List<PackResult>
             {
@@ -84,17 +84,37 @@ namespace CardShop.Tests
                 Pack(new[] { U, U, U, L, U }, special: SpecialPackType.GodPack),
             };
             List<RevealItem> q = RevealQueue.BuildAll(packs);
-            List<RevealItem> kept = RevealQueue.GodOnly(packs, q, 3); // 첫 팩 3장을 넘긴 뒤 건너뜀
+            List<RevealItem> kept = RevealQueue.KeptOnSkip(packs, q, 3, isBox: false); // 첫 팩 3장을 넘긴 뒤 건너뜀
             Assert.AreEqual(10, kept.Count, "갓팩 2개 × 5장");
             Assert.AreEqual(new RevealItem(1, 0), kept[0]);
             Assert.AreEqual(new RevealItem(3, 4), kept[9]);
         }
 
         [Test]
-        public void GodOnly_NoGodPack_Empty()
+        public void KeptOnSkip_NoGodPack_Empty()
         {
             var packs = new List<PackResult> { Plain(), Plain() };
-            Assert.IsEmpty(RevealQueue.GodOnly(packs, RevealQueue.BuildAll(packs), 0));
+            Assert.IsEmpty(RevealQueue.KeptOnSkip(packs, RevealQueue.BuildAll(packs), 0, isBox: false));
+        }
+
+        [Test]
+        public void KeptOnSkip_Box_AlsoKeepsSuperRareAndUp()
+        {
+            var packs = new List<PackResult> { Plain(), Pack(new[] { N, S, R, L, N }) };
+            List<RevealItem> kept = RevealQueue.KeptOnSkip(packs, RevealQueue.BuildAll(packs), 0, isBox: true);
+            CollectionAssert.AreEqual(new[] { new RevealItem(1, 1), new RevealItem(1, 3) }, kept, "상자 건너뛰기 중에도 수퍼레어 이상은 멈춤 (DEC-029)");
+        }
+
+        [Test]
+        public void TierOf_AndGoodLast_PutBetterPacksAtTheEnd()
+        {
+            PackResult plain = Plain(), gold = Pack(new[] { N, U, N, N, N }), rainbow = Pack(new[] { N, L, N, N, N }),
+                god = Pack(new[] { U, U, L, U, U }, special: SpecialPackType.GodPack), plain2 = Plain();
+            Assert.AreEqual(BoxPackTier.Gold, RevealQueue.TierOf(gold), "유니크도 금빛");
+            Assert.AreEqual(BoxPackTier.Rainbow, RevealQueue.TierOf(rainbow));
+            Assert.AreEqual(BoxPackTier.God, RevealQueue.TierOf(god));
+            List<PackResult> order = RevealQueue.GoodLast(new[] { god, gold, plain, rainbow, plain2 });
+            CollectionAssert.AreEqual(new[] { plain, plain2, gold, rainbow, god }, order, "좋은 팩일수록 뒤, 같은 단계는 원래 순서");
         }
 
         [Test]

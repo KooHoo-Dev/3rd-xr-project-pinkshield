@@ -35,19 +35,38 @@ namespace CardShop.Presentation
     /// - 모든 카드를 한 장씩 (갓팩 포함). 1.5초 꾹 누르면 남은 카드를 전 등급 건너뜁니다 (DEC-004). 단 갓팩은 건너뛸 수 없음 (DEC-008).
     /// 판정은 개봉 시점에 끝나 있으므로 여기서 무엇을 빼도 데이터(보유 목록)는 바뀌지 않습니다.
     /// </summary>
+    /// <summary>상자 10팩 뜯기 장면의 팩별 연출 단계 (FIX D2 · DEC-029). 값이 클수록 좋은 팩</summary>
+    public enum BoxPackTier { Plain = 0, Gold = 1, Rainbow = 2, God = 3 }
+
     public static class RevealQueue
     {
         public static bool IsGodPack(PackResult pack) => pack != null && pack.Special == SpecialPackType.GodPack;
 
+        /// <summary>팩의 최고 등급으로 정한 뜯기 연출: 레어 이하 없음 · 수퍼레어 · 유니크 금빛 · 레전더리 무지개 · 갓팩</summary>
+        public static BoxPackTier TierOf(PackResult pack) =>
+            IsGodPack(pack) ? BoxPackTier.God
+            : pack.BestRarity >= CardRarity.Legendary ? BoxPackTier.Rainbow
+            : pack.BestRarity >= CardRarity.SuperRare ? BoxPackTier.Gold
+            : BoxPackTier.Plain;
+
+        /// <summary>상자 팩 순서: 좋은 팩일수록 뒤로 (같은 단계는 원래 순서, G19 "좋은 건 마지막")</summary>
+        public static List<PackResult> GoodLast(IReadOnlyList<PackResult> packs) => packs.OrderBy(TierOf).ToList();
+
         /// <summary>
-        /// 스킵 뒤 대기열: queue[from..] 중 갓팩의 카드만 (순서 유지). 갓팩은 건너뛸 수 없어 마지막에 한 장씩 열어 봅니다 (DEC-008).
+        /// 꾹 눌러 건너뛰어도 남기는 카드: 갓팩 카드(DEC-008), 상자면 수퍼레어 이상도(DEC-029). 순서 유지.
         /// </summary>
-        public static List<RevealItem> GodOnly(IReadOnlyList<PackResult> packs, IReadOnlyList<RevealItem> queue, int from)
+        public static List<RevealItem> KeptOnSkip(IReadOnlyList<PackResult> packs, IReadOnlyList<RevealItem> queue, int from, bool isBox)
         {
             var kept = new List<RevealItem>();
             for (int i = Math.Max(0, from); i < queue.Count; i++)
-                if (IsGodPack(packs[queue[i].Pack])) kept.Add(queue[i]);
+                if (Keeps(packs, queue[i], isBox)) kept.Add(queue[i]);
             return kept;
+        }
+
+        public static bool Keeps(IReadOnlyList<PackResult> packs, RevealItem item, bool isBox)
+        {
+            PackResult p = packs[item.Pack];
+            return IsGodPack(p) || (isBox && p.Cards[item.Card].rarity >= CardRarity.SuperRare);
         }
 
         /// <summary>기본 대기열: 모든 카드를 팩 순서 · 카드 순서대로.</summary>
