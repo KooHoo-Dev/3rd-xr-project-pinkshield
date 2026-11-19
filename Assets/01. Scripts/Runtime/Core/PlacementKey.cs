@@ -16,6 +16,9 @@ namespace CardShop.Core
         [Tooltip("빌더가 다시 만들어도 같은 오브젝트를 찾는 이름. 씬 안에서 겹치지 않아야 합니다.")]
         public string key;
 
+        [Tooltip("맵 수정 도구에서 손으로 붙인 이름표 (빌더가 모르는 오브젝트). 키가 계층 경로라 Build Shop Scene 뒤 같은 경로를 찾아 자리를 되살림")]
+        public bool addedByHand;
+
         [Header("빌더 기본 자리 (손대지 마세요: 옮겼는지 판단하는 기준)")]
         public Vector3 defaultLocalPosition;
         public Quaternion defaultLocalRotation = Quaternion.identity;
@@ -44,5 +47,20 @@ namespace CardShop.Core
             mark.key = key;
             return mark;
         }
+
+        /// <summary>
+        /// 빌더가 이름표를 붙이지 않은 오브젝트에 손으로 이름표를 붙입니다 (맵 수정 도구). 키 = 계층 경로.
+        /// 빌더 기본 자리를 알 수 없으므로 지금 자리를 기본으로 두고, Build Shop Scene 때는 옮겼는지와 상관없이 늘 기억합니다.
+        /// </summary>
+        public static PlacementKey MarkByHand(GameObject go)
+        {
+            PlacementKey mark = Mark(go, HierarchyPath.Of(go.transform));
+            mark.addedByHand = true;
+            mark.RecordDefault();
+            return mark;
+        }
+
+        /// <summary>Build Shop Scene 전에 자리를 기억해야 하는가: 옮겼거나 손으로 붙인 이름표</summary>
+        public bool ShouldRemember => addedByHand || IsMoved;
     }
 }

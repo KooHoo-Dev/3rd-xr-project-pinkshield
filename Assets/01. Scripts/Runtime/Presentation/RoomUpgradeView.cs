@@ -17,10 +17,16 @@ namespace CardShop.Presentation
     /// </summary>
     public sealed class RoomUpgradeView : MonoBehaviour
     {
-        // 택배 상자 자리 (집 실내 로컬): 집에 들어오면 바로 보이는 러그 앞쪽에 한 줄 4개씩
+        // 택배 상자 자리: 첫 상자 자리에서 오른쪽(+X)으로 한 줄 4개씩, 줄이 넘치면 뒤(−Z)로.
+        // 첫 상자 자리 = 씬의 자리표("Home/DeliveryBoxes")가 있으면 그 자리 · 방향, 없으면 집 실내 로컬 BoxStart(러그 앞쪽)
+        public const string BoxAnchorKey = "Home/DeliveryBoxes";
         static readonly Vector3 BoxStart = new Vector3(-0.7f, 0f, -0.05f);
-        const float BoxStepX = 0.45f, BoxStepZ = -0.5f;
-        const int BoxesPerRow = 4;
+        public const float BoxStepX = 0.45f, BoxStepZ = -0.5f;
+        public const int BoxesPerRow = 4;
+
+        /// <summary>첫 택배 상자 기본 자리 (자리표가 없을 때)</summary>
+        public static Pose DefaultBoxPose(Transform homeInterior) =>
+            new Pose(homeInterior.TransformPoint(BoxStart), Quaternion.Euler(0f, homeInterior.eulerAngles.y, 0f));
         static readonly Color GoldPanel = new Color(0.55f, 0.42f, 0.12f, 0.96f);
 
         UpgradeCatalog catalog;
@@ -157,12 +163,15 @@ namespace CardShop.Presentation
                 boxes.Remove(k);
             }
 
+            Pose start = PlacementAnchor.Find(BoxAnchorKey, DefaultBoxPose(interior));
+            float startYaw = start.rotation.eulerAngles.y;
             for (int i = 0; i < arrived.Count; i++)
             {
                 UpgradeKind kind = arrived[i];
                 if (boxes.TryGetValue(kind, out DeliveryBox existing) && existing != null) continue;
-                var local = BoxStart + new Vector3((i % BoxesPerRow) * BoxStepX, 0f, (i / BoxesPerRow) * BoxStepZ);
-                DeliveryBox box = DeliveryBox.Create(transform, interior.TransformPoint(local), 15f * i, kind, TrackName(kind),
+                var local = new Vector3((i % BoxesPerRow) * BoxStepX, 0f, (i / BoxesPerRow) * BoxStepZ);
+                Vector3 world = start.position + Quaternion.Euler(0f, startYaw, 0f) * local;
+                DeliveryBox box = DeliveryBox.Create(transform, world, startYaw + 15f * i, kind, TrackName(kind),
                     catalog.deliveryBoxPrefab, AnyMaterial(), font);
                 box.Opened += OnBoxOpened;
                 boxes[kind] = box;

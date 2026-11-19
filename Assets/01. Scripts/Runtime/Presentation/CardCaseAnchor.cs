@@ -7,6 +7,7 @@ namespace CardShop.Presentation
     /// 없으면 컴퓨터 모니터 위 벽. 방향: 오브젝트의 앞(+Z)이 방 쪽(카드 앞면이 보이는 쪽).
     /// 만들기: Tools > CardShop > Home > Create Card Case Anchor
     /// </summary>
+    [SelectionBase] // 맵 수정 도구의 미리보기 모형을 클릭해도 자리표가 선택되게
     public sealed class CardCaseAnchor : MonoBehaviour
     {
         public static bool TryFind(out Pose pose)

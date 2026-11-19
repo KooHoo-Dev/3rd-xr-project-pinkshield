@@ -9,6 +9,7 @@ namespace CardShop.Tutorial
     /// 만들기: Tools > CardShop > Tutorial > Create Memo Anchor (기본 자리에 만들어 선택해 줌 → 씬에서 옮기면 됨).
     /// 방향: 오브젝트의 앞(+Z)이 글자를 읽는 쪽의 반대 (기본은 플레이어 쪽 위로 60° 세운 판).
     /// </summary>
+    [SelectionBase] // 맵 수정 도구의 미리보기 모형을 클릭해도 자리표가 선택되게
     public sealed class TutorialMemoAnchor : MonoBehaviour
     {
         /// <summary>봉투 오른쪽 계산대 위 (예전 자리 x 0.45는 봉투와 겹쳤음)</summary>

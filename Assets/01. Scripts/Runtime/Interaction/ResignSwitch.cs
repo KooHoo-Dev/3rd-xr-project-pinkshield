@@ -16,8 +16,18 @@ namespace CardShop.Interaction
     {
         const float ConfirmSeconds = 5f;
 
-        [Tooltip("잠자기 스위치에서 옆으로 떨어진 거리 (스위치 로컬 X, m)")]
-        [SerializeField] float sideOffset = 0.3f;
+        public const string AnchorKey = "Home/ResignSwitch";
+        /// <summary>잠자기 스위치에서 옆으로 떨어진 거리 (스위치 로컬 X, m). 씬에 자리표("Home/ResignSwitch")가 있으면 그 자리</summary>
+        const float SideOffset = 0.3f;
+
+        /// <summary>기본 자리: 잠자기 스위치 옆 0.3m, 같은 방향. 잠자기 스위치가 없으면 null</summary>
+        public static Pose? DefaultPose()
+        {
+            PokeButton sleep = FindSleepButton();
+            if (sleep == null) return null;
+            Transform t = sleep.transform;
+            return new Pose(t.position + t.right * SideOffset, t.rotation);
+        }
 
         PokeButton button;
         TMP_Text label;
@@ -37,7 +47,8 @@ namespace CardShop.Interaction
             {
                 GameObject go = Instantiate(sleep.gameObject, sleep.transform.parent, true);
                 go.name = "Button_Resign";
-                go.transform.position = sleep.transform.position + sleep.transform.right * sideOffset;
+                Pose pose = PlacementAnchor.Find(AnchorKey, new Pose(sleep.transform.position + sleep.transform.right * SideOffset, sleep.transform.rotation));
+                go.transform.SetPositionAndRotation(pose.position, pose.rotation);
                 button = go.GetComponent<PokeButton>();
                 for (int i = 0; i < button.pressed.GetPersistentEventCount(); i++)
                     button.pressed.SetPersistentListenerState(i, UnityEventCallState.Off); // 복제된 "Sleep" 연결 끄기
@@ -51,7 +62,7 @@ namespace CardShop.Interaction
             Refresh(); // OnEnable 때는 스위치가 없어 첫 갱신이 비었음 → 만든 뒤 바로 숨김 상태로
         }
 
-        static PokeButton FindSleepButton()
+        public static PokeButton FindSleepButton()
         {
             foreach (PokeButton b in FindObjectsByType<PokeButton>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 for (int i = 0; i < b.pressed.GetPersistentEventCount(); i++)

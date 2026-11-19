@@ -21,9 +21,10 @@ namespace CardShop.UI
         static readonly Color Warn = new Color(1f, 0.25f, 0.3f);  // 빨강 LED
         static readonly Color Bezel = new Color(0.05f, 0.05f, 0.07f, 1f);
 
-        [Tooltip("판 자리 (월드): 정면 벽 안쪽, 창문 위")]
-        [SerializeField] Vector3 position = new Vector3(0f, 2.6f, ShopLayout.FrontZ - ShopLayout.WallHalf - 0.03f);
-        [SerializeField] Vector2 size = new Vector2(1.1f, 0.42f);
+        public const string AnchorKey = "Sign/ShopClock";
+        public static readonly Vector2 BoardSize = new Vector2(1.1f, 0.42f);
+        /// <summary>기본 자리: 정면 벽 안쪽, 창문 위. 읽는 면(-Z)이 가게 안(계산대 쪽)을 봄. 씬에 자리표("Sign/ShopClock")가 있으면 그 자리</summary>
+        public static Pose DefaultPose => new Pose(new Vector3(0f, 2.6f, ShopLayout.FrontZ - ShopLayout.WallHalf - 0.03f), Quaternion.identity);
         [Tooltip("TMP 3D 글자 크기. 계산대에서 약 4m 거리라 크게")]
         [SerializeField] float fontSize = 1.0f;
 
@@ -41,9 +42,8 @@ namespace CardShop.UI
         {
             base.Start();
             var revealer = FindAnyObjectByType<CardRevealer>(); // 한글 글꼴은 카드 프리팹 것을 빌림
-            // 읽는 면(-Z)이 가게 안(계산대 쪽, -Z 방향)을 보게
             WorldSign sign = WorldSign.Create(transform, "Board", revealer != null ? revealer.Font : null,
-                new Pose(position, Quaternion.identity), size, Bezel, Ink, fontSize, "");
+                PlacementAnchor.Find(AnchorKey, DefaultPose), BoardSize, Bezel, Ink, fontSize, "");
             text = sign.Text;
             text.alignment = TextAlignmentOptions.Center;
             Refresh();

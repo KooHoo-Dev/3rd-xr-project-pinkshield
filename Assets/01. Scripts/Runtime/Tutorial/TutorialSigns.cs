@@ -7,14 +7,21 @@ namespace CardShop.Tutorial
     /// <summary>
     /// 언제든 다시 볼 수 있는 안내 판 두 개를 세웁니다 (튜토리얼_설계 5-1 · 5-4, 환경 단서). 튜토리얼을 꺼도 그대로 둡니다.
     /// ① 조작 안내 판: 가게 앞 인도의 타이틀 판 옆, 타이틀 · 인트로에서만 보임(11-19 A5: 영업 중에도 계속 보였음). ② 알바 수칙 포스터: 계산대 뒤 벽, 늘 보임.
-    /// 씬을 다시 빌드하지 않도록 씬이 열리면 스스로 만들어집니다. 자리는 인스펙터 값으로 옮길 수 있습니다.
+    /// 씬을 다시 빌드하지 않도록 씬이 열리면 스스로 만들어집니다.
+    /// 자리: 씬의 자리표(<see cref="PlacementAnchor"/> "Sign/Controls" · "Sign/Rules")가 있으면 그 자리, 없으면 아래 기본 자리.
+    /// 자리표는 Tools > CardShop > Map Edit 창에서 만들고 옮깁니다 (맵_수정_도구_설계).
     /// </summary>
     public sealed class TutorialSigns : MonoBehaviour
     {
-        [Tooltip("조작 안내 판 자리 = 타이틀 판 자리 + 이 값 (m)")]
-        [SerializeField] Vector3 controlsOffset = new Vector3(-1.05f, 0f, 0f);
-        [Tooltip("알바 수칙 포스터 자리 (월드, 계산대 뒤 벽 앞)")]
-        [SerializeField] Vector3 rulesPosition = new Vector3(-0.9f, 1.55f, ShopLayout.BackZ + ShopLayout.WallHalf + 0.02f);
+        public const string ControlsKey = "Sign/Controls";
+        public const string RulesKey = "Sign/Rules";
+        public static readonly Vector2 ControlsSize = new Vector2(0.8f, 0.42f);
+        public static readonly Vector2 RulesSize = new Vector2(0.6f, 0.42f);
+
+        /// <summary>조작 안내 판 기본 자리: 타이틀 판 왼쪽 1.05m. 타이틀 판은 −Z 쪽에서 읽힘(플레이어가 −Z를 봄) → 같은 방향</summary>
+        public static Pose ControlsDefault => new Pose(ShopLayout.TitleBoardPos + new Vector3(-1.05f, 0f, 0f), Quaternion.Euler(0f, 180f, 0f));
+        /// <summary>알바 수칙 포스터 기본 자리: 계산대 뒤 벽 앞. 플레이어(원점)가 뒤돌아 −Z를 보며 읽음 → 앞면(-Z)이 +Z 쪽을 향하게</summary>
+        public static Pose RulesDefault => new Pose(new Vector3(-0.9f, 1.55f, ShopLayout.BackZ + ShopLayout.WallHalf + 0.02f), Quaternion.Euler(0f, 180f, 0f));
 
         const string ControlsText =
             "<b>조작 안내</b>\n" +
@@ -54,14 +61,11 @@ namespace CardShop.Tutorial
             var paper = new Color(1f, 0.97f, 0.88f);
             var ink = new Color(0.18f, 0.15f, 0.22f);
 
-            // 타이틀 판은 −Z 쪽에서 읽힘(플레이어가 −Z를 봄) → 같은 방향
-            Vector3 controls = ShopLayout.TitleBoardPos + controlsOffset;
-            controlsBoard = WorldSign.Create(transform, "ControlsBoard", font, new Pose(controls, Quaternion.Euler(0f, 180f, 0f)),
-                new Vector2(0.8f, 0.42f), new Color(0.12f, 0.1f, 0.16f, 0.92f), Color.white, 0.26f, ControlsText);
+            controlsBoard = WorldSign.Create(transform, "ControlsBoard", font, PlacementAnchor.Find(ControlsKey, ControlsDefault),
+                ControlsSize, new Color(0.12f, 0.1f, 0.16f, 0.92f), Color.white, 0.26f, ControlsText);
 
-            // 계산대 뒤 벽: 플레이어(원점)가 뒤돌아 −Z를 보며 읽음 → 앞면(-Z)이 +Z 쪽을 향하게
-            WorldSign.Create(transform, "RulesPoster", font, new Pose(rulesPosition, Quaternion.Euler(0f, 180f, 0f)),
-                new Vector2(0.6f, 0.42f), paper, ink, 0.24f, RulesText(GameContext.Instance));
+            WorldSign.Create(transform, "RulesPoster", font, PlacementAnchor.Find(RulesKey, RulesDefault),
+                RulesSize, paper, ink, 0.24f, RulesText(GameContext.Instance));
 
             subscribed = GameContext.Instance;
             if (subscribed == null) return;

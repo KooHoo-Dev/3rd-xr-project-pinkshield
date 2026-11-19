@@ -24,6 +24,8 @@ namespace CardShop.EditorTools
             public Vector3 position;
             public Quaternion rotation;
             public Vector3 scale;
+            /// <summary>맵 수정 도구에서 손으로 붙인 이름표 (키 = 계층 경로)</summary>
+            public bool byHand;
         }
 
         /// <summary>씬 파일에서 옮겨진 오브젝트 자리를 읽습니다. 씬이 없거나 표식이 없으면 빈 목록.</summary>
@@ -38,9 +40,9 @@ namespace CardShop.EditorTools
             foreach (GameObject rootGo in scene.GetRootGameObjects())
                 foreach (PlacementKey mark in rootGo.GetComponentsInChildren<PlacementKey>(true))
                 {
-                    if (string.IsNullOrEmpty(mark.key) || !mark.IsMoved) continue;
+                    if (string.IsNullOrEmpty(mark.key) || !mark.ShouldRemember) continue;
                     Transform t = mark.transform;
-                    moved[mark.key] = new Pose { position = t.localPosition, rotation = t.localRotation, scale = t.localScale };
+                    moved[mark.key] = new Pose { position = t.localPosition, rotation = t.localRotation, scale = t.localScale, byHand = mark.addedByHand };
                 }
 
             if (moved.Count > 0)
@@ -64,6 +66,23 @@ namespace CardShop.EditorTools
                     t.localPosition = p.position;
                     t.localRotation = p.rotation;
                     t.localScale = p.scale;
+                    restored++;
+                }
+
+            // 손으로 붙인 이름표: 빌더는 모르는 오브젝트라 새 씬에 표가 없음 → 같은 계층 경로를 찾아 표를 다시 붙이고 자리를 되살림
+            if (moved != null)
+                foreach (KeyValuePair<string, Pose> e in moved)
+                {
+                    if (!e.Value.byHand || seen.Contains(e.Key)) continue;
+                    Transform t = HierarchyPath.Find(scene, e.Key);
+                    if (t == null) continue;
+                    PlacementKey mark = PlacementKey.Mark(t.gameObject, e.Key);
+                    mark.addedByHand = true;
+                    mark.RecordDefault();
+                    t.localPosition = e.Value.position;
+                    t.localRotation = e.Value.rotation;
+                    t.localScale = e.Value.scale;
+                    seen.Add(e.Key);
                     restored++;
                 }
 

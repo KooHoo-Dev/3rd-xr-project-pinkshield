@@ -64,6 +64,7 @@ namespace CardShop.EditorTools
 
             // 손으로 옮긴 계산대 물건 자리 · 손님 지점 등을 기억했다가 새 씬에 되살림 (PlacementKey)
             var moved = PlacementMemory.Capture(ScenePath);
+            var anchors = AnchorMemory.Capture(SceneManager.GetActiveScene().path == ScenePath ? SceneManager.GetActiveScene() : default); // 맵 수정 도구 자리표
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -88,6 +89,7 @@ namespace CardShop.EditorTools
             BinderBuilder.Create();
             SalesPanelBuilder.Create();
             PlacementMemory.Restore(scene, moved);
+            AnchorMemory.Restore(scene, anchors);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
