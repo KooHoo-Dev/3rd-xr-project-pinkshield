@@ -14,6 +14,7 @@ namespace CardShop.UI
         [SerializeField] protected GameObject content;
 
         Collection collection;
+        UpgradeState upgrades;
         bool dirty;
 
         protected bool IsVisible => content != null && content.activeSelf;
@@ -27,12 +28,16 @@ namespace CardShop.UI
         protected override void Bind(GameSession session)
         {
             if (collection != null) collection.Changed -= OnCollectionChanged;
+            if (upgrades != null) upgrades.Changed -= OnUpgradesChanged;
             collection = session?.Collection;
+            upgrades = session?.Upgrades;
             if (collection != null) collection.Changed += OnCollectionChanged;
+            if (upgrades != null) upgrades.Changed += OnUpgradesChanged; // 택배 상자를 열면 칸 수 · 예보가 바뀜
             dirty = true;
         }
 
         void OnCollectionChanged(string _) => dirty = true;
+        void OnUpgradesChanged() => dirty = true;
 
         /// <summary>다음 LateUpdate에 다시 그림 (여러 번 불려도 한 번만).</summary>
         protected void MarkDirty() => dirty = true;

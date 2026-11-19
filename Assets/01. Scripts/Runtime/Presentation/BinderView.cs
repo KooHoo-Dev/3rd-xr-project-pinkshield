@@ -238,8 +238,9 @@ namespace CardShop.Presentation
                 bool discovered = card != null && collection != null && collection.IsDiscovered(id);
                 int count = card != null && collection != null ? collection.CountOf(id) : 0;
                 int listed = card != null && context.Session != null ? context.Session.SalesDisplay.FindAll(x => x == id).Count : 0;
+                int showcased = card != null && context.Session != null ? ShowcaseRules.CountOf(context.Session, id) : 0;
                 int number = c != null && id != null ? c.NumberOf(id) : 0; // 탭과 상관없이 도감 번호
-                slots[i].Show(card, number, discovered, count, listed, styles);
+                slots[i].Show(card, number, discovered, count, listed, styles, showcased);
                 slots[i].SetSelected(card != null && card == SelectedCard);
             }
 

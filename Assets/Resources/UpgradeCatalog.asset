@@ -1,0 +1,175 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98904028666d0254fb87eef309137a9d, type: 3}
+  m_Name: UpgradeCatalog
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.UpgradeCatalog
+  tracks:
+  - kind: 0
+    displayName: "\uC9C4\uC5F4\uC7A5"
+    levels:
+    - price: 40
+      effect: "\uC9C4\uC5F4 \uCE78 3 \u2192 6\uCE78"
+      visuals: []
+    - price: 100
+      effect: "\uC9C4\uC5F4 \uCE78 6 \u2192 10\uCE78 + \uC9C4\uC5F4\uC7A5 \uC870\uBA85"
+      visuals: []
+  - kind: 1
+    displayName: "\uBC14\uC778\uB354"
+    levels:
+    - price: 60
+      effect: "\uD310\uB9E4 \uB4F1\uB85D \uCE78 4 \u2192 6\uCE78"
+      visuals:
+      - modelPath: LowPoly:Room/NoteBook_02
+        model: {fileID: 5587437515491066338, guid: 2ddf1684d4a2993469e6e913e0979768, type: 3}
+        replaces: 
+        position: {x: -1.72, y: 0.8, z: 1.72}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 180
+        scale: 1
+        addLight: 0
+    - price: 140
+      effect: "\uAE08\uBC15 \uBC14\uC778\uB354 \xB7 \uC989\uC2DC \uD310\uB9E4 60
+        \u2192 70%"
+      visuals:
+      - modelPath: LowPoly:Room/Book_03
+        model: {fileID: 5501463826058496379, guid: a13d069b2efd7874bb438cec39d00001, type: 3}
+        replaces: 
+        position: {x: -1.72, y: 0.8, z: 1.45}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 180
+        scale: 1
+        addLight: 0
+  - kind: 2
+    displayName: "\uCEF4\uD4E8\uD130"
+    levels:
+    - price: 70
+      effect: "\uBAA8\uB808 \uC778\uAE30 \uC18D\uC131\uAE4C\uC9C0 \uBCF4\uAE30"
+      visuals:
+      - modelPath: LowPoly:Light/Lamp_04
+        model: {fileID: 7425421291328414686, guid: ed920d804eb51794e994aa3f49fc0a50, type: 3}
+        replaces: 
+        position: {x: 1.78, y: 0.71, z: 1.72}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 180
+        scale: 1
+        addLight: 0
+    - price: 150
+      effect: "\uCE74\uB4DC \uC2DC\uC138\uD45C (\uC624\uB298 \xB7 \uB0B4\uC77C \uAC12)"
+      visuals:
+      - modelPath: LowPoly:Room/SmartHome
+        model: {fileID: 3464997031233588956, guid: 83bbdbe32df36fc4bbc506d27db863c7, type: 3}
+        replaces: 
+        position: {x: 1.5, y: 0.71, z: 1.75}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 180
+        scale: 1
+        addLight: 0
+  - kind: 3
+    displayName: "\uCE68\uB300"
+    levels:
+    - price: 70
+      effect: "\uC190\uB2D8 \uC778\uB0B4\uC2EC +10%"
+      visuals:
+      - modelPath: LowPoly:Room/Bed2_02
+        model: {fileID: 6427832045238186828, guid: c9be73b83aebc3344840979b028ec7aa, type: 3}
+        replaces: Bed
+        position: {x: 0, y: 0, z: 0}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 0
+        scale: 1
+        addLight: 0
+    - price: 130
+      effect: "\uC190\uB2D8 \uC778\uB0B4\uC2EC +20% \xB7 \uBB34\uB8CC \uD329 \uB9E4\uC77C
+        +1"
+      visuals:
+      - modelPath: LowPoly:Room/Bed2_03
+        model: {fileID: 7705988224151440004, guid: 0e9d18fc4326d584bbd0142e8e3e91c9, type: 3}
+        replaces: Bed
+        position: {x: 0, y: 0, z: 0}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 0
+        scale: 1
+        addLight: 0
+  - kind: 4
+    displayName: "\uD3EC\uC2A4\uD130"
+    levels:
+    - price: 15
+      effect: "\uAFB8\uBBF8\uAE30"
+      visuals:
+      - modelPath: LowPoly:Room/Picture_03
+        model: {fileID: 8053550952898919800, guid: 788ef17667cdad549a1b52c9f37b2c65, type: 3}
+        replaces: 
+        position: {x: 0, y: 1.55, z: -2.88}
+        align: {x: 0, y: 0, z: -1}
+        yaw: 0
+        scale: 1
+        addLight: 0
+  - kind: 5
+    displayName: "\uB7EC\uADF8"
+    levels:
+    - price: 20
+      effect: "\uAFB8\uBBF8\uAE30"
+      visuals:
+      - modelPath: LowPoly:Room/Catpet_03
+        model: {fileID: 5059929299895181224, guid: 2131c85c878a65244ad8dd24a806ec6e, type: 3}
+        replaces: Rug
+        position: {x: 0, y: 0, z: 0}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 0
+        scale: 1
+        addLight: 0
+  - kind: 6
+    displayName: "\uC2A4\uD0E0\uB4DC \uC870\uBA85"
+    levels:
+    - price: 25
+      effect: "\uAFB8\uBBF8\uAE30"
+      visuals:
+      - modelPath: LowPoly:Light/Lamp_01
+        model: {fileID: 8446088109260437507, guid: cd2732c0a3f49584db67f1ca8f164102, type: 3}
+        replaces: 
+        position: {x: -2.15, y: 0, z: -0.75}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 90
+        scale: 1
+        addLight: 1
+  - kind: 7
+    displayName: "\uC2AC\uB77C\uC784 \uD53C\uADDC\uC5B4"
+    levels:
+    - price: 30
+      effect: "\uAFB8\uBBF8\uAE30"
+      visuals:
+      - modelPath: Assets/03. Prefabs/Interior/Decor/SlimeFigure_Pink.prefab
+        model: {fileID: 5528634919848449210, guid: 5e3c40c2d93a3564ea5740c339616eb0, type: 3}
+        replaces: 
+        position: {x: 0.72, y: 0.71, z: 1.7}
+        align: {x: 0, y: -1, z: 0}
+        yaw: 180
+        scale: 3
+        addLight: 0
+  showcaseSlots: 03000000060000000a000000
+  extraSalesSlots: 000000000200000002000000
+  instantSellBonus:
+  - 0
+  - 0
+  - 0.1
+  forecastDays: 010000000200000002000000
+  priceListLevel: 3
+  patienceBonus:
+  - 0
+  - 0.1
+  - 0.2
+  extraFreePacks: 000000000000000001000000
+  goldBinderLevel: 3
+  showcaseLightLevel: 3
+  showcaseCardPrefab: {fileID: 8603604060512365468, guid: 8e76c4b130d48144897327c3e8098635, type: 3}
+  deliveryBoxPrefab: {fileID: 1753955851246699273, guid: a30a1848c63e8504eade6a510775e9d2, type: 3}
+  deliveryBoxPath: LowPoly:Room/Box

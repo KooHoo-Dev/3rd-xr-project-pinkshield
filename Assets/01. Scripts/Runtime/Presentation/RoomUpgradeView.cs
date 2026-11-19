@@ -1,0 +1,205 @@
+using System.Collections.Generic;
+using CardShop.Cards;
+using CardShop.Core;
+using CardShop.Logic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace CardShop.Presentation
+{
+    /// <summary>
+    /// 방이 업그레이드 상태(GameSession.Upgrades)를 그대로 보여 주게 합니다 (집_업그레이드_설계 3장 E2).
+    /// - 가구: 상자를 연 단계까지의 모델을 놓거나(UpgradeCatalog.Visual) 원래 가구를 바꿔 놓음(예: 침대). 새 게임이면 처음 방으로
+    /// - 택배: 와 있는 상자(UpgradeStatus.Arrived)마다 DeliveryBox를 바닥에 놓고, 잡아서 열면 UpgradeState.Open → 가구가 바뀜
+    /// - 바인더 3단계: 바인더 · 판매 · 진열장 패널 바탕을 금색으로
+    /// 집 실내(HomeInterior) 아래에 있어 집에서만 켜집니다. 모델 경계 상자는 켜져 있을 때만 정확하므로 켜진 동안에만 다시 그립니다.
+    /// </summary>
+    public sealed class RoomUpgradeView : MonoBehaviour
+    {
+        // 택배 상자 자리 (집 실내 로컬): 집에 들어오면 바로 보이는 러그 앞쪽에 한 줄 4개씩
+        static readonly Vector3 BoxStart = new Vector3(-0.7f, 0f, -0.05f);
+        const float BoxStepX = 0.45f, BoxStepZ = -0.5f;
+        const int BoxesPerRow = 4;
+        static readonly Color GoldPanel = new Color(0.55f, 0.42f, 0.12f, 0.96f);
+
+        UpgradeCatalog catalog;
+        Transform interior;
+        TMP_FontAsset font;
+        BinderView binder;
+        GameContext ctx;
+        UpgradeState bound;
+        WorldToast toast;
+        bool dirty = true;
+
+        readonly Dictionary<UpgradeKind, int> applied = new Dictionary<UpgradeKind, int>();
+        readonly Dictionary<UpgradeKind, List<GameObject>> spawned = new Dictionary<UpgradeKind, List<GameObject>>();
+        readonly Dictionary<UpgradeKind, List<Transform>> hidden = new Dictionary<UpgradeKind, List<Transform>>();
+        readonly Dictionary<UpgradeKind, DeliveryBox> boxes = new Dictionary<UpgradeKind, DeliveryBox>();
+        readonly Dictionary<Image, Color> panelColors = new Dictionary<Image, Color>();
+        bool gold;
+
+        public static RoomUpgradeView Create(Transform homeInterior, UpgradeCatalog catalog, TMP_FontAsset font, BinderView binder)
+        {
+            var go = new GameObject("RoomUpgrades");
+            go.SetActive(false);
+            go.transform.SetParent(homeInterior, false);
+            var view = go.AddComponent<RoomUpgradeView>();
+            view.interior = homeInterior;
+            view.catalog = catalog;
+            view.font = font;
+            view.binder = binder;
+            go.SetActive(true);
+            return view;
+        }
+
+        void OnEnable()
+        {
+            ctx = GameContext.Instance;
+            if (ctx == null || catalog == null) return;
+            ctx.Events.SessionStarted += Bind;
+            Bind(ctx.Session);
+        }
+
+        void OnDisable()
+        {
+            if (ctx != null) ctx.Events.SessionStarted -= Bind;
+            Bind(null);
+        }
+
+        void Bind(GameSession session)
+        {
+            if (bound != null) bound.Changed -= MarkDirty;
+            bound = session?.Upgrades;
+            if (bound != null) bound.Changed += MarkDirty;
+            dirty = true;
+        }
+
+        void MarkDirty() => dirty = true;
+
+        void LateUpdate()
+        {
+            if (!dirty || bound == null) return;
+            dirty = false;
+            foreach (UpgradeCatalog.Track t in catalog.tracks)
+                if (t != null) ApplyFurniture(t, bound.LevelOf(t.kind));
+            SyncBoxes();
+            SetGoldBinder(ctx.Upgrades.GoldBinder(bound));
+        }
+
+        // ------------------------------------------------------------------ 가구
+
+        void ApplyFurniture(UpgradeCatalog.Track track, int level)
+        {
+            if (applied.TryGetValue(track.kind, out int now) && now == level) return;
+            applied[track.kind] = level;
+
+            // 처음 방으로 되돌린 뒤 1 ~ level 단계의 모델을 차례로 놓음 (나중 단계가 같은 가구를 바꾸면 앞 단계 모델은 지움)
+            if (spawned.TryGetValue(track.kind, out List<GameObject> old)) foreach (GameObject go in old) if (go != null) Destroy(go);
+            if (hidden.TryGetValue(track.kind, out List<Transform> originals)) foreach (Transform t in originals) if (t != null) t.gameObject.SetActive(true);
+            var made = spawned[track.kind] = new List<GameObject>();
+            var covered = hidden[track.kind] = new List<Transform>();
+            var replacedBy = new Dictionary<string, GameObject>();
+
+            for (int lv = 2; lv <= level && lv - 2 < track.levels.Length; lv++)
+            {
+                UpgradeCatalog.Level entry = track.levels[lv - 2];
+                if (entry?.visuals == null) continue;
+                for (int v = 0; v < entry.visuals.Length; v++)
+                {
+                    UpgradeCatalog.Visual vis = entry.visuals[v];
+                    if (vis == null || vis.model == null) continue;
+                    string name = $"Upgrade_{track.kind}_{lv}_{v}";
+                    GameObject go;
+                    if (!string.IsNullOrEmpty(vis.replaces))
+                    {
+                        if (replacedBy.TryGetValue(vis.replaces, out GameObject prev)) { made.Remove(prev); Destroy(prev); }
+                        Transform original = HomeRoom.FindDeep(interior, vis.replaces);
+                        if (original == null) continue;
+                        if (!covered.Contains(original)) covered.Add(original);
+                        original.gameObject.SetActive(true); // 자리 · 크기를 읽기 위해 (Replace가 다시 숨김)
+                        go = HomeRoom.Replace(original, vis.model, name);
+                        replacedBy[vis.replaces] = go;
+                    }
+                    else go = HomeRoom.Place(interior, vis.model, vis.position, vis.align, vis.yaw, vis.scale, name);
+                    if (go == null) continue;
+                    if (vis.addLight) AddLamp(go);
+                    made.Add(go);
+                }
+            }
+        }
+
+        static void AddLamp(GameObject lamp)
+        {
+            Bounds b = HomeRoom.Bounds(lamp);
+            var go = new GameObject("LampLight");
+            go.transform.SetParent(lamp.transform, true);
+            go.transform.position = new Vector3(b.center.x, b.max.y - 0.1f, b.center.z);
+            var light = go.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = new Color(1f, 0.8f, 0.55f);
+            light.intensity = 1.2f;
+            light.range = 2.5f;
+            light.shadows = LightShadows.None;
+        }
+
+        // ------------------------------------------------------------------ 택배 상자
+
+        void SyncBoxes()
+        {
+            List<UpgradeKind> arrived = bound.Arrived();
+            var gone = new List<UpgradeKind>();
+            foreach (KeyValuePair<UpgradeKind, DeliveryBox> e in boxes)
+                if (!arrived.Contains(e.Key)) gone.Add(e.Key);
+            foreach (UpgradeKind k in gone)
+            {
+                if (boxes[k] != null) Destroy(boxes[k].gameObject);
+                boxes.Remove(k);
+            }
+
+            for (int i = 0; i < arrived.Count; i++)
+            {
+                UpgradeKind kind = arrived[i];
+                if (boxes.TryGetValue(kind, out DeliveryBox existing) && existing != null) continue;
+                var local = BoxStart + new Vector3((i % BoxesPerRow) * BoxStepX, 0f, (i / BoxesPerRow) * BoxStepZ);
+                DeliveryBox box = DeliveryBox.Create(transform, interior.TransformPoint(local), 15f * i, kind, TrackName(kind),
+                    catalog.deliveryBoxPrefab, AnyMaterial(), font);
+                box.Opened += OnBoxOpened;
+                boxes[kind] = box;
+            }
+        }
+
+        void OnBoxOpened(DeliveryBox box)
+        {
+            boxes.Remove(box.Kind);
+            if (bound == null || !bound.Open(box.Kind)) return;
+            int level = bound.LevelOf(box.Kind);
+            string what = UpgradeRules.IsDecor(box.Kind) ? $"{TrackName(box.Kind)} 도착! 방에 놓았어요" : $"{TrackName(box.Kind)} Lv{level} 완성!";
+            if (toast == null) toast = WorldToast.Create(transform, font);
+            toast.Show(what, box.transform.position + Vector3.up * 0.9f);
+            Sfx.Play(SoundId.NewCard, box.transform.position);
+        }
+
+        string TrackName(UpgradeKind kind) => catalog.Get(kind)?.displayName ?? kind.ToString();
+
+        Material AnyMaterial()
+        {
+            Renderer r = interior.GetComponentInChildren<Renderer>();
+            return r != null ? r.sharedMaterial : null;
+        }
+
+        // ------------------------------------------------------------------ 금박 바인더 (바인더 3단계)
+
+        void SetGoldBinder(bool on)
+        {
+            if (on == gold || binder == null) return;
+            gold = on;
+            foreach (Image img in binder.GetComponentsInChildren<Image>(true))
+            {
+                if (img.name != "Background") continue;
+                if (!panelColors.ContainsKey(img)) panelColors[img] = img.color;
+                img.color = on ? GoldPanel : panelColors[img];
+            }
+        }
+    }
+}

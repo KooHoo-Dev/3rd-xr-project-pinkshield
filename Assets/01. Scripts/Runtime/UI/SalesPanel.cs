@@ -191,7 +191,7 @@ namespace CardShop.UI
                     : $"판매 등록 불가 ({RarityName(Context.Economy.minDisplayRarity)} 이상만)";
                 selectedLabel.text =
                     $"{card.displayName}  ({RarityName(card.rarity)})\n" +
-                    $"보유 {count}장\n{display}\n즉시 판매가  {MoneyText.Format(Context.Sales.InstantPrice(card))}";
+                    $"보유 {count}장\n{display}\n즉시 판매가  {MoneyText.Format(Context.Sales.InstantPrice(card, session))}";
             }
             displayButton.interactable = card != null;
             sellButton.interactable = card != null;
@@ -201,7 +201,9 @@ namespace CardShop.UI
                 sellAllButton.GetComponentInChildren<TMP_Text>().text = armed ? "한 번 더 눌러 판매" : $"{RarityName(SellAllMax)} 이하 모두 팔기";
             }
 
-            statusLabel.text = $"판매 등록 칸 {session.SalesDisplay.Count} / {Context.Economy.salesDisplaySlots}   ·   내 자산 {MoneyText.Format(session.Wallet.Money)}";
+            int slots = Context.Sales.SlotCount(session); // 바인더 업그레이드로 늘 수 있음
+            displayedButtons = SalesListGrower.Grow(displayedButtons, slots, OnDisplayedClicked);
+            statusLabel.text = $"판매 등록 칸 {session.SalesDisplay.Count} / {slots}   ·   내 자산 {MoneyText.Format(session.Wallet.Money)}";
             messageLabel.text = message;
 
             for (int i = 0; i < displayedButtons.Length; i++)

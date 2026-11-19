@@ -27,9 +27,12 @@ namespace CardShop.Logic
         readonly EconomyRules prices;
         readonly CardDatabase cards;
         readonly IRandomSource random;
+        readonly UpgradeRules upgrades; // 바인더 업그레이드: 판매 등록 칸 · 즉시 판매 비율 (없으면 기본값)
 
-        public SalesRules(EconomyConfig economy, RarityTable rarity, EconomyRules prices, CardDatabase cards, IRandomSource random)
+        public SalesRules(EconomyConfig economy, RarityTable rarity, EconomyRules prices, CardDatabase cards, IRandomSource random,
+            UpgradeRules upgrades = null)
         {
+            this.upgrades = upgrades;
             this.economy = economy;
             this.rarity = rarity;
             this.prices = prices;
@@ -37,7 +40,11 @@ namespace CardShop.Logic
             this.random = random;
         }
 
-        public bool HasFreeSlot(GameSession s) => s.SalesDisplay.Count < economy.salesDisplaySlots;
+        /// <summary>판매 등록 칸 수 = 기본 + 바인더 업그레이드 (집_업그레이드_설계 3장)</summary>
+        public int SlotCount(GameSession s) =>
+            economy.salesDisplaySlots + (upgrades != null && s != null ? upgrades.ExtraSalesSlots(s.Upgrades) : 0);
+
+        public bool HasFreeSlot(GameSession s) => s.SalesDisplay.Count < SlotCount(s);
 
         /// <summary>진열할 수 있는 등급인가 (EconomyConfig.minDisplayRarity 이상, 기본 수퍼레어).</summary>
         public bool CanDisplay(CardData card) => card != null && (int)card.rarity >= (int)economy.minDisplayRarity;
@@ -54,9 +61,13 @@ namespace CardShop.Logic
             return DisplayResult.Ok;
         }
 
-        /// <summary>즉시 판매가: 기준가 × instantSellRate, 소수점 내림, 최소 1. 수수료 · 인기 속성 배율 없음(고정 가격).</summary>
-        public int InstantPrice(CardData card) =>
-            Mathf.Max(1, Mathf.FloorToInt(rarity.BasePrice(card.rarity) * economy.instantSellRate + 1e-4f));
+        /// <summary>즉시 판매 비율 = 기본 + 바인더 업그레이드 (최대 1)</summary>
+        public float InstantRate(GameSession s) =>
+            Mathf.Min(1f, economy.instantSellRate + (upgrades != null && s != null ? upgrades.InstantSellBonus(s.Upgrades) : 0f));
+
+        /// <summary>즉시 판매가: 기준가 × 즉시 판매 비율, 소수점 내림, 최소 1. 수수료 · 인기 속성 배율 없음(고정 가격). s가 없으면 기본 비율.</summary>
+        public int InstantPrice(CardData card, GameSession s = null) =>
+            Mathf.Max(1, Mathf.FloorToInt(rarity.BasePrice(card.rarity) * InstantRate(s) + 1e-4f));
 
         /// <summary>
         /// 보유한 카드를 집에서 바로 팝니다(모든 등급). 카드는 보유 목록에서 1장 빠지고(도감은 유지)
@@ -67,7 +78,7 @@ namespace CardShop.Logic
             price = 0;
             CardData card = cards.Get(cardId);
             if (card == null || !s.Collection.Remove(cardId)) return false;
-            price = InstantPrice(card);
+            price = InstantPrice(card, s);
             s.Wallet.Add(price);
             return true;
         }
@@ -85,7 +96,7 @@ namespace CardShop.Logic
                 CardData card = cards.Get(e.Key);
                 if (card == null || card.rarity > maxRarity) continue;
                 count += e.Value;
-                total += InstantPrice(card) * e.Value;
+                total += InstantPrice(card, s) * e.Value;
             }
             return count;
         }

@@ -105,7 +105,9 @@ namespace CardShop.Customers
             GameContext ctx = hooks.Context();
             if (ctx == null) return 30f;
             bool atCheckout = agent == checkoutAgent && counter != null;
-            return PatienceRules.Seconds(ctx.Campaign.customerPatienceSeconds, ctx.Campaign.patiencePerExtraItemSeconds,
+            // 침대 업그레이드: 푹 자고 나온 날은 손님을 더 기다리게 해도 됨 (집_업그레이드_설계 3장)
+            float rested = ctx.Upgrades != null && ctx.Session != null ? ctx.Upgrades.PatienceMultiplier(ctx.Session.Upgrades) : 1f;
+            return PatienceRules.Seconds(ctx.Campaign.customerPatienceSeconds * rested, ctx.Campaign.patiencePerExtraItemSeconds,
                 atCheckout ? counter.ItemCount : 0, atCheckout);
         }
 

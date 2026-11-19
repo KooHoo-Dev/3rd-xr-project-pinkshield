@@ -40,9 +40,11 @@ namespace CardShop.Logic
             var sb = new System.Text.StringBuilder();
             sb.Append("내 자산").Append(Col).Append(MoneyText.Format(r.Money)).Append('\n');
             sb.Append("카드 가치").Append(Col).Append(MoneyText.Format(r.CardValue)).Append('\n');
+            if (r.FurnitureValue > 0) sb.Append("가구 값").Append(Col).Append(MoneyText.Format(r.FurnitureValue)).Append('\n');
             sb.Append($"도감 {r.CollectedKinds}/{r.TotalKinds}종").Append(Col).Append(Signed(r.CollectionPoints)).Append('\n');
             sb.Append($"<size=80%>수퍼레어 이상 {r.RareCollected}/{r.RareTotal}종 · 연 팩 {r.PacksOpened}개</size>\n");
             if (r.BestCard != null) sb.Append($"<size=80%>최고의 카드: {r.BestCard.displayName}</size>\n");
+            if (r.ShowcaseCards.Count > 0) sb.Append($"<size=80%>내 방 진열장 {r.ShowcaseCards.Count}장 (카드 가치에 포함)</size>\n");
             sb.Append($"<b>최종 점수</b>{Col}<b>{r.Score}</b>\n");
             string rank = r.Rank != null ? r.Rank.name : "-";
             sb.Append($"<size=120%><b>랭크 {rank}</b></size>");

@@ -14,6 +14,10 @@ namespace CardShop.Logic
         public Wallet Wallet { get; }
         public Collection Collection { get; } = new Collection();
         public List<string> SalesDisplay { get; } = new List<string>();
+        /// <summary>방 진열장에 세운 카드 (E1). 보유 목록에서 빠져 있어 팔 수 없고, 최종 점수에는 카드 가치로 들어갑니다 (ShowcaseRules).</summary>
+        public List<string> Showcase { get; } = new List<string>();
+        /// <summary>방 업그레이드 단계 · 택배 · 쓴 돈 (E2)</summary>
+        public UpgradeState Upgrades { get; } = new UpgradeState();
         public DayLedger Ledger { get; private set; } = new DayLedger();
         /// <summary>어제의 장부 (아침 혼잣말이 어제 카드팩 결과를 보고 달라지도록). 1일차에는 null.</summary>
         public DayLedger Previous { get; private set; }
@@ -28,6 +32,7 @@ namespace CardShop.Logic
             Day++;
             Previous = Ledger;
             Ledger = new DayLedger();
+            Upgrades.AdvanceDay(); // 어제 산 가구는 오늘 아침 택배로 도착
         }
     }
 

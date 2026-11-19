@@ -18,6 +18,7 @@ namespace CardShop.UI
         const string TodayFormat = "오늘 인기  <color=#FFC857>{0}</color>";
         const string TomorrowFormat = "내일 예보  <color=#7FD1FF>{0}</color>";
         const string TomorrowNone = "내일 예보  없음 (마지막 날)";
+        const string AfterTomorrowFormat = "모레 예보  <color=#B39DFF>{0}</color>";
         const string TopHeader = "인기 카드 TOP3";
         const string TopEmpty = "아직 가진 인기 카드가 없어요";
 
@@ -41,12 +42,17 @@ namespace CardShop.UI
                 string tomorrow = report.HasTomorrow
                     ? string.Format(TomorrowFormat, CommunityBoard.ElementName(report.Tomorrow))
                     : TomorrowNone;
+                // 컴퓨터 업그레이드 2단계: 모레 인기 속성까지 (집_업그레이드_설계 3장)
+                CardElement after = ctx.Upgrades.ForecastDays(ctx.Session.Upgrades) >= 2
+                    ? ctx.PopularElements.For(ctx.Session.Day + 2) : CardElement.None;
+                if (after != CardElement.None) tomorrow += "\n" + string.Format(AfterTomorrowFormat, CommunityBoard.ElementName(after));
                 forecastLabel.text = today + "\n" + tomorrow;
             }
 
             if (topLabel != null)
             {
-                var sb = new StringBuilder(TopHeader);
+                bool priceList = ctx.Upgrades.HasPriceList(ctx.Session.Upgrades);
+                var sb = new StringBuilder(priceList ? TopHeader + " · 시세표" : TopHeader);
                 if (report.TopCards.Count == 0)
                 {
                     sb.Append('\n').Append(TopEmpty);
@@ -57,7 +63,10 @@ namespace CardShop.UI
                     {
                         CardData card = report.TopCards[i];
                         int price = ctx.EconomyRules.GrossPrice(card, report.Today);
-                        sb.Append('\n').Append(i + 1).Append(". ").Append(card.displayName).Append("  ").Append(price);
+                        sb.Append('\n').Append(i + 1).Append(". ").Append(card.displayName).Append("  ").Append(MoneyText.Format(price));
+                        // 컴퓨터 업그레이드 3단계: 카드 시세표 (오늘 · 내일 값)
+                        if (priceList && report.HasTomorrow)
+                            sb.Append(" → 내일 ").Append(MoneyText.Format(ctx.EconomyRules.GrossPrice(card, report.Tomorrow)));
                     }
                 }
                 topLabel.text = sb.ToString();

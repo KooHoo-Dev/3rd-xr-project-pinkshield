@@ -192,7 +192,8 @@ namespace CardShop.Core.Phases
         {
             // 도둑을 놓친 날은 무료 팩 없음 (카드도둑_설계 2장)
             bool stolen = Context.Session.Ledger.freePackStolen;
-            Context.Session.FreePacksLeft = ThiefRules.FreePacksToday(Context.Economy.freePacksPerDay, stolen);
+            Context.Session.FreePacksLeft = ThiefRules.FreePacksToday(Context.Economy.freePacksPerDay, stolen)
+                + Context.Upgrades.ExtraFreePacks(Context.Session.Upgrades); // 침대 3단계 (집_업그레이드_설계 3장)
             if (stolen) Context.Events.RaiseNotice("도둑이 무료 팩을 가져가서 오늘은 무료 팩이 없어요…");
             Log("퇴근 전 시간 (퇴근 버튼 = Advance)");
         }

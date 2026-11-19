@@ -51,14 +51,17 @@ namespace CardShop.Presentation
         /// <param name="card">null이면 빈 칸(마지막 페이지의 남는 칸)이라 숨깁니다.</param>
         /// <param name="number">바인더 전체 번호 (1부터)</param>
         /// <param name="listed">가게에 판매 등록 중인 장수 (보유 장수 count에는 들어 있지 않음)</param>
-        /// <summary>칸 아래 글자: 보유 장수 · 판매 등록 · 판매됨.</summary>
-        public static string CountLabel(int count, int listed)
+        /// <param name="showcased">방 진열장에 세운 장수 (보유 장수 count에는 들어 있지 않음, E1)</param>
+        /// <summary>칸 아래 글자: 보유 장수 · 판매 등록 · 진열 중 · 판매됨.</summary>
+        public static string CountLabel(int count, int listed, int showcased = 0)
         {
-            if (count > 0) return listed > 0 ? $"x{count} · 등록 {listed}" : $"x{count}";
+            string extra = (listed > 0 ? $" · 등록 {listed}" : "") + (showcased > 0 ? $" · 진열 {showcased}" : "");
+            if (count > 0) return $"x{count}{extra}";
+            if (showcased > 0) return listed > 0 ? $"진열 중 · 등록 {listed}" : "진열 중";
             return listed > 0 ? "판매 등록 완료" : "판매됨";
         }
 
-        public void Show(CardData card, int number, bool discovered, int count, int listed, CardRarityStyles styles)
+        public void Show(CardData card, int number, bool discovered, int count, int listed, CardRarityStyles styles, int showcased = 0)
         {
             if (card == null)
             {
@@ -78,7 +81,7 @@ namespace CardShop.Presentation
                 nameText.text = card.displayName;
                 nameText.color = DarkText;
                 // 배경판 없이도 읽히도록 글자 뒤에 어두운 띠
-                countText.text = $"<mark={UiTheme.Mark}> {CountLabel(count, listed)} </mark>";
+                countText.text = $"<mark={UiTheme.Mark}> {CountLabel(count, listed, showcased)} </mark>";
             }
             else
             {

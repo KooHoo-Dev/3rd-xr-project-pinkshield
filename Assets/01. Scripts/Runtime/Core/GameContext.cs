@@ -41,6 +41,8 @@ namespace CardShop.Core
         public PackOpeningService PackOpening { get; private set; }
         public SalesRules Sales { get; private set; }
         public ScoreRules ScoreRules { get; private set; }
+        /// <summary>방 업그레이드 판단 (Resources/UpgradeCatalog — 씬에 연결하지 않아도 됨, 집_업그레이드_설계)</summary>
+        public UpgradeRules Upgrades { get; private set; }
         /// <summary>새 게임마다 다시 뽑는 일차별 인기 속성 일정.</summary>
         public PopularElementSchedule PopularElements { get; private set; }
 
@@ -59,9 +61,10 @@ namespace CardShop.Core
 
             Random = fixedSeed != 0 ? new SystemRandomSource(fixedSeed) : new SystemRandomSource();
             EconomyRules = new EconomyRules(economy, rarityTable);
+            Upgrades = new UpgradeRules(UpgradeCatalog.Load());
             PackRoller = new PackRoller(packOdds, cardDatabase, Random);
             PackOpening = new PackOpeningService(() => Session, PackRoller, economy);
-            Sales = new SalesRules(economy, rarityTable, EconomyRules, cardDatabase, Random);
+            Sales = new SalesRules(economy, rarityTable, EconomyRules, cardDatabase, Random, Upgrades);
             ScoreRules = new ScoreRules(score, rarityTable, cardDatabase);
             StartNewSession();
         }
