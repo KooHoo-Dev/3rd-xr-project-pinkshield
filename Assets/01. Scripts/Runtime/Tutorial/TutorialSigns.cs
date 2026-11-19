@@ -77,6 +77,14 @@ namespace CardShop.Tutorial
 
         void OnPhaseChanged(GamePhaseId from, GamePhaseId to) => ShowControls(to);
 
+        // 영업 시작을 누르면 화면 전환(페이드)이 끝나 페이즈가 바뀌기 전에 바로 숨김 (11-20 D3: 0.5초 늦게 사라졌음)
+        void Update()
+        {
+            if (controlsBoard == null || !controlsBoard.gameObject.activeSelf || subscribed == null) return;
+            GameFlow flow = subscribed.GetComponent<GameFlow>();
+            if (flow != null && flow.IsTransitioning) controlsBoard.gameObject.SetActive(false); // 다음 페이즈가 타이틀 · 인트로면 바뀔 때 다시 켜짐
+        }
+
         void ShowControls(GamePhaseId phase)
         {
             if (controlsBoard != null) controlsBoard.gameObject.SetActive(phase == GamePhaseId.Title || phase == GamePhaseId.Intro);

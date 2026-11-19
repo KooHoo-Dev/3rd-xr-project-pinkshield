@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CardShop.Interaction;
 using CardShop.UI;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ namespace CardShop.Tutorial
     /// <summary>
     /// 튜토리얼 대상 강조 (빌드 피드백 11-19 2차: 물건만 은은하게). 물건 모양 그대로의 분홍 외곽선(OutlineMarker)만 씁니다.
     /// 예전의 선 상자 · 바닥 고리 · 무대 조명 원뿔은 몰입을 깨서 뺐습니다.
-    /// 외곽선을 못 붙이는 대상(아주 얇은 카드 · 글자 · 정적 배칭 물건)만 대상 위에 작은 "∨" 표시를 띄웁니다.
+    /// 외곽선을 못 붙이는 대상(아주 얇은 카드 · 글자 · 정적 배칭 물건)과 납작한 버튼은 대상 위에 작은 "∨" 표시를 띄웁니다.
     /// 외곽선 밝기는 느리게 숨 쉬듯 바뀌고, 엉뚱한 물건을 잡으면 잠깐 진해집니다(Flash).
     /// 대상은 손에 들려 움직이므로 표시 자리는 매 프레임 다시 잽니다. 꺼지거나 사라진 대상은 그리지 않습니다.
     /// </summary>
@@ -32,6 +33,7 @@ namespace CardShop.Tutorial
         readonly List<HighlightTarget> targets = new List<HighlightTarget>(MaxTargets);
         readonly LineRenderer[] markers = new LineRenderer[MaxTargets];
         readonly bool[] outlined = new bool[MaxTargets];
+        readonly bool[] marked = new bool[MaxTargets]; // 위에 ∨ 표시를 띄울 대상 (외곽선을 못 붙였거나 버튼)
         readonly Vector3[] markerPoints = new Vector3[3];
         Material material;
         OutlineMarker outline;
@@ -58,7 +60,12 @@ namespace CardShop.Tutorial
             if (list != null)
                 for (int i = 0; i < list.Count && targets.Count < MaxTargets; i++)
                     if (list[i] != null) targets.Add(list[i]);
-            for (int i = 0; i < targets.Count; i++) outlined[i] = outline.Mark(targets[i]);
+            for (int i = 0; i < targets.Count; i++)
+            {
+                outlined[i] = outline.Mark(targets[i]);
+                // 납작한 버튼은 외곽선이 얇게만 보여 잘 안 보임 (11-20 F4) → 외곽선과 함께 ∨ 표시도
+                marked[i] = !outlined[i] || targets[i].GetComponentInParent<PokeButton>() != null;
+            }
             enabled = true;
             if (targets.Count == 0) HideMarkers();
         }
@@ -86,7 +93,7 @@ namespace CardShop.Tutorial
             for (int i = 0; i < MaxTargets; i++)
             {
                 HighlightTarget t = i < targets.Count ? targets[i] : null;
-                bool show = t != null && !outlined[i] && head != null && t.TryGetBounds(out Bounds b) && Place(markers[i], b, head, wave);
+                bool show = t != null && marked[i] && head != null && t.TryGetBounds(out Bounds b) && Place(markers[i], b, head, wave);
                 if (markers[i].enabled != show) markers[i].enabled = show;
                 if (show) Paint(markers[i], glow, markerWidth * (1f + flash));
             }

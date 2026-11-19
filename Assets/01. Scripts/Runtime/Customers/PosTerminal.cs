@@ -14,10 +14,16 @@ namespace CardShop.Customers
     {
         [SerializeField] TMP_Text screen;
         [SerializeField] string idleText = "어서 오세요!";
+        [Tooltip("글자 크기 배율 (11-20 F5: 계산대에서 잘 안 보임 → 1.4)")]
+        [SerializeField] float textScale = 1.4f;
 
         readonly StringBuilder sb = new StringBuilder();
 
-        void Awake() => Clear();
+        void Awake()
+        {
+            if (screen != null) screen.fontSize *= textScale; // 씬을 다시 빌드하지 않도록 실행할 때 키움
+            Clear();
+        }
 
         public void Show(Basket basket)
         {

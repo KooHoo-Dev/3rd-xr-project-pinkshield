@@ -35,7 +35,8 @@ namespace CardShop.UI
             RectTransform rt = WorldUiKit.CreateCanvas("ShowcasePanel", binder.transform, Width, Height, out GameObject content);
             rt.gameObject.SetActive(false); // 설정을 다 넣은 뒤 켬 (OnEnable 순서)
             rt.localRotation = Quaternion.Euler(20f, 0f, 0f); // 바인더 페이지와 같은 독서대 각도 (SalesPanelBuilder와 같음)
-            rt.localPosition = new Vector3(0.3f + 0.03f + Width * 0.0005f, Height * 0.0005f + 0.012f, 0f);
+            // 아래쪽이 책상 위 바인더 표지(두께 3cm)에 묻혀 비스듬히 잘려 보였음 (11-20 F1, 캡처 5) → 5cm 올림
+            rt.localPosition = new Vector3(0.3f + 0.03f + Width * 0.0005f, Height * 0.0005f + 0.062f, 0f);
 
             Transform c = content.transform;
             WorldUiKit.AddPanel(c);

@@ -15,13 +15,13 @@ MonoBehaviour:
   pointsPerCollected: 10
   ranks:
   - name: S
-    minScore: 4000
+    minScore: 2800
     isSuccess: 1
   - name: A
-    minScore: 3400
+    minScore: 2200
     isSuccess: 1
   - name: B
-    minScore: 2400
+    minScore: 1500
     isSuccess: 1
   - name: C
     minScore: 0

@@ -356,11 +356,11 @@ namespace CardShop.Tests
             Assert.AreEqual(2, r.RareCollected, "F-SR, SN-L");
         }
 
-        // 기획서 5-8 랭크 기준: S 4000 / A 3400 / B 2400 / C
-        [TestCase(4000, "S", true)]
-        [TestCase(3999, "A", true)]
-        [TestCase(2400, "B", true)]
-        [TestCase(2399, "C", false)]
+        // 랭크 기준 (11-20 J2: 보통 플레이 1795점이 B): S 2800 / A 2200 / B 1500 / C
+        [TestCase(2800, "S", true)]
+        [TestCase(2799, "A", true)]
+        [TestCase(1500, "B", true)]
+        [TestCase(1499, "C", false)]
         public void Rank_MatchesDesignThresholds(int money, string rank, bool success)
         {
             FinalResult r = new ScoreRules(f.Score, f.Rarity, f.Db).Calculate(new GameSession(money));

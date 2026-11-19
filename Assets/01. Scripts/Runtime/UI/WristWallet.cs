@@ -110,7 +110,7 @@ namespace CardShop.UI
                 change = MoneyText.Signed(money - shownMoney);
                 changeUntil = Time.unscaledTime + ChangeSeconds;
                 popAt = Time.unscaledTime;
-                if (hand != null) hand.SendHapticImpulse(0.35f, 0.08f);
+                if (hand != null) hand.SendHapticImpulse(0.7f, 0.18f); // 11-20 F7: 0.35 · 0.08초는 못 느낌
             }
             shownMoney = money;
             shownSession = session;

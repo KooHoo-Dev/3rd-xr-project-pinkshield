@@ -25,8 +25,6 @@ namespace CardShop.Tutorial
         [SerializeField] float replaySeconds = 5f;
         [Tooltip("엉뚱한 물건을 잡았을 때: 잠그기(기본, DEC-028) / 알려 주기")]
         [SerializeField] OutsideGrabMode outsideGrab = OutsideGrabMode.Lock;
-        [Tooltip("카운터 메모 자리 (월드)")]
-        [SerializeField] Vector3 memoPosition = new Vector3(0.45f, ShopLayout.CounterTop + 0.075f, 0.55f); // 60° 세운 판의 가운데
 
         GameContext ctx;
         GameFlow flow;
@@ -91,7 +89,7 @@ namespace CardShop.Tutorial
             locker = gameObject.AddComponent<InteractionLock>();
             locker.Denied += SayWrong;
             memo = CounterMemo.Create(transform, font);
-            memo.Place(new Pose(memoPosition, Quaternion.LookRotation(new Vector3(0f, -0.5f, 0.866f), Vector3.up))); // 읽는 면이 플레이어 쪽 위로 60° (FIX B6)
+            memo.Place(TutorialMemoAnchor.Find()); // 씬의 메모 자리 (없으면 봉투 오른쪽, 11-20 J3)
             memo.Hide();
             gift = gameObject.AddComponent<GiftPackSpawner>();
             gift.Configure(FindAnyObjectByType<ShelfController>(), thief);
