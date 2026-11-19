@@ -6,7 +6,7 @@ namespace CardShop.Tutorial
 {
     /// <summary>
     /// 언제든 다시 볼 수 있는 안내 판 두 개를 세웁니다 (튜토리얼_설계 5-1 · 5-4, 환경 단서). 튜토리얼을 꺼도 그대로 둡니다.
-    /// ① 조작 안내 판: 가게 앞 인도의 타이틀 판 옆. ② 알바 수칙 포스터: 계산대 뒤 벽.
+    /// ① 조작 안내 판: 가게 앞 인도의 타이틀 판 옆, 타이틀 · 인트로에서만 보임(11-19 A5: 영업 중에도 계속 보였음). ② 알바 수칙 포스터: 계산대 뒤 벽, 늘 보임.
     /// 씬을 다시 빌드하지 않도록 씬이 열리면 스스로 만들어집니다. 자리는 인스펙터 값으로 옮길 수 있습니다.
     /// </summary>
     public sealed class TutorialSigns : MonoBehaviour
@@ -44,6 +44,9 @@ namespace CardShop.Tutorial
             new GameObject("TutorialSigns").AddComponent<TutorialSigns>();
         }
 
+        WorldSign controlsBoard;
+        GameContext subscribed;
+
         void Start()
         {
             var revealer = FindAnyObjectByType<CardRevealer>();
@@ -53,12 +56,30 @@ namespace CardShop.Tutorial
 
             // 타이틀 판은 −Z 쪽에서 읽힘(플레이어가 −Z를 봄) → 같은 방향
             Vector3 controls = ShopLayout.TitleBoardPos + controlsOffset;
-            WorldSign.Create(transform, "ControlsBoard", font, new Pose(controls, Quaternion.Euler(0f, 180f, 0f)),
+            controlsBoard = WorldSign.Create(transform, "ControlsBoard", font, new Pose(controls, Quaternion.Euler(0f, 180f, 0f)),
                 new Vector2(0.8f, 0.42f), new Color(0.12f, 0.1f, 0.16f, 0.92f), Color.white, 0.26f, ControlsText);
 
             // 계산대 뒤 벽: 플레이어(원점)가 뒤돌아 −Z를 보며 읽음 → 앞면(-Z)이 +Z 쪽을 향하게
             WorldSign.Create(transform, "RulesPoster", font, new Pose(rulesPosition, Quaternion.Euler(0f, 180f, 0f)),
                 new Vector2(0.6f, 0.42f), paper, ink, 0.24f, RulesText(GameContext.Instance));
+
+            subscribed = GameContext.Instance;
+            if (subscribed == null) return;
+            subscribed.Events.PhaseChanged += OnPhaseChanged;
+            GameFlow flow = subscribed.GetComponent<GameFlow>();
+            ShowControls(flow == null || flow.CurrentPhase == GamePhaseId.None ? GamePhaseId.Title : flow.CurrentPhase);
+        }
+
+        void OnDestroy()
+        {
+            if (subscribed != null) subscribed.Events.PhaseChanged -= OnPhaseChanged;
+        }
+
+        void OnPhaseChanged(GamePhaseId from, GamePhaseId to) => ShowControls(to);
+
+        void ShowControls(GamePhaseId phase)
+        {
+            if (controlsBoard != null) controlsBoard.gameObject.SetActive(phase == GamePhaseId.Title || phase == GamePhaseId.Intro);
         }
     }
 }

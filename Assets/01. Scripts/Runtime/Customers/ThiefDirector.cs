@@ -49,7 +49,7 @@ namespace CardShop.Customers
 
         static readonly string[] EnterLines = { "(두리번두리번)", "아무도 안 보지…?", "흠흠, 손님입니다~" };
         static readonly string[] StealLines = { "이건 공짜죠? ㅎㅎ", "무료 팩 잘 받아 갑니다~", "오늘 운 좋네!" };
-        static readonly string[] CaughtLines = { "으악! 잘못했어요!", "아야! 안 훔쳐요, 안 훔쳐!", "빗자루는 반칙이잖아!" };
+        static readonly string[] CaughtLines = { "으악! 잘못했어요!", "아야! 안 훔쳐요, 안 훔쳐!", "대걸레는 반칙이잖아!" };
         static readonly string[] EscapeLines = { "메롱~", "잡아 보시지!", "다음에 또 올게~" };
 
         readonly FreePackState pack = new FreePackState();
@@ -167,12 +167,12 @@ namespace CardShop.Customers
         void Steal()
         {
             if (thief == null || !pack.Steal()) return;
-            holder.AttachTo(ThiefBody.Hand(thief));
+            holder.AttachTo(ThiefBody.Hand(thief), thief.transform);
 
             state = State.Taunt;
             thief.Gesture(CustomerAnim.Cheer);
             Say(StealLines);
-            context.Events.RaiseNotice("도둑이야! 오늘 무료 팩을 들고 도망가요. 카운터 오른쪽 빗자루로 한 대!");
+            context.Events.RaiseNotice("도둑이야! 오늘 무료 팩을 들고 도망가요. 카운터 오른쪽 대걸레로 한 대!");
             thief.Wait(settings.tauntSeconds, Flee);
         }
 

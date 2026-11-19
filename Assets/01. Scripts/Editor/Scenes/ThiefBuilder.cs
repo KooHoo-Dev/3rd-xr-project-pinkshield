@@ -75,7 +75,7 @@ namespace CardShop.EditorTools
             Broom broom = go.AddComponent<Broom>();
             broom.Configure(head);
 
-            CustomerFloorBuilder.Label(root, "빗자루\n(도둑 잡기)", ShopLayout.BroomPos + new Vector3(0f, 1.4f, 0f), font, 0.3f, "Thief/BroomLabel");
+            CustomerFloorBuilder.Label(root, "대걸레\n(청소 · 도둑 잡기)", ShopLayout.BroomPos + new Vector3(0f, 1.4f, 0f), font, 0.3f, "Thief/BroomLabel");
             return broom;
         }
 

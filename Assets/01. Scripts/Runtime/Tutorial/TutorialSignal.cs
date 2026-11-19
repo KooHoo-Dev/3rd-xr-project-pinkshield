@@ -48,5 +48,9 @@ namespace CardShop.Tutorial
         SalesRegistered = 64,
         InstantSold = 65,
         Slept = 66,
+
+        // 청소 다시 설계 (FIX F5 · F6, 저장된 번호가 꼬이지 않게 끝에 추가)
+        StainSpawned = 70,
+        StainCleaned = 71,
     }
 }

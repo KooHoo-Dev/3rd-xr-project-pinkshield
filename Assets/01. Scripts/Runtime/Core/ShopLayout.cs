@@ -138,19 +138,22 @@ namespace CardShop.Core
         // ---------------------------------------------------------------- 걸어 다닐 수 있는 곳 (PlayAreaGuard)
         /// <summary>가게 앞 인도에서 걸을 수 있는 끝 z (연석 · 가로등 줄 바로 앞. 그 너머는 도로라 바닥 콜라이더가 없음)</summary>
         public const float SidewalkMaxZ = FrontZ + 4.4f;
-        /// <summary>가게 앞 인도에서 걸을 수 있는 x 범위의 절반 (인도 타일은 ±27.5까지)</summary>
-        public const float SidewalkHalfX = 25f;
+        /// <summary>가게 앞 인도에서 걸을 수 있는 x 범위의 절반: 가게 폭(±4.5) + 5m (11-19 A8: 25m는 너무 멀었음. 인도 타일은 ±27.5까지)</summary>
+        public const float SidewalkHalfX = MaxX + 5f;
+        /// <summary>도둑을 쫓는 동안만 넓히는 x 범위의 절반 (도망 지점 = 문 ± 10m가 안에 들어오게)</summary>
+        public const float ChaseSidewalkHalfX = 15f;
 
         /// <summary>
         /// 점이 플레이어가 걸어 다녀도 되는 곳인가: 가게 안 · 출입구 · 가게 앞 인도 · 집 안.
         /// 도로 · 골목 · 맞은편 인도는 바닥 콜라이더가 없거나 업무와 상관없는 곳이라 막습니다.
         /// </summary>
-        public static bool InsideWalkArea(Vector3 p)
+        /// <param name="chasing">도둑을 쫓는 중이면 인도를 ChaseSidewalkHalfX까지 넓힘</param>
+        public static bool InsideWalkArea(Vector3 p, bool chasing = false)
         {
             if (InsideShop(p)) return true;
             bool door = Mathf.Abs(p.x - DoorX) < DoorHalfWidth && p.z > FrontZ - 0.5f && p.z < FrontZ + 0.5f;
             if (door) return true;
-            bool sidewalk = Mathf.Abs(p.x) < SidewalkHalfX && p.z > FrontZ + WallHalf && p.z < SidewalkMaxZ;
+            bool sidewalk = Mathf.Abs(p.x) < (chasing ? ChaseSidewalkHalfX : SidewalkHalfX) && p.z > FrontZ + WallHalf && p.z < SidewalkMaxZ;
             if (sidewalk) return true;
             Vector3 h = p - HomeOrigin;
             return h.x > HomeMinX && h.x < HomeMaxX && h.z > HomeFrontZ && h.z < HomeBackZ;

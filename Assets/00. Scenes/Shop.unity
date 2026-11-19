@@ -7262,7 +7262,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.6, y: 1.6, z: 1.6}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1197542849}
@@ -9484,7 +9484,7 @@ MonoBehaviour:
   confirmYesButton: {fileID: 829377717}
   confirmNoButton: {fileID: 1273812887}
   distance: 1
-  resumeDelay: 1
+  resumeDelay: 0.5
 --- !u!4 &532758857
 Transform:
   m_ObjectHideFlags: 0
@@ -15886,7 +15886,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.6, y: 1.6, z: 1.6}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 777785942}
@@ -16499,7 +16499,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.6, y: 1.6, z: 1.6}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 523240959}
@@ -29832,7 +29832,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.6, y: 1.6, z: 1.6}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2124216692}
@@ -43507,11 +43507,11 @@ MonoBehaviour:
     CounterScale: 1.3
     FlySeconds: 0.35
     PileThickness: 0.002
-    BoxPileThickness: 0.0008
+    BoxPileThickness: 0.002
     JitterAngle: 7
     JitterOffset: 0.004
     PileVisibleCards: 15
-    BoxPileVisible: 3
+    BoxPileVisible: 15
     ColumnCards: 50
     ColumnSpacing: 0.1
     MaxColumns: 4

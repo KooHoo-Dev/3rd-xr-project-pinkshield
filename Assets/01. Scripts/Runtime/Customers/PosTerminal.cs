@@ -24,9 +24,9 @@ namespace CardShop.Customers
             if (screen == null || basket == null) return;
             sb.Clear();
             foreach (BasketLine line in basket.Lines)
-                if (line.Scanned) sb.Append(line.Name).Append("<pos=72%>").Append(line.Price).Append('\n');
+                if (line.Scanned) sb.Append(line.Name).Append("<pos=72%>").Append(MoneyText.Format(line.Price)).Append('\n');
 
-            sb.Append("<size=120%><b>합계<pos=72%>").Append(basket.ScannedTotal).Append("</b></size>\n");
+            sb.Append("<size=120%><b>합계<pos=72%>").Append(MoneyText.Format(basket.ScannedTotal)).Append("</b></size>\n");
             if (basket.AllBagged) sb.Append("<color=#7CFC9A>결제 버튼을 눌러 주세요</color>");
             else if (basket.AllScanned) sb.Append("<color=#FFD24D>봉투에 담기 ").Append(basket.BaggedCount).Append(" / ").Append(basket.Count).Append("</color>");
             else sb.Append("<color=#FFD24D>바코드 ").Append(basket.ScannedCount).Append(" / ").Append(basket.Count).Append("</color>");

@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using CardShop.Cards;
 using CardShop.Core;
+using CardShop.Customers;
 using CardShop.Logic;
 using UnityEngine;
 
 namespace CardShop.Cleanup
 {
     /// <summary>
-    /// 영업 중 청소 구역 관리 (기획서 5-1 · 설계서 7-4, 창문 얼룩은 DEC-014로 제외: 바닥 쓰레기 · 흐트러진 팩 2종). 손님이 나갈 때마다 그날 켜진 종류(CampaignConfig.cleanupKinds) 중
-    /// 하나를 만들고, 치우면 장부에 보너스 건수를 적습니다. 영업이 끝나면 BusinessPhase가 EndDay로 남은 구역을 걷어 내고
+    /// 영업 중 청소 구역 관리 (기획서 5-1 · 설계서 7-4, 창문 얼룩은 DEC-014로 제외: 바닥 쓰레기 · 흐트러진 팩 · 바닥 얼룩(DEC-030) 3종). 손님이 나갈 때
+    /// 확률로(CleanupRules.ShouldSpawn, DEC-030) 그날 켜진 종류(CampaignConfig.cleanupKinds) 중 가중치로 하나를 만들고, 치우면 장부에 보너스 건수를 적습니다. 영업이 끝나면 BusinessPhase가 EndDay로 남은 구역을 걷어 내고
     /// 치우지 못한 수를 감점으로 적습니다. 청소 종류를 줄이려면 CampaignConfig의 cleanupKinds만 바꾸면 됩니다.
     /// </summary>
     public sealed class CleanupDirector : MonoBehaviour, ICleanupFloor
@@ -33,11 +34,27 @@ namespace CardShop.Cleanup
         [Tooltip("플레이어 시야 부채꼴 반각 (도)")]
         [SerializeField] float viewHalfAngle = 35f;
 
+        [Header("흐트러진 팩 자리 (F3: 팩 꽂이 주변 + 계산대에서 보이는 곳)")]
+        [Tooltip("진열대 앞면에서 바닥 띠까지 (가까운 쪽, 먼 쪽) 거리 (m). 가까운 쪽은 팩이 흩어지는 반경(0.4)보다 넓게 — 진열대 밑으로 안 들어가게")]
+        [SerializeField] Vector2 messyBand = new Vector2(0.45f, 1.0f);
+
+        // 계산대에 선 플레이어 눈 (XR Origin 자리 = 원점, 눈높이 1.6m)
+        static readonly Vector3 CounterEye = new Vector3(0f, 1.6f, 0f);
+        const int VisibleTries = 8;
+
+        [Header("바닥 얼룩 (F5)")]
+        [Tooltip("얼룩 지름 (최소, 최대) m")]
+        [SerializeField] Vector2 stainDiameter = new Vector2(0.45f, 0.65f);
+
         GameContext context;
-        CleanupPlacement placement;
+        CustomerDirector customers; // 얼룩 밟은 손님 확인용 (F6 ①)
+        static readonly string[] SpillLines = { "앗, 쏟았다…", "어이쿠, 미안해요!", "헉, 음료가…" };
+        Broom mop; // 대걸레 (MopStation이 빗자루를 바꾼 것). 없으면 얼룩을 만들지 않음
+        CleanupPlacement placement, messyPlacement;
         Transform viewer;
         readonly List<CleanupSpot> active = new List<CleanupSpot>();
         readonly List<Vector3> activeSpots = new List<Vector3>();
+        int spawnedToday, quietStreak; // 확률 생성용: 오늘 만든 수 · 연속으로 안 생긴 손님 수 (EndDay에서 0)
 
         public int PendingCount
         {
@@ -51,33 +68,45 @@ namespace CardShop.Cleanup
             flow.Cleanup = this;
             if (bin != null) bin.IsPaused = () => flow.IsPaused;
             if (rack != null) rack.IsPaused = () => flow.IsPaused;
-            if (context != null) context.Events.CustomerLeft += OnCustomerLeft;
+            if (context != null) context.Events.CustomerLeaving += OnCustomerLeaving;
         }
 
         void OnDisable()
         {
             if (flow != null && ReferenceEquals(flow.Cleanup, this)) flow.Cleanup = null;
-            if (context != null) context.Events.CustomerLeft -= OnCustomerLeft;
+            if (context != null) context.Events.CustomerLeaving -= OnCustomerLeaving;
         }
 
-        void OnCustomerLeft()
+        void OnCustomerLeaving(Transform customer)
         {
             if (flow.CurrentPhase != GamePhaseId.Business) return;
 
-            CleanupKinds enabledToday = context.Campaign.GetDay(context.Session.Day).cleanupKinds;
-            CleanupKinds kind = CleanupRules.Pick(enabledToday, Available(), context.Random);
+            CampaignConfig.CleanupSpawnSettings rules = context.Campaign.cleanup;
+            int day = context.Session.Day, pending = PendingCount;
+            if (!CleanupRules.ShouldSpawn(rules, day, spawnedToday, pending, quietStreak, context.Random))
+            {
+                if (pending < rules.maxActive) quietStreak++; // 꽉 차서 못 만든 건 '안 생김'으로 세지 않음
+                return;
+            }
+            CleanupKinds enabledToday = context.Campaign.GetDay(day).cleanupKinds;
+            CleanupKinds kind = CleanupRules.Pick(enabledToday, Available(), rules, context.Random);
             if (kind == CleanupKinds.None) return;
-            Vector3 around = PickSpot();
+            // 얼룩은 나가는 손님 발밑에 쏟음 (F6 ②), 흐트러진 팩은 진열대 앞 (F3), 나머지는 플레이어가 보는 쪽
+            bool spill = kind == CleanupKinds.FloorStain && customer != null && ShopLayout.InsideShop(customer.position);
+            Vector3 around = spill ? customer.position : kind == CleanupKinds.MessyPack ? PickMessySpot() : PickSpot();
 
             CleanupSpot spot = kind switch
             {
                 CleanupKinds.Trash => SpawnTrash(around),
                 CleanupKinds.MessyPack => SpawnMessyPacks(around),
+                CleanupKinds.FloorStain => SpawnStain(around, spill ? customer : null),
                 _ => null,
             };
             if (spot == null) return;
             spot.Completed += OnCompleted;
             active.Add(spot);
+            spawnedToday++;
+            quietStreak = 0;
         }
 
         // 손님 자리 대신: 플레이어가 지금 보는 쪽, 다른 청소 구역과 떨어진 바닥 (CleanupPlacement)
@@ -92,10 +121,43 @@ namespace CardShop.Cleanup
             Vector3 eye = viewer != null ? viewer.position : new Vector3(0f, 1.6f, 0f);
             Vector3 forward = viewer != null ? viewer.forward : Vector3.forward;
 
+            CollectActiveSpots();
+            return placement.Pick(context.Random, eye, forward, activeSpots);
+        }
+
+        // 흐트러진 팩: 진열대 앞 바닥 띠에서, 계산대 눈높이에서 카운터 · 팩 테이블에 가리지 않는 자리 (못 찾으면 띠 안 마지막 후보)
+        Vector3 PickMessySpot()
+        {
+            if (messyPlacement == null)
+            {
+                messyPlacement = new CleanupPlacement(MessyArea(messyBand)) { OutOfViewChance = 0f, ViewHalfAngle = 90f, MaxViewDistance = 10f };
+                foreach (Vector3 q in ShopLayout.QueuePositions)
+                    messyPlacement.Obstacles.Add(CleanupPlacement.Box(q, new Vector3(0.5f, 0f, 0.5f), 0.1f));
+            }
+            messyPlacement.MinSeparation = minSeparation;
+            CollectActiveSpots();
+            Vector3 p = default;
+            for (int i = 0; i < VisibleTries; i++)
+            {
+                p = messyPlacement.Pick(context.Random, CounterEye, ShopLayout.StandPos - CounterEye, activeSpots);
+                if (!Physics.Linecast(CounterEye, p + Vector3.up * 0.05f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) return p;
+            }
+            return p;
+        }
+
+        /// <summary>진열대 앞 바닥 띠 (x, z): 진열대 폭, 앞면에서 band.x ~ band.y 떨어진 곳</summary>
+        public static Rect MessyArea(Vector2 band)
+        {
+            float front = ShopLayout.StandPos.z - ShopLayout.StandSize.z / 2f;
+            float halfW = ShopLayout.StandSize.x / 2f;
+            return Rect.MinMaxRect(ShopLayout.StandPos.x - halfW, front - band.y, ShopLayout.StandPos.x + halfW, front - band.x);
+        }
+
+        void CollectActiveSpots()
+        {
             activeSpots.Clear();
             foreach (CleanupSpot s in active)
                 if (s != null && !s.IsDone) activeSpots.Add(s.transform.position);
-            return placement.Pick(context.Random, eye, forward, activeSpots);
         }
 
         // 손님 쪽 바닥(카운터 앞 ~ 앞벽)에서 진열대 · 손님 줄 자리를 뺀 곳
@@ -119,6 +181,8 @@ namespace CardShop.Cleanup
             CleanupKinds k = CleanupKinds.None;
             if (bin != null && trashTemplates != null && trashTemplates.Length > 0) k |= CleanupKinds.Trash;
             if (rack != null && rack.InPlaceCount > 0) k |= CleanupKinds.MessyPack;
+            if (mop == null) mop = FindAnyObjectByType<Broom>();
+            if (mop != null) k |= CleanupKinds.FloorStain;
             return k;
         }
 
@@ -150,12 +214,26 @@ namespace CardShop.Cleanup
             return spot;
         }
 
+        CleanupSpot SpawnStain(Vector3 around, Transform spiller)
+        {
+            float d = Mathf.Lerp(stainDiameter.x, stainDiameter.y, (float)context.Random.NextDouble());
+            if (customers == null) customers = FindAnyObjectByType<CustomerDirector>();
+            StainSpot stain = StainSpot.Create(transform, new Vector3(around.x, 0f, around.z), d, mop, context.Random);
+            stain.IsPaused = () => flow.IsPaused;
+            stain.Customers = customers != null ? customers.Agents : null;
+            CustomerAgent who = spiller != null ? spiller.GetComponent<CustomerAgent>() : null;
+            if (who != null && who.Bubble != null) who.Bubble.Say(SpillLines[context.Random.Range(0, SpillLines.Length)], 2.4f);
+            context.Events.RaiseNotice("바닥에 얼룩이 생겼어요. 카운터 오른쪽 대걸레로 문질러 주세요!");
+            context.Events.RaiseHappened(GameMoment.StainSpawned);
+            return stain;
+        }
+
         void OnCompleted(CleanupSpot spot)
         {
             spot.Completed -= OnCompleted;
             if (flow.CurrentPhase != GamePhaseId.Business) return;
             context.Session.Ledger.cleanupsDone++;
-            context.Events.RaiseHappened(spot is TrashSpot ? GameMoment.TrashBinned : GameMoment.MessyPackFixed);
+            context.Events.RaiseHappened(spot is TrashSpot ? GameMoment.TrashBinned : spot is StainSpot ? GameMoment.StainCleaned : GameMoment.MessyPackFixed);
             int left = PendingCount;
             context.Events.RaiseNotice(left > 0
                 ? $"청소 완료! 알바비 +{context.Economy.cleanupBonus} (남은 청소 {left}곳)"
@@ -173,6 +251,7 @@ namespace CardShop.Cleanup
                 s.Discard();
             }
             active.Clear();
+            spawnedToday = quietStreak = 0;
             if (rack != null) rack.ResetAll();
             return missed;
         }

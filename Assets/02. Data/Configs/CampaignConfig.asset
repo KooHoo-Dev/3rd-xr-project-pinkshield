@@ -13,34 +13,34 @@ MonoBehaviour:
   m_Name: CampaignConfig
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CampaignConfig
   days:
-  - businessSeconds: 90
-    customerMin: 3
+  - businessSeconds: 120
+    customerMin: 4
     customerMax: 4
     cleanupKinds: 1
-  - businessSeconds: 90
-    customerMin: 3
-    customerMax: 4
-    cleanupKinds: 5
   - businessSeconds: 135
-    customerMin: 4
-    customerMax: 5
-    cleanupKinds: 5
+    customerMin: 5
+    customerMax: 6
+    cleanupKinds: 13
   - businessSeconds: 135
-    customerMin: 4
-    customerMax: 5
-    cleanupKinds: 5
-  - businessSeconds: 150
     customerMin: 5
     customerMax: 6
-    cleanupKinds: 5
+    cleanupKinds: 13
   - businessSeconds: 150
-    customerMin: 5
-    customerMax: 6
-    cleanupKinds: 5
+    customerMin: 6
+    customerMax: 7
+    cleanupKinds: 13
   - businessSeconds: 150
-    customerMin: 5
-    customerMax: 6
-    cleanupKinds: 5
+    customerMin: 6
+    customerMax: 7
+    cleanupKinds: 13
+  - businessSeconds: 165
+    customerMin: 7
+    customerMax: 8
+    cleanupKinds: 13
+  - businessSeconds: 165
+    customerMin: 8
+    customerMax: 9
+    cleanupKinds: 13
   spawnWindowRatio: 0.7
   closingCleanupSeconds: 30
   customerPatienceSeconds: 30

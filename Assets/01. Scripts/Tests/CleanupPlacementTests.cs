@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CardShop.Core;
 using CardShop.Logic;
 using NUnit.Framework;
 using UnityEngine;
@@ -55,6 +56,17 @@ namespace CardShop.Tests
                     float d = new Vector2(spots[a].x - spots[b].x, spots[a].z - spots[b].z).magnitude;
                     Assert.GreaterOrEqual(d, p.MinSeparation - 1e-3f, $"{a}번과 {b}번이 너무 가까움 ({d:0.00}m): 한곳에 몰리면 안 됨");
                 }
+        }
+
+        [Test]
+        public void MessyArea_InFrontOfStand_PacksNeverLandUnderIt()
+        {
+            Rect a = CardShop.Cleanup.CleanupDirector.MessyArea(new Vector2(0.45f, 1.0f));
+            float standFront = ShopLayout.StandPos.z - ShopLayout.StandSize.z / 2f;
+            Assert.Less(a.yMax + 0.4f, standFront, "팩이 흩어지는 반경(0.4m)까지 더해도 진열대 앞");
+            Assert.That(a.center.x, Is.EqualTo(ShopLayout.StandPos.x).Within(0.01f), "진열대 정면");
+            foreach (Vector2 c in new[] { a.min, a.max, new Vector2(a.xMin, a.yMax), new Vector2(a.xMax, a.yMin) })
+                Assert.IsTrue(ShopLayout.InsideShop(new Vector3(c.x, 0f, c.y)), $"띠 모서리 {c}가 가게 밖");
         }
 
         [Test]

@@ -79,7 +79,8 @@ namespace CardShop.Tests
             foreach (bool left in new[] { true, false })
             {
                 Vector3 p = ThiefRules.EscapePoint(ShopLayout.DoorOutsidePos, 6.4f, 10f, left);
-                Assert.IsTrue(ShopLayout.InsideWalkArea(p), $"도망 지점 {p}이 플레이어가 갈 수 없는 곳 (쫓아갈 수 없음)");
+                Assert.IsTrue(ShopLayout.InsideWalkArea(p, chasing: true), $"도망 지점 {p}이 플레이어가 갈 수 없는 곳 (쫓아갈 수 없음)");
+                if (!left) Assert.IsFalse(ShopLayout.InsideWalkArea(p), $"평소에도 도망 지점 {p}까지 걸어갈 수 있음 (도로 끝 제한 A8이 풀림)");
                 Assert.AreEqual(10f, Mathf.Abs(p.x - ShopLayout.DoorOutsidePos.x), 1e-4f);
             }
         }

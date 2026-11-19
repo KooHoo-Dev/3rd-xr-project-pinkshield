@@ -26,6 +26,8 @@ namespace CardShop.Cards
         RackInsert = 14,     // 팩 꽂이에 꽂기
         BroomSwing = 15,
         BroomHit = 16,       // 도둑을 맞힘
+        MopScrub = 17,       // 대걸레로 얼룩 문지르기 (FIX F5, 문지르는 동안 짧게 반복)
+        StainClean = 18,     // 얼룩을 다 지움
         // 손님 · 도둑
         CustomerVoiceMale = 20,   // 말풍선 뜰 때 짧은 감탄 (오, 아하, 와우)
         CustomerVoiceFemale = 21,
@@ -40,6 +42,7 @@ namespace CardShop.Cards
         UiDeny = 32,         // "열 수 없어요" 같은 거절
         PauseOpen = 33,
         MoneyIn = 34,        // 정산 · 판매로 돈이 들어옴
+        TutorialDing = 35,   // 튜토리얼 자막이 새로 뜸 (FIX B1)
         // 집 · 하루
         HomeDoor = 40,
         LightSwitch = 41,

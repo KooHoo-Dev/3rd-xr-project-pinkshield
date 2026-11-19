@@ -47,7 +47,7 @@ namespace CardShop.Interaction
             {
                 if (fail == OpenFailReason.NotEnoughMoney)
                 {
-                    Deny($"재화가 부족해요. (팩 {ctx.Economy.packPrice}, 보유 {ctx.Session.Wallet.Money})", toastPos, hand);
+                    Deny($"돈이 부족해요. (팩 {MoneyText.Format(ctx.Economy.packPrice)}, 내 자산 {MoneyText.Format(ctx.Session.Wallet.Money)})", toastPos, hand);
                     ctx.Events.RaiseHappened(GameMoment.PackDeniedMoney);
                 }
                 else if (fail == OpenFailReason.NoFreePack)
@@ -94,7 +94,7 @@ namespace CardShop.Interaction
             if (!ctx.PackOpening.TryOpenBox(out PackResult[] results, out OpenFailReason fail))
             {
                 if (fail == OpenFailReason.NotEnoughMoney)
-                    Deny($"재화가 부족해요. (상자 {ctx.Economy.boxPrice}, 보유 {ctx.Session.Wallet.Money})", toastPos, null);
+                    Deny($"돈이 부족해요. (상자 {MoneyText.Format(ctx.Economy.boxPrice)}, 내 자산 {MoneyText.Format(ctx.Session.Wallet.Money)})", toastPos, null);
                 return;
             }
 

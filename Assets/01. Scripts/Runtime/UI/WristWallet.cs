@@ -1,8 +1,10 @@
 using CardShop.Core;
+using CardShop.Logic;
 using CardShop.Presentation;
 using TMPro;
 using Unity.XR.CoreUtils;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace CardShop.UI
 {
@@ -14,6 +16,7 @@ namespace CardShop.UI
     /// 왼손 컨트롤러 자식에 작은 TMP 글자를 붙이고, 글자 면이 머리를 향하는 정도(내적)와 거리로 보일지 정합니다.
     /// 씬을 다시 빌드하지 않아도 되게, 씬이 열리면 XR Origin의 "Left Controller"에 스스로 붙습니다.
     /// 타이틀 · 최종 결과 화면에서는 숨깁니다.
+    /// FIX B2: 이름 "내 자산", 달러 표시, 글자 0.12 → 0.2. 돈이 바뀌면 왼손이 짧게 떨리고 +$40 같은 변화가 잠깐 붙어 "손목을 봐"라는 신호가 됩니다.
     /// </summary>
     public sealed class WristWallet : MonoBehaviour
     {
@@ -31,6 +34,13 @@ namespace CardShop.UI
         GameContext context;
         float alpha;
         int shownMoney = int.MinValue;
+        GameSession shownSession;
+        string change;          // 방금 바뀐 만큼 (+$40). 잠깐만 보임
+        float changeUntil, popAt = -1f;
+        XRBaseInputInteractor hand;
+
+        const float ChangeSeconds = 2.5f;
+        const float PopSeconds = 0.25f;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
@@ -60,11 +70,12 @@ namespace CardShop.UI
             text = go.AddComponent<TextMeshPro>();
             CardRevealer revealer = FindAnyObjectByType<CardRevealer>(); // 한글 글꼴은 카드 프리팹 것을 빌림
             if (revealer != null && revealer.Font != null) text.font = revealer.Font;
-            text.fontSize = 0.12f;
+            text.fontSize = 0.2f;
             text.alignment = TextAlignmentOptions.Center;
             text.textWrappingMode = TextWrappingModes.NoWrap;
-            ((RectTransform)panel).sizeDelta = new Vector2(0.09f, 0.04f);
+            ((RectTransform)panel).sizeDelta = new Vector2(0.15f, 0.07f);
             text.alpha = 0f;
+            hand = GetComponentInChildren<XRBaseInputInteractor>();
         }
 
         void LateUpdate()
@@ -73,18 +84,37 @@ namespace CardShop.UI
             if (cam == null) cam = Camera.main;
             if (context == null) context = GameContext.Instance;
 
+            Watch();
+            float pop = popAt < 0f ? 1f : Mathf.Clamp01((Time.unscaledTime - popAt) / PopSeconds);
+            panel.localScale = Vector3.one * Mathf.Lerp(1.25f, 1f, pop); // 돈이 바뀌면 툭 커졌다 돌아옴
+
             bool want = Visible();
             alpha = Mathf.MoveTowards(alpha, want ? 1f : 0f, fadeSpeed * Time.unscaledDeltaTime);
             text.alpha = alpha;
             text.enabled = alpha > 0.001f;
-            if (!text.enabled) return;
+        }
 
-            int money = context != null && context.Session != null ? context.Session.Wallet.Money : 0;
-            if (money != shownMoney)
+        // 돈이 바뀌었나: 글자를 다시 쓰고, 같은 게임 안의 변화면 진동 + 변화량 표시 (새 게임 시작은 알리지 않음)
+        void Watch()
+        {
+            GameSession session = context != null ? context.Session : null;
+            int money = session != null ? session.Wallet.Money : 0;
+            bool expired = change != null && Time.unscaledTime >= changeUntil;
+            if (money == shownMoney && session == shownSession && !expired) return;
+
+            if (expired) change = null;
+            if (session != null && session == shownSession && money != shownMoney)
             {
-                shownMoney = money;
-                text.text = $"<mark={UiTheme.MarkStrong} padding=\"8,8,4,4\"><size=55%>보유 재화</size>\n<b>{money:N0}</b></mark>";
+                change = MoneyText.Signed(money - shownMoney);
+                changeUntil = Time.unscaledTime + ChangeSeconds;
+                popAt = Time.unscaledTime;
+                if (hand != null) hand.SendHapticImpulse(0.35f, 0.08f);
             }
+            shownMoney = money;
+            shownSession = session;
+
+            string line = change == null ? "" : $"\n<size=60%><color={(change[0] == '+' ? "#7CF29A" : "#FF8C8C")}>{change}</color></size>";
+            text.text = $"<mark={UiTheme.MarkStrong} padding=\"8,8,4,4\"><size=80%>내 자산</size>\n<b>{MoneyText.Format(money)}</b>{line}</mark>";
         }
 
         // 손목 안쪽(글자 면)이 머리를 향하고, 손이 얼굴 가까이 있을 때

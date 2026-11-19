@@ -95,7 +95,7 @@ namespace CardShop.Customers
                 Say = Say,
                 Chance = Chance,
                 LeavePath = LeavePath,
-                Left = a => { context.Events.RaiseCustomerLeft(); Remove(a); },
+                Left = Remove,
                 ReactionSeconds = () => reactionSeconds,
                 AngrySeconds = () => angrySeconds,
             });

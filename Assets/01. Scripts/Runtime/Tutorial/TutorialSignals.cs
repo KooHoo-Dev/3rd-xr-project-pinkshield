@@ -16,6 +16,8 @@ namespace CardShop.Tutorial
             GameMoment.TrashBinned => TutorialSignal.TrashBinned,
             GameMoment.MessyPackSpawned => TutorialSignal.MessyPackSpawned,
             GameMoment.MessyPackFixed => TutorialSignal.MessyPackFixed,
+            GameMoment.StainSpawned => TutorialSignal.StainSpawned,
+            GameMoment.StainCleaned => TutorialSignal.StainCleaned,
             GameMoment.BusinessClosing => TutorialSignal.BusinessClosing,
             GameMoment.ThiefAppeared => TutorialSignal.ThiefAppeared,
             GameMoment.ThiefCaught => TutorialSignal.ThiefCaught,

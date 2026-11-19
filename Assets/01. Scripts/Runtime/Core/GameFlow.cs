@@ -24,6 +24,8 @@ namespace CardShop.Core
     {
         /// <param name="switchPhase">화면이 완전히 가려진 뒤 호출해야 하는 실제 페이즈 전환</param>
         IEnumerator Play(Action switchPhase);
+        /// <summary>전환 뒤 혼잣말(퇴근 · 아침)이 아직 떠 있음. 튜토리얼은 이게 끝날 때까지 기다림 (11-19 A3: 말풍선 겹침)</summary>
+        bool IsSpeaking { get; }
     }
 
     /// <summary>영업 중 매장의 손님들. 구현은 Customers의 CustomerDirector. 없으면 손님 없이 타이머만 돕니다.</summary>

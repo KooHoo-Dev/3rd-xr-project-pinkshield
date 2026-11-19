@@ -14,6 +14,9 @@ namespace CardShop.Tutorial
 
         static Sprite whiteSprite;
 
+        /// <summary>판 글자 (내용을 바꾸는 판에서 씀: 가게 전광판)</summary>
+        public TextMeshPro Text { get; private set; }
+
         /// <param name="size">판 크기 (m)</param>
         /// <param name="fontSize">TMP 3D 글자 크기 (메모 0.11, 말풍선 0.28 기준)</param>
         public static WorldSign Create(Transform parent, string name, TMP_FontAsset font, Pose pose, Vector2 size,
@@ -45,6 +48,7 @@ namespace CardShop.Tutorial
             float margin = Mathf.Min(size.x, size.y) * 0.08f;
             ((RectTransform)textGo.transform).sizeDelta = size - new Vector2(margin * 2f, margin * 2f);
             text.GetComponent<MeshRenderer>().sortingOrder = 1;
+            sign.Text = text;
             return sign;
         }
 

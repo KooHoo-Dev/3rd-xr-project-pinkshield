@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace CardShop.Presentation
 {
     /// <summary>
-    /// 바인더 속성 탭 버튼 줄: 누르면 탭 바꾸기 알림, 고른 탭은 노란 굵은 글씨 + 밑줄, 오늘 인기 속성 탭에는 ★.
+    /// 바인더 속성 탭 버튼 줄: 누르면 탭 바꾸기 알림, 고른 탭은 노란 굵은 글씨 + 밑줄, 인기 속성 탭에는 ★ (가게 = 오늘, 집 = 내일 — BinderView가 정함).
     /// BinderView에서 떼어 냄 (큰_클래스_나누기_제안 3장). 버튼 순서는 BinderTabs.Order.
     /// </summary>
     public sealed class BinderTabBar

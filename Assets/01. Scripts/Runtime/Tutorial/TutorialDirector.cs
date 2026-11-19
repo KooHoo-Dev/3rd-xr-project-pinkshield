@@ -75,6 +75,7 @@ namespace CardShop.Tutorial
             progress = new TutorialProgress(sequence != null ? sequence.steps : TutorialDefaults.Steps());
             memos = sequence != null ? sequence.memoByDay : TutorialDefaults.Memos();
             progress.Started += OnStarted;
+            progress.Ended += s => view.Complete(s); // OnEndedOrCanceled의 Hide보다 먼저 (✓를 잠깐 보여 줌)
             progress.Ended += OnEndedOrCanceled;
             progress.Canceled += OnEndedOrCanceled;
 
@@ -120,8 +121,8 @@ namespace CardShop.Tutorial
 
         void FillValues()
         {
-            values["packPrice"] = ctx.Economy.packPrice.ToString();
-            values["boxPrice"] = ctx.Economy.boxPrice.ToString();
+            values["packPrice"] = MoneyText.Format(ctx.Economy.packPrice);
+            values["boxPrice"] = MoneyText.Format(ctx.Economy.boxPrice);
             values["cleanupBonus"] = ctx.Economy.cleanupBonus.ToString();
             values["cleanupPenalty"] = ctx.Economy.cleanupPenalty.ToString();
             values["closingCleanupSeconds"] = ctx.Campaign.closingCleanupSeconds.ToString("0");
@@ -189,7 +190,7 @@ namespace CardShop.Tutorial
 
         void Update()
         {
-            bool waiting = flow.IsTransitioning || flow.IsPaused;
+            bool waiting = flow.IsTransitioning || flow.IsPaused || (flow.Transition != null && flow.Transition.IsSpeaking); // 퇴근 · 아침 혼잣말과 겹치지 않게 (A3)
             if (!waiting && enteredPending)
             {
                 enteredPending = false;
@@ -243,7 +244,7 @@ namespace CardShop.Tutorial
             if (s == null || hintShown || s.kind == TutorialStepKind.Say || string.IsNullOrEmpty(s.idleHint)) return;
             if (!idle.IsIdle(idleHintSeconds)) return;
             hintShown = true;
-            view.ChangeText(Format(s.line) + "\n<size=80%><color=#9FE0FF>" + s.idleHint + "</color></size>");
+            view.Nudge(); // 손 힌트는 자막의 할 일 줄에 이미 있음 (FIX B1)
         }
 
         // ------------------------------------------------------------------ 단계 보여 주기
@@ -279,7 +280,7 @@ namespace CardShop.Tutorial
             flow.IsHeld = false;
             locker.Unlock();
             replayUntil = -1f;
-            view.Hide();
+            view.Hide(now: true);
             memo.Hide();
             if (counter != null) counter.ForceNextItemCount = 0;
         }

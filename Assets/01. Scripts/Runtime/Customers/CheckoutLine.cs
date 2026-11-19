@@ -158,6 +158,7 @@ namespace CardShop.Customers
         void Leave(CustomerAgent agent, bool wave)
         {
             int index = queue.Leave(agent);
+            hooks.Context()?.Events.RaiseCustomerLeaving(agent.transform);
             if (wave) agent.Gesture(CustomerAnim.Wave);
             agent.WalkPath(hooks.LeavePath(agent, index), null, () => hooks.Left(agent));
         }

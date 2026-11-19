@@ -110,7 +110,7 @@ namespace CardShop.UI
             if (card == null || Context == null) return;
 
             bool sold = Context.Sales.TrySellInstantly(Context.Session, card.id, out int price);
-            message = sold ? $"{card.displayName} 판매  +{price}" : "보유한 카드가 없어요";
+            message = sold ? $"{card.displayName} 판매  {MoneyText.Signed(price)}" : "보유한 카드가 없어요";
             if (sold) { Sfx.Play(SoundId.MoneyIn, transform.position); Context.Events.RaiseHappened(GameMoment.InstantSold); }
             Refresh();
         }
@@ -138,7 +138,7 @@ namespace CardShop.UI
                 if (count == 0) message = $"{what} 카드가 없어요";
                 else
                 {
-                    message = $"{what} {count}장  +{quote}\n한 번 더 누르면 모두 팔아요";
+                    message = $"{what} {count}장  {MoneyText.Signed(quote)}\n한 번 더 누르면 모두 팔아요";
                     sellAllArmedUntil = Time.unscaledTime + ConfirmSeconds;
                 }
             }
@@ -146,7 +146,7 @@ namespace CardShop.UI
             {
                 sellAllArmedUntil = -1f;
                 int sold = Context.Sales.SellAllUpTo(s, SellAllMax, out int total);
-                message = sold > 0 ? $"{what} {sold}장 판매  +{total}" : $"{what} 카드가 없어요";
+                message = sold > 0 ? $"{what} {sold}장 판매  {MoneyText.Signed(total)}" : $"{what} 카드가 없어요";
                 if (sold > 0) Sfx.Play(SoundId.MoneyIn, transform.position);
             }
             Refresh();
@@ -191,7 +191,7 @@ namespace CardShop.UI
                     : $"판매 등록 불가 ({RarityName(Context.Economy.minDisplayRarity)} 이상만)";
                 selectedLabel.text =
                     $"{card.displayName}  ({RarityName(card.rarity)})\n" +
-                    $"보유 {count}장\n{display}\n즉시 판매가  {Context.Sales.InstantPrice(card)}";
+                    $"보유 {count}장\n{display}\n즉시 판매가  {MoneyText.Format(Context.Sales.InstantPrice(card))}";
             }
             displayButton.interactable = card != null;
             sellButton.interactable = card != null;
@@ -201,7 +201,7 @@ namespace CardShop.UI
                 sellAllButton.GetComponentInChildren<TMP_Text>().text = armed ? "한 번 더 눌러 판매" : $"{RarityName(SellAllMax)} 이하 모두 팔기";
             }
 
-            statusLabel.text = $"판매 등록 칸 {session.SalesDisplay.Count} / {Context.Economy.salesDisplaySlots}   ·   보유 재화 {session.Wallet.Money}";
+            statusLabel.text = $"판매 등록 칸 {session.SalesDisplay.Count} / {Context.Economy.salesDisplaySlots}   ·   내 자산 {MoneyText.Format(session.Wallet.Money)}";
             messageLabel.text = message;
 
             for (int i = 0; i < displayedButtons.Length; i++)

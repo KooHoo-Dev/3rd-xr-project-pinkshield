@@ -87,13 +87,19 @@ namespace CardShop.Tutorial
                 key = "messy-1", phase = GamePhaseId.Business, startOn = TutorialSignal.MessyPackSpawned, doneOn = TutorialSignal.MessyPackFixed,
                 seconds = 4f, timeout = 25f, line = "팩이 떨어졌어! 진열대\n빈 칸에 다시 꽂아.", targets = new[] { MessyPack, PackRack },
             },
+            // 바닥 얼룩 (FIX F5 · F6 ④): 처음 생길 때 대걸레를 가리킴. 정지는 C1(DEC-028)에서
+            new TutorialStep
+            {
+                key = "stain-1", phase = GamePhaseId.Business, startOn = TutorialSignal.StainSpawned, doneOn = TutorialSignal.StainCleaned,
+                seconds = 5f, timeout = 25f, line = "음료를 쏟았네! 오른쪽 대걸레로\n얼룩 위를 쓱쓱 문질러.", targets = new[] { Broom },
+            },
 
             // 3일차부터: 정지 2 — 첫 도둑
             new TutorialStep
             {
                 key = "thief-hold", phase = GamePhaseId.Business, startOn = TutorialSignal.ThiefAppeared, doneOn = TutorialSignal.BroomGrabbed,
-                kind = TutorialStepKind.Hold, seconds = 2f, timeout = SafetySeconds, line = "저 복면, 도둑이야!\n빗자루를 잡고 한 대 쳐!",
-                idleHint = "카운터 옆 빗자루를 그립으로 잡아!", targets = new[] { Thief, Broom },
+                kind = TutorialStepKind.Hold, seconds = 2f, timeout = SafetySeconds, line = "저 복면, 도둑이야!\n대걸레를 잡고 한 대 쳐!",
+                idleHint = "카운터 옆 대걸레를 그립으로 잡아!", targets = new[] { Thief, Broom },
             },
             Say("thief-caught", GamePhaseId.Business, "역시 우리 알바!", 3f, startOn: TutorialSignal.ThiefCaught),
             Say("thief-escaped", GamePhaseId.Business, "오늘 무료 팩은 날아갔네…\n다음엔 꼭 잡자!", 4f, startOn: TutorialSignal.ThiefEscaped),
@@ -140,7 +146,7 @@ namespace CardShop.Tutorial
         {
             "첫날 환영해!\n알바 수칙은 뒤쪽 벽에\n붙여 놨어. — 사장",
             "손님들이 팩 꽂이를 흐트러뜨려.\n떨어진 팩은 빈 칸에 꽂아 줘.\n— 사장",
-            "요즘 복면 쓴 녀석이\n무료 팩을 노린대.\n빗자루는 카운터 옆! — 사장",
+            "요즘 복면 쓴 녀석이\n무료 팩을 노린대.\n대걸레는 카운터 옆! — 사장",
             "",
             "주말이라 손님이 많을 거야.\n계산은 빠르게! — 사장",
             "",

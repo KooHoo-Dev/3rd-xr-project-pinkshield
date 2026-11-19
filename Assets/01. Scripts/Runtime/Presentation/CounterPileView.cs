@@ -28,16 +28,16 @@ namespace CardShop.Presentation
             public float FlySeconds = 0.35f;
             [Tooltip("단일 팩: 카드 한 장이 쌓일 때마다 높아지는 정도 (m). 카드 두께 1.2mm × 크기 배율보다 살짝 크게")]
             public float PileThickness = 0.002f;
-            [Tooltip("상자: 카드 한 장당 높이 (m). 50장이 쌓이므로 단일 팩보다 얇게")]
-            public float BoxPileThickness = 0.0008f;
+            [Tooltip("상자: 카드 한 장당 높이 (m). 카드 두께 × 크기 배율(1.56mm)보다 얇으면 카드끼리 겹쳐 깜빡임 (11-19 A2)")]
+            public float BoxPileThickness = 0.002f;
             [Tooltip("장마다 비뚤어지는 최대 각도 (도)")]
             public float JitterAngle = 7f;
             [Tooltip("장마다 어긋나는 최대 거리 (m)")]
             public float JitterOffset = 0.004f;
             [Tooltip("단일 팩: 실제 카드 오브젝트로 두는 수 (최근 것부터). 더 오래된 카드는 옆면 덩어리 하나로 줄여 성능을 아낌")]
             [Min(5)] public int PileVisibleCards = 15;
-            [Tooltip("상자: 위쪽에 실제 카드로 남겨 두는 수. 그 아래는 덩어리로 표시")]
-            [Min(1)] public int BoxPileVisible = 3;
+            [Tooltip("상자: 위쪽에 실제 카드로 남겨 두는 수. 그 아래는 덩어리로 표시. 3장이면 덩어리로 바뀌는 게 '사라짐'으로 보여 단일 팩과 같게 (11-19 A2)")]
+            [Min(1)] public int BoxPileVisible = 15;
             [Header("더미 여러 개 (11-19 피드백: 가득 차면 옆에 새 더미)")]
             [Tooltip("한 더미에 쌓는 카드 수. 이만큼 차면 다음 팩부터 옆에 새 더미 (상자 50장은 더미 하나)")]
             [Min(10)] public int ColumnCards = 50;

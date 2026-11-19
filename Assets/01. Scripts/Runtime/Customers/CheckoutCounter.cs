@@ -119,7 +119,7 @@ namespace CardShop.Customers
             if (Paused || basket == null || !basket.MarkScanned(index)) return;
             BasketLine line = basket.Lines[index];
             ScannableItem item = spawned[index];
-            if (item != null) item.ShowLabel($"{line.Name}\n{line.Price}");
+            if (item != null) item.ShowLabel($"{line.Name}\n{MoneyText.Format(line.Price)}");
             if (bag == null) basket.MarkBagged(index); // 봉투가 없는 씬: 찍으면 끝
             if (pos != null) pos.Show(basket);
             Context.Events.RaiseHappened(GameMoment.ItemScanned);

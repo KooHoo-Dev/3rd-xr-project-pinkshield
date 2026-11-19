@@ -9,11 +9,12 @@ using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
 namespace CardShop.Interaction
 {
     /// <summary>
-    /// 플레이어 이동 규칙 두 가지 (11-19 플레이 피드백 J).
+    /// 플레이어 이동 규칙 세 가지 (11-19 플레이 피드백 J).
     /// ① 오른쪽 스틱을 아래로 당기면 180도 뒤로 도는 기능(XRI turn around)을 끕니다 — 갑자기 돌아 어지러움.
     /// ② 일시정지 중에는 이동 · 회전 · 텔레포트를 막습니다 — 메뉴를 연 채 움직여 생기는 버그를 원천 봉쇄.
     ///    잡기 · UI 레이는 그대로입니다(메뉴 버튼을 눌러야 하고, 들고 있던 물건이 떨어지면 안 되므로).
     ///    찍기 · 담기 · 청소 같은 게임 처리는 각 클래스가 이미 일시정지 중에 받지 않습니다.
+    /// ③ 부드러운 회전 속도 60 → 90도/초 (11-19 A7: 너무 느림). 씬 값을 고치지 않고 여기서 덮어씁니다.
     ///
     /// 씬을 다시 빌드하지 않아도 되게, 씬이 열리면 XR Origin에 스스로 붙습니다.
     /// PlayAreaGuard(경계에서 2초 잠금)와 같은 이동 제공자를 켜고 끄므로, 일시정지 중에는 매 프레임 꺼진 상태를 유지합니다.
@@ -32,10 +33,13 @@ namespace CardShop.Interaction
             if (rig != null && rig.GetComponent<PlayerMoveRules>() == null) rig.gameObject.AddComponent<PlayerMoveRules>();
         }
 
+        const float ContinuousTurnSpeed = 90f; // 도/초
+
         void Awake()
         {
             origin = GetComponent<XROrigin>();
             DisableTurnAround();
+            foreach (ContinuousTurnProvider p in GetComponentsInChildren<ContinuousTurnProvider>(true)) p.turnSpeed = ContinuousTurnSpeed;
         }
 
         void OnEnable() => Subscribe();

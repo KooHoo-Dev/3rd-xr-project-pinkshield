@@ -34,6 +34,15 @@ namespace CardShop.Tests
         }
 
         [Test]
+        public void MoneyText_DollarsWithSignAndThousands()
+        {
+            Assert.AreEqual("$1,250", MoneyText.Format(1250));
+            Assert.AreEqual("+$40", MoneyText.Signed(40));
+            Assert.AreEqual("−$3", MoneyText.Signed(-3));
+            Assert.AreEqual("$0", MoneyText.Signed(0));
+        }
+
+        [Test]
         public void Settlement_ListsEveryLineAndTotal()
         {
             var rules = new EconomyRules(economy, rarity);
@@ -42,15 +51,15 @@ namespace CardShop.Tests
             string s = ResultTexts.Settlement(l, rules, 123, 456);
 
             StringAssert.Contains("기본급", s);
-            StringAssert.Contains("+30", s);
+            StringAssert.Contains("+$30", s);
             StringAssert.Contains("못 치움 1곳", s);
-            StringAssert.Contains(ResultTexts.Signed(rules.CleanupTotal(l)), s);
+            StringAssert.Contains(MoneyText.Signed(rules.CleanupTotal(l)), s);
             StringAssert.Contains("떠난 손님 1명", s);
             StringAssert.Contains("판매 1장", s);
-            StringAssert.Contains("+45", s);
+            StringAssert.Contains("+$45", s);
             StringAssert.Contains("도둑 1명", s);
-            StringAssert.Contains("+123", s);
-            StringAssert.Contains("456", s);
+            StringAssert.Contains("+$123", s);
+            StringAssert.Contains("$456", s);
         }
 
         [Test]

@@ -5,13 +5,14 @@ using UnityEngine;
 namespace CardShop.Tutorial
 {
     /// <summary>
-    /// 튜토리얼 한 단계를 "보여 주는" 쪽 묶음: 말풍선(BossBubble) · 대상 하이라이트(TargetHighlighter) · 시야 밖 화살표(OffscreenArrow).
+    /// 튜토리얼 한 단계를 "보여 주는" 쪽 묶음: 자막 판(TutorialCaption, FIX B1) · 대상 하이라이트(TargetHighlighter) · 시야 밖 화살표(OffscreenArrow).
+    /// 할 일 줄은 행동을 기다리는 단계(기다림 · 정지)의 idleHint를 씁니다.
     /// 진행(언제 무엇을)은 TutorialDirector가 정하고, 이 클래스는 받은 단계의 대상 키를 찾아 그리기만 합니다.
     /// 시야 밖 화살표는 행동을 기다리는 단계(기다림 · 정지)에만 씁니다 (튜토리얼_설계 7장).
     /// </summary>
     public sealed class TutorialView : MonoBehaviour
     {
-        BossBubble bubble;
+        TutorialCaption caption;
         TargetHighlighter highlighter;
         OffscreenArrow arrow;
         readonly List<HighlightTarget> targets = new List<HighlightTarget>();
@@ -21,8 +22,7 @@ namespace CardShop.Tutorial
 
         public void Configure(TMP_FontAsset font)
         {
-            bubble = Child<BossBubble>("BossBubble");
-            bubble.Configure(font);
+            caption = TutorialCaption.Create(transform, font);
             highlighter = Child<TargetHighlighter>("TargetHighlighter");
             arrow = Child<OffscreenArrow>("OffscreenArrow");
         }
@@ -39,8 +39,8 @@ namespace CardShop.Tutorial
         {
             step = s;
             Retarget();
-            bubble.Show(s.speaker, text, targets.Count > 0 ? (System.Func<Bounds?>)TargetBounds : null);
             bool wantsAction = s.kind != TutorialStepKind.Say;
+            caption.Show(s.speaker, text, wantsAction ? s.idleHint : null);
             arrow.SetTarget(wantsAction && targets.Count > 0 ? (System.Func<Vector3?>)TargetCenter : null);
         }
 
@@ -48,7 +48,7 @@ namespace CardShop.Tutorial
         public void ChangeText(string text)
         {
             if (step == null) return;
-            bubble.Show(step.speaker, text, targets.Count > 0 ? (System.Func<Bounds?>)TargetBounds : null);
+            caption.SetBody(text);
         }
 
         /// <summary>대상 키로 하이라이트 대상을 다시 찾습니다 (새로 생긴 쓰레기 · 도둑 등)</summary>
@@ -62,11 +62,12 @@ namespace CardShop.Tutorial
             else highlighter.Hide();
         }
 
-        public void Hide()
+        /// <param name="now">✓를 보여 주는 중이어도 바로 숨김 (안내 건너뛰기)</param>
+        public void Hide(bool now = false)
         {
             step = null;
             targets.Clear();
-            if (bubble != null) bubble.Hide();
+            if (caption != null) caption.Hide(now);
             if (highlighter != null) highlighter.Hide();
             if (arrow != null) arrow.SetTarget(null);
         }
@@ -74,8 +75,14 @@ namespace CardShop.Tutorial
         /// <summary>엉뚱한 물건을 잡았을 때: 대상을 한 번 크게 깜빡임</summary>
         public void Flash() => highlighter?.Flash();
 
-        /// <summary>헤드셋을 다시 썼을 때 등: 대상 없는 말풍선을 다시 눈앞으로</summary>
-        public void Reposition() => bubble?.Reposition();
+        /// <summary>헤드셋을 다시 썼을 때 등: 자막을 다시 눈앞으로</summary>
+        public void Reposition() => caption?.Reposition();
+
+        /// <summary>단계를 마침: 할 일 줄에 ✓ (말만 하는 단계는 그대로)</summary>
+        public void Complete(TutorialStep s) { if (s.kind != TutorialStepKind.Say) caption?.Complete(); }
+
+        /// <summary>가만히 있을 때 자막을 다시 툭 (할 일 줄은 이미 보임)</summary>
+        public void Nudge() => caption?.Nudge();
 
         /// <summary>지금 단계의 대상 Transform들을 into에 담습니다 (먼저 비움). 잠그기에서 남길 물건.</summary>
         public void CollectTargets(List<Transform> into)
@@ -91,19 +98,6 @@ namespace CardShop.Tutorial
             foreach (HighlightTarget t in targets)
                 if (t != null && TutorialGrabWatcher.Related(held, t.transform)) return true;
             return false;
-        }
-
-        Bounds? TargetBounds()
-        {
-            bool any = false;
-            Bounds all = default;
-            foreach (HighlightTarget t in targets)
-            {
-                if (t == null || !t.TryGetBounds(out Bounds b)) continue;
-                if (!any) { all = b; any = true; }
-                else all.Encapsulate(b);
-            }
-            return any ? all : (Bounds?)null;
         }
 
         Vector3? TargetCenter()

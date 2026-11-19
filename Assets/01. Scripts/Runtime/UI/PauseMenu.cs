@@ -39,7 +39,7 @@ namespace CardShop.UI
         [Tooltip("플레이어 앞 거리 (m)")]
         [SerializeField] float distance = 1.0f;
         [Tooltip("[이어서 하기]를 누른 뒤 메뉴가 닫히고 게임이 다시 흐르기까지 (초). 11-19 피드백: 3초 카운트다운 → 숫자 없이 1초")]
-        [SerializeField] float resumeDelay = 1f;
+        [SerializeField] float resumeDelay = 0.5f;
 
         /// <summary>메뉴 화면 전체 (튜토리얼 버튼을 덧붙일 때 크기를 늘림)</summary>
         public RectTransform Root => root != null ? (RectTransform)root.transform : null;

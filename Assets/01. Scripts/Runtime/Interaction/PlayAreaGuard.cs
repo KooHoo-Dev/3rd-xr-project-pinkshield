@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using CardShop.Core;
+using CardShop.Customers;
 using CardShop.Presentation;
 using TMPro;
 using Unity.XR.CoreUtils;
@@ -17,6 +18,7 @@ namespace CardShop.Interaction
     ///
     /// 실제로 걸어서(룸스케일) 나가는 경우도 머리 위치로 판정하므로 똑같이 막힙니다.
     /// 잡기 · 버튼 입력은 끄지 않습니다: 들고 있던 물건이 떨어지면 안 되기 때문입니다.
+    /// 도둑이 나와 있는 동안은 인도를 넓혀 도망 지점까지 쫓아갈 수 있게 합니다 (11-19 A8).
     /// </summary>
     public sealed class PlayAreaGuard : MonoBehaviour
     {
@@ -33,6 +35,10 @@ namespace CardShop.Interaction
         bool hasSafe;
         Coroutine lockRoutine;
         readonly List<LocomotionProvider> disabled = new List<LocomotionProvider>();
+        ThiefDirector thieves;
+
+        // 도둑이 나와 있거나, 도둑이 사라졌어도 아직 넓힌 구역에 서 있으면(제자리로 계속 밀어내는 것 방지) 넓은 인도
+        bool Chasing => (thieves != null && thieves.ActiveThief != null) || (hasSafe && !ShopLayout.InsideWalkArea(lastSafeHead));
 
         public void Configure(XROrigin xrOrigin, TMP_FontAsset fontAsset)
         {
@@ -44,6 +50,7 @@ namespace CardShop.Interaction
         {
             toast = WorldToast.Create(transform, font);
             toast.transform.localScale = Vector3.one * 2f; // 1m 거리에서 읽히도록 크게 (퇴근 혼잣말과 같게, 11-19 피드백)
+            thieves = FindAnyObjectByType<ThiefDirector>();
         }
 
         void LateUpdate()
@@ -51,7 +58,7 @@ namespace CardShop.Interaction
             if (origin == null || origin.Camera == null) return;
             Vector3 head = origin.Camera.transform.position;
 
-            if (ShopLayout.InsideWalkArea(head) && origin.transform.position.y > fallLimitY)
+            if (ShopLayout.InsideWalkArea(head, Chasing) && origin.transform.position.y > fallLimitY)
             {
                 lastSafeHead = head;
                 hasSafe = true;

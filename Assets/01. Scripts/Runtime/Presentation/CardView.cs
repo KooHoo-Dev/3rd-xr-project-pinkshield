@@ -112,7 +112,7 @@ namespace CardShop.Cards
             SetText(nameText, data != null ? data.displayName : "", textColor);
             SetText(rarityText, s.label, s.fullArt ? s.accentColor : DarkText);
             SetText(descriptionText, data != null ? data.description : "", textColor);
-            SetText(priceText, data != null ? $"가치 {data.basePrice}" : "", textColor);
+            SetText(priceText, data != null ? $"가치 {CardShop.Logic.MoneyText.Format(data.basePrice)}" : "", textColor);
         }
 
         static void SetText(TMP_Text text, string value, Color color)

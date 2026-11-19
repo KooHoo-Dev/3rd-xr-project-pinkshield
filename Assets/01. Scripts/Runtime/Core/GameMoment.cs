@@ -17,6 +17,8 @@ namespace CardShop.Core
         TrashBinned,
         MessyPackSpawned,
         MessyPackFixed,
+        StainSpawned,   // 바닥 얼룩 (FIX F5)
+        StainCleaned,
         // 영업 · 도둑
         BusinessClosing,
         ThiefAppeared,

@@ -72,6 +72,7 @@ namespace CardShop.Presentation
         PileInfoPopup pileInfo;
         PackResultPanel resultPanel;
         BoxOpenEffect boxEffect;
+        BoxPackCounter packCounter; // 상자 넘기는 동안 "3 / 10 팩" (FIX B4)
         GameContext context;
         Coroutine packRoutine;
         Coroutine warmRoutine;
@@ -232,6 +233,7 @@ namespace CardShop.Presentation
             {
                 RevealItem item = queue[qi];
                 PackResult p = packs[item.Pack];
+                if (isBox) PackCounter.Show(item.Pack + 1, packs.Count, stack);
                 if (CardStack.IsEmpty) CardStack.Fill(packs, queue, qi, popIn: skipped);
 
                 bool godPack = RevealQueue.IsGodPack(p);
@@ -258,6 +260,7 @@ namespace CardShop.Presentation
                 else CardStack.Fill(packs, queue, qi, popIn: false);
             }
             TriggerInput.HideGauge();
+            if (packCounter != null) packCounter.Hide();
 
             // ③ 결과
             if (isBox)
@@ -350,6 +353,7 @@ namespace CardShop.Presentation
             tearingPack = null;
             if (boxBoard != null) boxBoard.Hide();
             if (boxEffect != null) boxEffect.Stop();
+            if (packCounter != null) packCounter.Hide();
             Fx.Stop();
             RecycleRevealArea(keepPile);
             if (keepPile) Pool.RecycleAll(Pile.Contains);
@@ -398,6 +402,7 @@ namespace CardShop.Presentation
         PileInfoPopup PileInfo => pileInfo ??= new PileInfoPopup(this, anchor, Pile, () => Font, () => Styles, pileInfoSettings);
 
         PackResultPanel EnsureResultPanel() => resultPanel != null ? resultPanel : resultPanel = PackResultPanel.Create(transform, Font);
+        BoxPackCounter PackCounter => packCounter != null ? packCounter : packCounter = BoxPackCounter.Create(transform, Font);
         BoxOpenEffect EnsureBoxEffect() => boxEffect != null ? boxEffect : boxEffect = BoxOpenEffect.Create(transform, 10);
 
         CardRevealView Create()

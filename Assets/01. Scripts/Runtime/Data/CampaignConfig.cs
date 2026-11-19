@@ -11,7 +11,8 @@ namespace CardShop.Cards
         Trash = 1,     // 바닥 쓰레기
         // 2 = 창문 얼룩: 업무가 많아져 제외 (DEC-014). 저장된 값이 꼬이지 않게 번호는 비워 둠
         MessyPack = 4, // 흐트러진 팩
-        All = Trash | MessyPack,
+        FloorStain = 8, // 바닥 얼룩 · 대걸레 (DEC-030, F5에서 만들 때까지는 CleanupDirector가 '만들 수 없음'으로 빼 둠)
+        All = Trash | MessyPack | FloorStain,
     }
 
     /// <summary>
@@ -31,14 +32,14 @@ namespace CardShop.Cards
 
         public List<DayEntry> days = new List<DayEntry>
         {
-            new DayEntry { customerMin = 3, customerMax = 4 },
-            new DayEntry { customerMin = 3, customerMax = 4 },
-            // 손님 물결(P1)로 한산한 시간이 생기는 만큼 영업 시간을 늘림: 4~5명 135초, 5~6명 150초
-            new DayEntry { businessSeconds = 135f, customerMin = 4, customerMax = 5 },
-            new DayEntry { businessSeconds = 135f, customerMin = 4, customerMax = 5 },
-            new DayEntry { businessSeconds = 150f, customerMin = 5, customerMax = 6 },
-            new DayEntry { businessSeconds = 150f, customerMin = 5, customerMax = 6 },
-            new DayEntry { businessSeconds = 150f, customerMin = 5, customerMax = 6 },
+            // 11-19 A9: 손님이 적게 느껴짐 → 영업 시간 · 손님 수 상향 (물결 크기 2~3은 그대로, 물결 수가 늘어남)
+            new DayEntry { businessSeconds = 120f, customerMin = 4, customerMax = 4 },
+            new DayEntry { businessSeconds = 135f, customerMin = 5, customerMax = 6 },
+            new DayEntry { businessSeconds = 135f, customerMin = 5, customerMax = 6 },
+            new DayEntry { businessSeconds = 150f, customerMin = 6, customerMax = 7 },
+            new DayEntry { businessSeconds = 150f, customerMin = 6, customerMax = 7 },
+            new DayEntry { businessSeconds = 165f, customerMin = 7, customerMax = 8 },
+            new DayEntry { businessSeconds = 165f, customerMin = 8, customerMax = 9 },
         };
 
         [Header("영업 규칙 (설계서 Q1, Q2)")]
@@ -60,10 +61,39 @@ namespace CardShop.Cards
             [Tooltip("같은 물결 안 손님 사이 간격(초)")]
             public Vector2 inWaveGapSeconds = new Vector2(3f, 6f);
             [Tooltip("손님 한 명 계산에 걸린다고 보는 시간(초). 다음 물결은 (이 값 × 인원) + 한산한 시간 뒤에 옴")]
-            public float secondsPerCustomer = 15f;
+            public float secondsPerCustomer = 10f; // 11-19 A9: 15 → 10 (손님이 늘어도 영업 시간 안에 물결이 다 나오게)
             [Tooltip("물결 사이 한산한 시간(초): 청소 · 도둑에 대처할 틈")]
-            public Vector2 lullSeconds = new Vector2(12f, 20f);
+            public Vector2 lullSeconds = new Vector2(7f, 11f); // 11-19 A9: 12~20 → 7~11
         }
+
+        /// <summary>청소 거리 생성 (빌드피드백_11-19_FIX설계 F1 · F2, DEC-030): 손님이 나갈 때마다 무조건 → 확률로, 종류는 균등 → 가중치</summary>
+        [Serializable]
+        public class CleanupSpawnSettings
+        {
+            [Tooltip("손님이 나갈 때 청소 거리가 생길 확률 (2일차부터)")]
+            [Range(0f, 1f)] public float chance = 0.35f;
+            [Tooltip("1일차 확률. 1일차 첫 청소는 튜토리얼 때문에 반드시 생김")]
+            [Range(0f, 1f)] public float firstDayChance = 0.25f;
+            [Tooltip("동시에 남아 있을 수 있는 청소 거리 수 (이만큼 있으면 더 안 생김)")]
+            [Min(1)] public int maxActive = 3;
+            [Tooltip("이 수만큼 연속으로 안 생기면 다음 손님 때는 반드시 생김 (0 = 끔)")]
+            [Min(0)] public int guaranteeAfter = 4;
+            [Header("종류 가중치 (그날 켜진 종류끼리 비율)")]
+            [Min(0)] public int trashWeight = 35;
+            [Min(0)] public int messyPackWeight = 20;
+            [Min(0)] public int floorStainWeight = 45;
+
+            public int WeightOf(CleanupKinds kind) => kind switch
+            {
+                CleanupKinds.Trash => trashWeight,
+                CleanupKinds.MessyPack => messyPackWeight,
+                CleanupKinds.FloorStain => floorStainWeight,
+                _ => 0,
+            };
+        }
+
+        [Header("청소 거리 생성 (F1 · F2)")]
+        public CleanupSpawnSettings cleanup = new CleanupSpawnSettings();
 
         [Header("손님 물결 (P1)")]
         [Tooltip("끄면 예전처럼 등장 구간에 고르게 분산")]

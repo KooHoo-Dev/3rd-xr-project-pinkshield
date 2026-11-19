@@ -19,18 +19,18 @@ namespace CardShop.Logic
         {
             if (l == null || rules == null) return "";
             var sb = new System.Text.StringBuilder();
-            sb.Append("기본급").Append(Col).Append(Signed(l.basePay)).Append('\n');
+            sb.Append("기본급").Append(Col).Append(MoneyText.Signed(l.basePay)).Append('\n');
             sb.Append($"청소 {l.cleanupsDone}곳");
             if (l.cleanupsMissed > 0) sb.Append($" · 못 치움 {l.cleanupsMissed}곳");
-            sb.Append(Col).Append(Signed(rules.CleanupTotal(l))).Append('\n');
+            sb.Append(Col).Append(MoneyText.Signed(rules.CleanupTotal(l))).Append('\n');
             sb.Append($"빠른 계산 {l.checkoutsFast}건");
             if (l.customersLost > 0) sb.Append($" · 떠난 손님 {l.customersLost}명");
-            sb.Append(Col).Append(Signed(rules.CheckoutTotal(l))).Append('\n');
-            sb.Append($"판매 {l.sales.Count}장").Append(Col).Append(Signed(rules.SalesTotal(l))).Append('\n');
+            sb.Append(Col).Append(MoneyText.Signed(rules.CheckoutTotal(l))).Append('\n');
+            sb.Append($"판매 {l.sales.Count}장").Append(Col).Append(MoneyText.Signed(rules.SalesTotal(l))).Append('\n');
             if (l.thievesCaught > 0) sb.Append($"<size=80%>도둑 {l.thievesCaught}명 잡음!</size>\n");
             if (l.freePackStolen) sb.Append("<size=80%>도둑이 오늘 무료 팩을 가져감</size>\n");
-            sb.Append($"<b>합계</b>{Col}<b>{Signed(total)}</b>\n");
-            sb.Append($"<size=80%>보유 금액</size>{Col}<size=80%>{money}</size>");
+            sb.Append($"<b>합계</b>{Col}<b>{MoneyText.Signed(total)}</b>\n");
+            sb.Append($"<size=80%>내 자산</size>{Col}<size=80%>{MoneyText.Format(money)}</size>");
             return sb.ToString();
         }
 
@@ -38,8 +38,8 @@ namespace CardShop.Logic
         {
             if (r == null) return "";
             var sb = new System.Text.StringBuilder();
-            sb.Append("보유 재화").Append(Col).Append(r.Money).Append('\n');
-            sb.Append("카드 가치").Append(Col).Append(r.CardValue).Append('\n');
+            sb.Append("내 자산").Append(Col).Append(MoneyText.Format(r.Money)).Append('\n');
+            sb.Append("카드 가치").Append(Col).Append(MoneyText.Format(r.CardValue)).Append('\n');
             sb.Append($"도감 {r.CollectedKinds}/{r.TotalKinds}종").Append(Col).Append(Signed(r.CollectionPoints)).Append('\n');
             sb.Append($"<size=80%>수퍼레어 이상 {r.RareCollected}/{r.RareTotal}종 · 연 팩 {r.PacksOpened}개</size>\n");
             if (r.BestCard != null) sb.Append($"<size=80%>최고의 카드: {r.BestCard.displayName}</size>\n");

@@ -41,6 +41,7 @@ namespace CardShop.Presentation
 
         Image veil;
         WorldToast toast;
+        float speakingUntil; // 혼잣말이 사라지는 시각 (WorldToast와 같은 Time.time)
         Vector3 shopPosition;
         Quaternion shopRotation;
 
@@ -74,6 +75,8 @@ namespace CardShop.Presentation
 
         void OnPhaseChanged(GamePhaseId from, GamePhaseId to) => Relocate(to);
 
+        public bool IsSpeaking => Time.time < speakingUntil;
+
         void OnDestroy()
         {
             if (subscribed != null) subscribed.Events.PhaseChanged -= OnPhaseChanged;
@@ -94,7 +97,8 @@ namespace CardShop.Presentation
             yield return Fade(0f);
 
             string text = MessageFor(flow.CurrentPhase);
-            if (text != null) ShowMessage(text);
+            if (text != null && ShowMessage(text))
+                speakingUntil = Time.time + WorldToast.SecondsFor(text);
         }
 
         // 화면이 가려진 동안의 소리: 집 문 · 불 끄고 잠자기 · 아침 닭 (SoundBank 칸이 비면 조용)
@@ -123,16 +127,17 @@ namespace CardShop.Presentation
         }
 
         // 플레이어 눈앞 1m, 월드 고정 말풍선 (머리에 붙이지 않음)
-        void ShowMessage(string message)
+        bool ShowMessage(string message)
         {
             Camera cam = origin != null && origin.Camera != null ? origin.Camera : Camera.main;
-            if (cam == null) return;
+            if (cam == null) return false;
             if (toast == null)
             {
                 toast = WorldToast.Create(transform, font);
                 toast.transform.localScale = Vector3.one * 2f; // 1m 거리에서 읽히도록 크게
             }
             toast.Show(message, HeadPose.InFront(cam.transform, 1.0f, 0.05f).position);
+            return true;
         }
 
         static Zone ZoneOf(GamePhaseId phase) =>
