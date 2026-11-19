@@ -14,55 +14,86 @@ MonoBehaviour:
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.SoundBank
   entries:
   - id: 0
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 3eff7c4b7419af744859457ef845b352, type: 3}
+    - {fileID: 8300000, guid: b4dcf5afb0fbd78d58c984c7a040e76c, type: 3}
+    - {fileID: 8300000, guid: d3960ad93a30066c5cb9b487dc044b3f, type: 3}
+    - {fileID: 8300000, guid: f1a2b90f886abe9d5b24f79a599e54d1, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 1
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 1410b2826858ebb75727841d325aa13c, type: 3}
+    - {fileID: 8300000, guid: 16c4c38ed74ab51a8a8db16ce12e150d, type: 3}
+    - {fileID: 8300000, guid: 9044ac11ba7589998f20f46bd0fc4a90, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 2
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: e00c13fbb5c24fb7e8778ff64ca03043, type: 3}
+    - {fileID: 8300000, guid: eda3e193399be42714368a9f39475f59, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: d782b116a921ecd13b7879426d581875, type: 3}
+    - {fileID: 8300000, guid: f0a7acabae5744222bc281e3ac1deee9, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 4
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 081661715db2fce0b783331fb4e45177, type: 3}
+    - {fileID: 8300000, guid: 4685efaffbc1811107afa304a8653960, type: 3}
+    - {fileID: 8300000, guid: 47bf1c2bffed4a3c9b4655b110fc1f86, type: 3}
+    - {fileID: 8300000, guid: 4f5b3141af48fc89f056c668dc2d1f20, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 5
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 701771fbcc92c76444c74e28f5f7a3d6, type: 3}
+    - {fileID: 8300000, guid: 866e9b25099d0cb87cbf64b729e4712a, type: 3}
+    - {fileID: 8300000, guid: d9b300a6e5f5a8b61dffa4751ec7ed70, type: 3}
+    - {fileID: 8300000, guid: f6a63f5d5574f8e0dd539e39bbc152da, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 10
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 4905075a7c53a4b94b9197165e1f2429, type: 3}
     volume: 0.8
-    pitch: {x: 0.95, y: 1.05}
+    pitch: {x: 0.98, y: 1.02}
   - id: 11
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 367b1c9ae4a9ef0107cb7ea814445d79, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 12
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 7dd8060e0cce5908855b0722077fcfcf, type: 3}
+    - {fileID: 8300000, guid: c9a3e6a205f9a06c8f8515c53530848c, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 13
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 439dc7082599683b7daeb73c30b8710c, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 14
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 1572e6fb30dae006a7f118030f5abf18, type: 3}
+    - {fileID: 8300000, guid: 4ea67e6e5cb8983fffcc2edcd437f0fa, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 15
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 2f1cbd27491f9c7fb8758ee2e85bbed1, type: 3}
+    - {fileID: 8300000, guid: 9db043b18fc561a125b1135f4243f351, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 16
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 4c21a3639cf9845949838580217c38cf, type: 3}
+    - {fileID: 8300000, guid: 8eac297e137bd4a4a017da52a528b8a8, type: 3}
+    - {fileID: 8300000, guid: a4c7117cd85f18e72a1a0ff7a27e224c, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 20
@@ -74,55 +105,79 @@ MonoBehaviour:
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 22
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 271d6dd0d876693394e9c0668d5eea23, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 23
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 0330ed724008639860df2ce9c2306e0e, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 24
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 3e4bf4275cce9147e5d8e8d159afec82, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 25
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: fd2477e6e5b9e264004a60e8304ec54e, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 26
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 3572ef17fc443c5419769337ea79ea94, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 30
-    clips: []
-    volume: 0.8
+    clips:
+    - {fileID: 8300000, guid: 4c403dbe7bb0bfc3866ddd7bd749f19c, type: 3}
+    - {fileID: 8300000, guid: 4f920e087027942a4800249517b510a7, type: 3}
+    - {fileID: 8300000, guid: ca7adb82cc7e44e6353de27c4dcffada, type: 3}
+    - {fileID: 8300000, guid: e386ebaafab19b4f3e266e2622266c36, type: 3}
+    volume: 0.4
     pitch: {x: 0.95, y: 1.05}
   - id: 31
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 0b0be0eec8cfc5ff2bf769f450691bf4, type: 3}
+    - {fileID: 8300000, guid: 8fac50608b9eaacf3c7cf77c07ee7435, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 32
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 2802d206f3b41630a99b85e8094e385f, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 33
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 128924117b6078b78053f2bba5ce8300, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 34
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 254ea6269e77aec5c0365e22ae7e9f94, type: 3}
+    - {fileID: 8300000, guid: 9b360184eaf3e35f7ef483ef7dcc1dc0, type: 3}
+    - {fileID: 8300000, guid: de97224b9e3e78d05a776eb42bb7f865, type: 3}
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+  - id: 35
+    clips:
+    - {fileID: 8300000, guid: 204328f79d67a26cd88791e2ec5fe581, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 40
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 8b7d73e30b0c5c35df5c32a8c62faf95, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 41
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: c7c83cc7fb9328bb9d98b1740b4748c3, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 42
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 8a1781b054d9ca48c08f83e3edcdedfc, type: 3}
     volume: 0.8
     pitch: {x: 0.95, y: 1.05}
   - id: 43
@@ -142,6 +197,7 @@ MonoBehaviour:
     volume: 0.35
     pitch: {x: 1, y: 1}
   - id: 53
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: a61d0dc0ada0c772fa2f80b39baca1b6, type: 3}
     volume: 0.35
     pitch: {x: 1, y: 1}
