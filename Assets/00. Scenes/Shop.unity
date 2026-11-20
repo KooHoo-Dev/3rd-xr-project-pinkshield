@@ -575,6 +575,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/BrowseWait_2
+  addedByHand: 0
   defaultLocalPosition: {x: 0.6, y: 0, z: 3.72}
   defaultLocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -2167,6 +2168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Thief/BroomLabel
+  addedByHand: 0
   defaultLocalPosition: {x: 1.35, y: 1.4, z: 0.12}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -2551,7 +2553,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -3137,6 +3139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/EntryTurn
+  addedByHand: 0
   defaultLocalPosition: {x: -0.65, y: 0, z: 3.26}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -3492,6 +3495,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/Scanner
+  addedByHand: 0
   defaultLocalPosition: {x: -0.15, y: 0.951, z: 0.55}
   defaultLocalRotation: {x: 0, y: 0, z: 0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -4570,6 +4574,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Thief/FreePack
+  addedByHand: 0
   defaultLocalPosition: {x: -0.9, y: 0.9, z: 0.9}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -4897,68 +4902,6 @@ MonoBehaviour:
   hoverScale: 1.06
   hapticAmplitude: 0.12
   hapticSeconds: 0.02
---- !u!1001 &189638427
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1299757314}
-    m_Modifications:
-    - target: {fileID: 6306637728688488230, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_Name
-      value: ShopStreetDetails
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
---- !u!4 &189638428 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
-  m_PrefabInstance: {fileID: 189638427}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &195113642
 GameObject:
   m_ObjectHideFlags: 0
@@ -5266,6 +5209,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Door
+  addedByHand: 0
   defaultLocalPosition: {x: 3, y: 0, z: 3.5}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -5512,6 +5456,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 201228159}
   m_CullTransparentMesh: 1
+--- !u!1 &217009255
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 217009256}
+  - component: {fileID: 217009257}
+  m_Layer: 0
+  m_Name: Anchor_Home_DeliveryBoxes
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &217009256
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 217009255}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.868, y: 0, z: -62.617}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1455076802}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &217009257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 217009255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c378d99088d0c3e4a90831be73c7fecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementAnchor
+  key: Home/DeliveryBoxes
+  previewCenter: {x: 0.67499995, y: 0.15, z: 0}
+  previewSize: {x: 1.7499999, y: 0.3, z: 0.4}
 --- !u!21 &219820160
 Material:
   serializedVersion: 8
@@ -5968,6 +5959,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 233460635}
   m_CullTransparentMesh: 1
+--- !u!1 &237275538
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 237275539}
+  - component: {fileID: 237275540}
+  m_Layer: 0
+  m_Name: Anchor_Sign_Rules
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &237275539
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237275538}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 4.417, y: 1.55, z: 0.162}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1455076802}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &237275540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237275538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c378d99088d0c3e4a90831be73c7fecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementAnchor
+  key: Sign/Rules
+  previewCenter: {x: 0, y: 0, z: 0}
+  previewSize: {x: 0.6, y: 0.42, z: 0.02}
 --- !u!1 &239273949
 GameObject:
   m_ObjectHideFlags: 0
@@ -6587,7 +6625,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -6833,6 +6871,53 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8356ea2c21cc3874c9a6107f614b0a1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cleanup.RackPack
+--- !u!1 &268671536
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 268671537}
+  - component: {fileID: 268671538}
+  m_Layer: 0
+  m_Name: Anchor_Home_ResignLetter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &268671537
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 268671536}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.6241274, z: -0, w: 0.78132266}
+  m_LocalPosition: {x: 0.734, y: 0.8, z: -58.687}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1455076802}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &268671538
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 268671536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c378d99088d0c3e4a90831be73c7fecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementAnchor
+  key: Home/ResignLetter
+  previewCenter: {x: 0, y: 0.02, z: 0}
+  previewSize: {x: 0.24, y: 0.04, z: 0.14}
 --- !u!1 &270873618
 GameObject:
   m_ObjectHideFlags: 0
@@ -7183,7 +7268,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -8808,7 +8893,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4293654527
   m_fontColor: {r: 1, g: 0.97, b: 0.92, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -8821,7 +8906,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -8924,6 +9009,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/ItemSpot_1
+  addedByHand: 0
   defaultLocalPosition: {x: -0.09, y: 0, z: 0}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -9302,6 +9388,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Buy_0
+  addedByHand: 0
   defaultLocalPosition: {x: -2.3, y: 0, z: 3.08}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -9500,6 +9587,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/ScannerLabel
+  addedByHand: 0
   defaultLocalPosition: {x: -0.15, y: 1.1209999, z: 0.55}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -9638,7 +9726,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -10451,7 +10539,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -10619,6 +10707,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/Checkout
+  addedByHand: 0
   defaultLocalPosition: {x: 0, y: 0, z: 0}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -10746,6 +10835,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/Button_OpenBox
+  addedByHand: 0
   defaultLocalPosition: {x: -0.98, y: 0.9, z: 0.5}
   defaultLocalRotation: {x: 0, y: 0, z: 0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -11167,6 +11257,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/BrowseWait_0
+  addedByHand: 0
   defaultLocalPosition: {x: -0.8, y: 0, z: 3.72}
   defaultLocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -11643,7 +11734,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4293654527
   m_fontColor: {r: 1, g: 0.97, b: 0.92, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -11656,7 +11747,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -12187,6 +12278,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1299757314}
     m_Modifications:
+    - target: {fileID: 2367590186023512509, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.5221095
+      objectReference: {fileID: 0}
+    - target: {fileID: 3467401135798594749, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.625786
+      objectReference: {fileID: 0}
+    - target: {fileID: 3605024315220956251, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.6775913
+      objectReference: {fileID: 0}
+    - target: {fileID: 4464697713298046567, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.74
+      objectReference: {fileID: 0}
     - target: {fileID: 6372155543612781711, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -12227,9 +12334,33 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6381813763011737324, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.8478584
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535706293554663514, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.337299
+      objectReference: {fileID: 0}
     - target: {fileID: 6936473632395581939, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
       propertyPath: m_Name
       value: ShopStreetBlocks
+      objectReference: {fileID: 0}
+    - target: {fileID: 7072273525946071979, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.744182
+      objectReference: {fileID: 0}
+    - target: {fileID: 7157225429046558732, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.744182
+      objectReference: {fileID: 0}
+    - target: {fileID: 7260462945247387708, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.084099
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188789026664298482, guid: 84d46dd2cb6f7f147a80e656b07a8520, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.15
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13213,6 +13344,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Queue_2
+  addedByHand: 0
   defaultLocalPosition: {x: 0, y: 0, z: 2.8}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -13434,6 +13566,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Queue_0
+  addedByHand: 0
   defaultLocalPosition: {x: 0, y: 0, z: 1.4}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -13799,6 +13932,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/ItemSpot_2
+  addedByHand: 0
   defaultLocalPosition: {x: 0.09, y: 0, z: 0}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -13985,7 +14119,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -14670,9 +14804,57 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Queue_4
+  addedByHand: 0
   defaultLocalPosition: {x: 1.4, y: 0, z: 2.8}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
+--- !u!1 &697450446
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 697450447}
+  - component: {fileID: 697450448}
+  m_Layer: 0
+  m_Name: Anchor_Sign_ShopClock
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &697450447
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697450446}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.802, y: 2.452, z: 4.0199995}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1455076802}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &697450448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697450446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c378d99088d0c3e4a90831be73c7fecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementAnchor
+  key: Sign/ShopClock
+  previewCenter: {x: 0, y: 0, z: 0}
+  previewSize: {x: 0.8, y: 0.42, z: 0.02}
 --- !u!1 &699971718
 GameObject:
   m_ObjectHideFlags: 0
@@ -16131,7 +16313,8 @@ PrefabInstance:
       value: ShopInterior
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 2624417196609432380, guid: 88eccc66a3a5c304688e03c09cef971c, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4339039871026958770, guid: 88eccc66a3a5c304688e03c09cef971c, type: 3}
@@ -16210,7 +16393,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4293654527
   m_fontColor: {r: 1, g: 0.97, b: 0.92, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -16223,7 +16406,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -16496,7 +16679,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4284076543
   m_fontColor: {r: 1, g: 0.82, b: 0.35, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -16509,7 +16692,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -17887,6 +18070,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Buy_1
+  addedByHand: 0
   defaultLocalPosition: {x: -1.5, y: 0, z: 3.08}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -19172,6 +19356,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Queue_3
+  addedByHand: 0
   defaultLocalPosition: {x: 0.7, y: 0, z: 2.8}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -19362,7 +19547,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4293640908
   m_fontColor: {r: 0.8, g: 0.76, b: 0.92, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -19375,7 +19560,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -19499,7 +19684,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4293654527
   m_fontColor: {r: 1, g: 0.97, b: 0.92, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -19512,7 +19697,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -19853,6 +20038,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/ItemSpot_3
+  addedByHand: 0
   defaultLocalPosition: {x: 0.27, y: 0, z: 0}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -22143,6 +22329,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/ItemSpot_0
+  addedByHand: 0
   defaultLocalPosition: {x: -0.27, y: 0, z: 0}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -23387,6 +23574,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/AisleLow
+  addedByHand: 0
   defaultLocalPosition: {x: -0.65, y: 0, z: 1.3}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -24528,6 +24716,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/ItemSpots
+  addedByHand: 0
   defaultLocalPosition: {x: 0.02, y: 0.9, z: 0.72}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -25977,7 +26166,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -26195,6 +26384,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/Button_Pay
+  addedByHand: 0
   defaultLocalPosition: {x: -0.38, y: 0.9, z: 0.47}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -26829,7 +27019,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4293654527
   m_fontColor: {r: 1, g: 0.97, b: 0.92, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -26842,7 +27032,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -27113,7 +27303,7 @@ Transform:
   - {fileID: 1598081955}
   - {fileID: 531102733}
   - {fileID: 765587920}
-  - {fileID: 189638428}
+  - {fileID: 1492456335}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1307103886
@@ -27759,6 +27949,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/CounterExit
+  addedByHand: 0
   defaultLocalPosition: {x: 2.2, y: 0, z: 1.4}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -28171,6 +28362,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/DoorOutside
+  addedByHand: 0
   defaultLocalPosition: {x: 3, y: 0, z: 5}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -29987,6 +30179,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Thief/Broom
+  addedByHand: 0
   defaultLocalPosition: {x: 1.35, y: 0, z: 0.12}
   defaultLocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -30408,6 +30601,68 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
+--- !u!1001 &1419608371
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1492456336}
+    m_Modifications:
+    - target: {fileID: 189184, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_Name
+      value: SM_Bld_Apartment_Corner_03
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 6.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 270
+      objectReference: {fileID: 0}
+    - target: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+--- !u!4 &1419608372 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 498122, guid: c1d46775cc1dffd41859257aad55f33c, type: 3}
+  m_PrefabInstance: {fileID: 1419608371}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1420023296
 GameObject:
   m_ObjectHideFlags: 0
@@ -30543,6 +30798,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Queue_1
+  addedByHand: 0
   defaultLocalPosition: {x: 0, y: 0, z: 2.1}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -31064,6 +31320,42 @@ Transform:
   - {fileID: 1692983539}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1455076801
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1455076802}
+  m_Layer: 0
+  m_Name: PlacementAnchors
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1455076802
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1455076801}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 697450447}
+  - {fileID: 237275539}
+  - {fileID: 217009256}
+  - {fileID: 268671537}
+  - {fileID: 1990398661}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1489536075
 GameObject:
   m_ObjectHideFlags: 0
@@ -31170,6 +31462,129 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.1, y: 0.08, z: 0.14}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &1492456334
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1299757314}
+    m_Modifications:
+    - target: {fileID: 442770869988308303, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -5.68
+      objectReference: {fileID: 0}
+    - target: {fileID: 442770869988308303, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 442770869988308303, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 442770869988308303, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 442770869988308303, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3046990593889691452, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 8.69
+      objectReference: {fileID: 0}
+    - target: {fileID: 3393336983364858304, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -13
+      objectReference: {fileID: 0}
+    - target: {fileID: 6306637728688488230, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_Name
+      value: ShopStreetDetails
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects:
+    - {fileID: 1347066205782230119, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 2508409777076528275, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 8588073202258682949, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 4537706575988974094, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 80450608984228539, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 2987253983759568675, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 4767122284367949358, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 1793160899084699908, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 5987613198349107187, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 5675443590123780803, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 941055802076761471, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 307335338720255215, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 5431412562680033102, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 2381018322614432688, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 5511734978334174277, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 17937418598216796, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 275261190321630117, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 2242835725748563794, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 4510237342938806920, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 4930828970911212195, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 6690399246845129914, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    - {fileID: 7614804410951237845, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2593042659257749877, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1419608372}
+    - targetCorrespondingSourceObject: {fileID: 2593042659257749877, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2066396158}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+--- !u!4 &1492456335 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7433805213588518814, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+  m_PrefabInstance: {fileID: 1492456334}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1492456336 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2593042659257749877, guid: aaecbfffe5e6aa24592f7fb4987db967, type: 3}
+  m_PrefabInstance: {fileID: 1492456334}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1500344979
 GameObject:
   m_ObjectHideFlags: 0
@@ -31221,6 +31636,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/PosTerminal
+  addedByHand: 0
   defaultLocalPosition: {x: -0.56, y: 0.9, z: 0.62}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -31340,7 +31756,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4284076543
   m_fontColor: {r: 1, g: 0.82, b: 0.35, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -31353,7 +31769,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -31734,7 +32150,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4293654527
   m_fontColor: {r: 1, g: 0.97, b: 0.92, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -31747,7 +32163,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -33772,6 +34188,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1299757314}
     m_Modifications:
+    - target: {fileID: 5266414986382916831, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.97
+      objectReference: {fileID: 0}
+    - target: {fileID: 5266414986382916831, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 8.72
+      objectReference: {fileID: 0}
+    - target: {fileID: 5266414986382916831, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5266414986382916831, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5266414986382916831, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 180
+      objectReference: {fileID: 0}
     - target: {fileID: 5946138562113281176, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -33817,7 +34253,11 @@ PrefabInstance:
       value: ShopStreet
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 4070905653020973390, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
+    - {fileID: 6907952274773339599, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
+    - {fileID: 7344824296612873043, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
+    - {fileID: 3002854050721779038, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9abeb9b4da2fd214f91c1d133d2dd23a, type: 3}
@@ -33841,6 +34281,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1603613219}
   - component: {fileID: 1603613220}
+  - component: {fileID: 1603613221}
   m_Layer: 0
   m_Name: HomeLight
   m_TagString: Untagged
@@ -33928,6 +34369,35 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &1603613221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1603613218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &1605154958
 GameObject:
   m_ObjectHideFlags: 0
@@ -34015,7 +34485,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -34796,6 +35266,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/PaperBag
+  addedByHand: 0
   defaultLocalPosition: {x: 0.52, y: 0.904, z: 0.5}
   defaultLocalRotation: {x: -0, y: -0, z: -0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -34886,7 +35357,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294963954
   m_fontColor: {r: 0.95, g: 0.95, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -34899,7 +35370,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -35046,6 +35517,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Thief/StealSpot
+  addedByHand: 0
   defaultLocalPosition: {x: -0.9, y: 0, z: 1.4}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -36831,7 +37303,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -37933,6 +38405,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/BrowseWait_3
+  addedByHand: 0
   defaultLocalPosition: {x: 1.3, y: 0, z: 3.72}
   defaultLocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -38033,7 +38506,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4284076543
   m_fontColor: {r: 1, g: 0.82, b: 0.35, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -38046,7 +38519,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -38866,6 +39339,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/Outside
+  addedByHand: 0
   defaultLocalPosition: {x: 5.6, y: 0, z: 5.6}
   defaultLocalRotation: {x: -0, y: 1, z: -0, w: 0}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -40193,6 +40667,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Counter/Button_ClockOut
+  addedByHand: 0
   defaultLocalPosition: {x: -0.8, y: 0.9, z: 0.5}
   defaultLocalRotation: {x: 0, y: 0, z: 0, w: 1}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -41205,6 +41680,53 @@ MonoBehaviour:
   hoverScale: 1.06
   hapticAmplitude: 0.12
   hapticSeconds: 0.02
+--- !u!1 &1990398660
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1990398661}
+  - component: {fileID: 1990398662}
+  m_Layer: 0
+  m_Name: Anchor_Sign_Controls
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1990398661
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1990398660}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
+  m_LocalPosition: {x: -0.54999995, y: 1.45, z: 6.3999996}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1455076802}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1990398662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1990398660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c378d99088d0c3e4a90831be73c7fecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementAnchor
+  key: Sign/Controls
+  previewCenter: {x: 0, y: 0, z: 0}
+  previewSize: {x: 0.8, y: 0.42, z: 0.02}
 --- !u!1 &1991005229
 GameObject:
   m_ObjectHideFlags: 0
@@ -42231,6 +42753,68 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1852096300}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &2066396157
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1492456336}
+    m_Modifications:
+    - target: {fileID: 161956, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_Name
+      value: SM_Bld_Apartment_Corner_02
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 6.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3.97
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 270
+      objectReference: {fileID: 0}
+    - target: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+--- !u!4 &2066396158 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 478286, guid: 64b839200fb1c394abe8b5e1693c5cf4, type: 3}
+  m_PrefabInstance: {fileID: 2066396157}
+  m_PrefabAsset: {fileID: 0}
 --- !u!21 &2068949712
 Material:
   serializedVersion: 8
@@ -42618,7 +43202,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4293654527
   m_fontColor: {r: 1, g: 0.97, b: 0.92, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -42631,7 +43215,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -43397,6 +43981,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementKey
   key: Customers/BrowseWait_1
+  addedByHand: 0
   defaultLocalPosition: {x: -0.1, y: 0, z: 3.72}
   defaultLocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
   defaultLocalScale: {x: 1, y: 1, z: 1}
@@ -44134,3 +44719,4 @@ SceneRoots:
   - {fileID: 656722491}
   - {fileID: 903864387}
   - {fileID: 1155871720}
+  - {fileID: 1455076802}
