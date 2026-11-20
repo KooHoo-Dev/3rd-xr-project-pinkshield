@@ -17,6 +17,8 @@ namespace CardShop.EditorTools
         const string SourceFolder = "Assets/99. External Assets/Font/Noto_Sans_KR";
         const string OutputFolder = "Assets/Resources/Fonts";
 
+        static string OutputPath => $"{OutputFolder}/{Path.GetFileName(UiFonts.BoldResource)}.asset";
+
         [MenuItem("CardShop/UI/Bold 글꼴 에셋 만들기")]
         static void Create()
         {
@@ -27,12 +29,23 @@ namespace CardShop.EditorTools
                     $"{SourceFolder} 에 NotoSansKR-Bold.otf (또는 .ttf)를 넣어 주세요.\nGoogle Fonts의 Noto Sans KR (OFL 무료 글꼴)에 들어 있습니다.", "확인");
                 return;
             }
-
-            string path = $"{OutputFolder}/{Path.GetFileName(UiFonts.BoldResource)}.asset";
-            if (AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path) != null &&
-                !EditorUtility.DisplayDialog("Bold 글꼴 에셋", $"{path} 가 이미 있습니다. 다시 만들까요?", "다시 만들기", "취소"))
+            if (AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(OutputPath) != null &&
+                !EditorUtility.DisplayDialog("Bold 글꼴 에셋", $"{OutputPath} 가 이미 있습니다. 다시 만들까요?", "다시 만들기", "취소"))
                 return;
+            Build(font);
+        }
 
+        /// <summary>배치 모드용 (창 없이): Unity -batchmode -executeMethod CardShop.EditorTools.BoldFontAssetCreator.CreateForBatch</summary>
+        public static void CreateForBatch()
+        {
+            Font font = FindSource();
+            if (font == null) { Debug.LogError("[BoldFontAssetCreator] NotoSansKR-Bold 글꼴 파일이 없습니다."); EditorApplication.Exit(1); return; }
+            Build(font);
+        }
+
+        static void Build(Font font)
+        {
+            string path = OutputPath;
             Directory.CreateDirectory(OutputFolder);
             AssetDatabase.DeleteAsset(path);
 
