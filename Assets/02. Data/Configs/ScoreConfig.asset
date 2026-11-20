@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: ScoreConfig
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.ScoreConfig
   pointsPerCollected: 10
+  pointsPerFurniturePiece: 30
+  pointsPerShowcaseSet: 60
   ranks:
   - name: S
     minScore: 1800

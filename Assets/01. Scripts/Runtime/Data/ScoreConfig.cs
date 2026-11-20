@@ -20,7 +20,7 @@ namespace CardShop.Cards
         public int pointsPerCollected = 10;
 
         [Tooltip("방 점수: 가구 1단계(꾸미기 1개)마다 (DEC-040 U4 '방 도감')")]
-        public int pointsPerFurniturePiece = 15;
+        public int pointsPerFurniturePiece = 30; // 11-21 사용자 결정: 15 → 30 (가구를 전부 사도 덜 손해, 시뮬레이션)
         [Tooltip("진열장 세트 1개(같은 속성 수퍼레어 이상 3장)마다 (DEC-040 U1)")]
         public int pointsPerShowcaseSet = 60;
 

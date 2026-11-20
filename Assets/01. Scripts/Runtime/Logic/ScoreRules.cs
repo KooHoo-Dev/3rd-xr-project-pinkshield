@@ -28,7 +28,7 @@ namespace CardShop.Logic
 
     /// <summary>
     /// 최종 점수 = 보유 재화 + 보유 카드 가치(매입가, DEC-041 Q7) + 도감 수집 종류 수 × 10 (기획서 5-8) + 가구 값 (집_업그레이드_설계 3장)
-    /// + 방 점수(가구 단계 × 15, DEC-040 U4) + 진열장 세트(× 60, DEC-040 U1).
+    /// + 방 점수(가구 단계 × 30, DEC-040 U4) + 진열장 세트(× 60, DEC-040 U1).
     /// </summary>
     public sealed class ScoreRules
     {
