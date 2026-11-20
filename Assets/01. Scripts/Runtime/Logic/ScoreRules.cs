@@ -8,7 +8,7 @@ namespace CardShop.Logic
     {
         public int Score;
         public int Money;
-        public int CardValue;        // 보유 카드 전체 장수 × 기준가 (인기 속성 배율 없음). 진열장 카드 포함
+        public int CardValue;        // 보유 카드 전체의 매입가 합 (DEC-041 Q7, 인기 속성 배율 없음). 진열장 카드 포함
         public int CollectedKinds;   // 도감 수집 종류 수
         public int CollectionPoints; // 수집 종류 수 × 1종당 점수
         public int FurnitureValue;   // 방 업그레이드에 쓴 돈 100% (DEC-031 Q2)
@@ -47,19 +47,22 @@ namespace CardShop.Logic
                 PacksOpened = s.Stats.packsOpened,
             };
 
+            // 카드 가치 = 매입가 합 ("지금 다 팔면 얼마", DEC-041 Q7). 매입가는 소수(노멀 0.2)라 다 더한 뒤 내림
+            float cardValue = 0f;
             foreach (var pair in s.Collection.Owned)
             {
                 CardData card = cards.Get(pair.Key);
-                if (card != null) r.CardValue += pair.Value * rarity.BasePrice(card.rarity);
+                if (card != null) cardValue += pair.Value * rarity.BuybackPrice(card.rarity);
             }
             // 진열장 카드는 보유 목록에서 빠져 있으므로 여기서 더함 (점수는 보유 카드와 똑같이, 이중 계산 없음)
             foreach (string id in s.Showcase)
             {
                 CardData card = cards.Get(id);
                 if (card == null) continue;
-                r.CardValue += rarity.BasePrice(card.rarity);
+                cardValue += rarity.BuybackPrice(card.rarity);
                 r.ShowcaseCards.Add(card);
             }
+            r.CardValue = UnityEngine.Mathf.FloorToInt(cardValue + 1e-4f);
 
             foreach (CardData card in cards.cards)
             {

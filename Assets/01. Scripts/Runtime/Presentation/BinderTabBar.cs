@@ -66,7 +66,9 @@ namespace CardShop.Presentation
             return b;
         }
 
-        public void Redraw(BinderTab current, CardElement popular, BinderSortOrder sort = BinderSortOrder.Dex)
+        /// <param name="popular">★ 1순위 인기 속성</param>
+        /// <param name="second">☆ 2순위 인기 속성 (튜토리얼_설계 T8)</param>
+        public void Redraw(BinderTab current, CardElement popular, BinderSortOrder sort = BinderSortOrder.Dex, CardElement second = CardElement.None)
         {
             if (sortButton != null)
             {
@@ -86,8 +88,10 @@ namespace CardShop.Presentation
                 if (label == null) continue;
                 BinderTab t = BinderTabs.Order[i];
                 bool on = t == current;
-                bool hot = popular != CardElement.None && BinderTabs.ToElement(t) == popular;
-                label.text = hot ? $"★{BinderTabs.Label(t)}" : BinderTabs.Label(t);
+                CardElement e = BinderTabs.ToElement(t);
+                bool hot = popular != CardElement.None && e == popular;
+                bool warm = !hot && second != CardElement.None && e == second;
+                label.text = hot ? $"★{BinderTabs.Label(t)}" : warm ? $"☆{BinderTabs.Label(t)}" : BinderTabs.Label(t);
                 label.color = on ? selectedText : Color.white;
                 label.fontStyle = on ? FontStyles.Bold | FontStyles.Underline : FontStyles.Normal;
             }

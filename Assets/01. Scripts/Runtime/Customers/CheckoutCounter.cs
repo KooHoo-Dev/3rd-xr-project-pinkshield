@@ -58,8 +58,8 @@ namespace CardShop.Customers
             GameContext ctx = Context;
             GameSession s = ctx.Session;
 
-            CardData card = ctx.Sales.PickPurchase(s);
-            int cardPrice = card != null ? ctx.Sales.CustomerPrice(card, ctx.PopularToday) : 0;
+            CardData card = ctx.Sales.PickPurchase(s, ctx.MarketToday);
+            int cardPrice = card != null ? ctx.Sales.CustomerPrice(card, ctx.MarketToday) : 0;
             List<StockOption> options = shopItems != null ? shopItems.Options() : new List<StockOption>();
             int count = shopItems != null ? BasketRules.RollCount(shopItems.countWeights, shopItems.MaxCount(s.Day), ctx.Random) : 1;
             if (ForceNextItemCount > 0) { count = ForceNextItemCount; ForceNextItemCount = 0; }
@@ -170,7 +170,7 @@ namespace CardShop.Customers
             PaidHandler paid = onPaid;
             if (ctx.EconomyRules.IsFastCheckout(checkoutSeconds, count)) ctx.Session.Ledger.checkoutsFast++;
             // 진열 카드면 진열대에서 빼서 장부에 기록. 그새 진열대에서 사라졌으면 가게 재고를 산 것으로 봄 (SalesRules)
-            CardData bought = ctx.Sales.CompleteSale(ctx.Session, card, ctx.PopularToday, out int net) ? card : null;
+            CardData bought = ctx.Sales.CompleteSale(ctx.Session, card, ctx.MarketToday, out int net) ? card : null;
             Sfx.Play(SoundId.PosPay, pos != null ? pos.transform.position : transform.position);
             Sfx.Play(SoundId.MoneyIn, pos != null ? pos.transform.position : transform.position); // 동전 "띠링" (11-20 G1)
             Clear(); // 손님이 물건을 가져감

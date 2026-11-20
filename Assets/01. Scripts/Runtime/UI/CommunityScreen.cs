@@ -15,8 +15,8 @@ namespace CardShop.UI
     public sealed class CommunityScreen : HomePanel
     {
         // 문구는 한 곳에 모읍니다.
-        const string TodayFormat = "오늘 인기  <color=#FFC857>{0}</color>";
-        const string TomorrowFormat = "내일 예보  <color=#7FD1FF>{0}</color>";
+        const string TodayFormat = "오늘 인기  <color=#FFC857>{0}</color> {1} · 2순위 <color=#FFB07A>{2}</color>";
+        const string TomorrowFormat = "내일 예보  <color=#7FD1FF>{0}</color>{1} · 2순위 {2}";
         const string TomorrowNone = "내일 예보  없음 (마지막 날)";
         const string AfterTomorrowFormat = "모레 예보  <color=#B39DFF>{0}</color>";
         const string TopHeader = "인기 카드 TOP3";
@@ -30,21 +30,26 @@ namespace CardShop.UI
         protected override void Redraw()
         {
             GameContext ctx = Context;
-            if (ctx == null || ctx.Session == null || ctx.PopularElements == null) return;
+            if (ctx == null || ctx.Session == null || ctx.Market == null) return;
 
             int dayCount = DayRules.EffectiveDayCount(ctx.Campaign.DayCount, ctx.Session.Endless.Active); // 무한 모드면 늘 내일 예보 (J4)
-            var board = new CommunityBoard(ctx.PopularElements, ctx.Cards, ctx.EconomyRules);
+            var board = new CommunityBoard(ctx.Market, ctx.Cards, ctx.EconomyRules);
             CommunityReport report = board.Build(ctx.Session.Day, dayCount, ctx.Session.Collection);
 
             if (forecastLabel != null)
             {
-                string today = string.Format(TodayFormat, CommunityBoard.ElementName(report.Today));
+                bool priceListOn = ctx.Upgrades.HasPriceList(ctx.Session.Upgrades);
+                bool strengthAhead = ctx.Upgrades.ForecastDays(ctx.Session.Upgrades) >= 2; // 컴퓨터 2단계: 내일 강도까지
+                MarketDay tm = report.TodayMarket, nm = report.TomorrowMarket;
+                string today = string.Format(TodayFormat, CommunityBoard.ElementName(tm.Primary),
+                    Strength(tm, priceListOn), CommunityBoard.ElementName(tm.Secondary));
                 string tomorrow = report.HasTomorrow
-                    ? string.Format(TomorrowFormat, CommunityBoard.ElementName(report.Tomorrow))
+                    ? string.Format(TomorrowFormat, CommunityBoard.ElementName(nm.Primary),
+                        strengthAhead ? " " + Strength(nm, priceListOn) : " (강도 ???)", CommunityBoard.ElementName(nm.Secondary))
                     : TomorrowNone;
                 // 컴퓨터 업그레이드 2단계: 모레 인기 속성까지 (집_업그레이드_설계 3장)
                 CardElement after = ctx.Upgrades.ForecastDays(ctx.Session.Upgrades) >= 2
-                    ? ctx.PopularElements.For(ctx.Session.Day + 2) : CardElement.None;
+                    ? ctx.Market.For(ctx.Session.Day + 2).Primary : CardElement.None;
                 if (after != CardElement.None) tomorrow += "\n" + string.Format(AfterTomorrowFormat, CommunityBoard.ElementName(after));
                 forecastLabel.text = today + "\n" + tomorrow;
             }
@@ -62,11 +67,11 @@ namespace CardShop.UI
                     for (int i = 0; i < report.TopCards.Count; i++)
                     {
                         CardData card = report.TopCards[i];
-                        int price = ctx.EconomyRules.GrossPrice(card, report.Today);
+                        int price = ctx.EconomyRules.GrossPrice(card, report.TodayMarket);
                         sb.Append('\n').Append(i + 1).Append(". ").Append(card.displayName).Append("  ").Append(MoneyText.Format(price));
                         // 컴퓨터 업그레이드 3단계: 카드 시세표 (오늘 · 내일 값)
                         if (priceList && report.HasTomorrow)
-                            sb.Append(" → 내일 ").Append(MoneyText.Format(ctx.EconomyRules.GrossPrice(card, report.Tomorrow)));
+                            sb.Append(" → 내일 ").Append(MoneyText.Format(ctx.EconomyRules.GrossPrice(card, report.TomorrowMarket)));
                     }
                 }
                 topLabel.text = sb.ToString();
@@ -75,5 +80,9 @@ namespace CardShop.UI
             if (moodLabel != null)
                 moodLabel.text = string.Join("\n", report.MoodLines);
         }
+
+        // 강도 이름 (시세표가 있으면 정확한 배율까지): "(급등)" / "(급등 ×2.0)"
+        static string Strength(MarketDay m, bool exact) =>
+            !m.HasPopular ? "" : exact ? $"({m.TierName} ×{m.PrimaryMultiplier:0.0#})" : $"({m.TierName})";
     }
 }

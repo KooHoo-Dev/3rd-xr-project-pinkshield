@@ -246,8 +246,9 @@ namespace CardShop.Presentation
 
             prevButton.interactable = c != null && c.HasPrevious;
             nextButton.interactable = c != null && c.HasNext;
-            CardElement star = StarElement();
-            tabBar.Redraw(Tab, star, c != null ? c.Sort : BinderSortOrder.Dex);
+            MarketDay starMarket = StarMarket();
+            CardElement star = starMarket.Primary;
+            tabBar.Redraw(Tab, star, c != null ? c.Sort : BinderSortOrder.Dex, starMarket.Secondary);
             if (pageLabel != null)
             {
                 int total = c != null ? c.FullLayout.CardCount : 0;
@@ -261,11 +262,11 @@ namespace CardShop.Presentation
             }
         }
 
-        // 집에서 등록한 카드는 내일 영업 때 팔리므로 집에서는 내일 인기 속성에 ★ (마지막 날은 내일이 없어 ★ 없음, 11-19 A4)
-        CardElement StarElement()
+        // 집에서 등록한 카드는 내일 영업 때 팔리므로 집에서는 내일 시세로 ★ 1순위 · ☆ 2순위 (11-19 A4, DEC-041)
+        MarketDay StarMarket()
         {
-            if (context == null || context.Session == null || context.PopularElements == null) return CardElement.None;
-            return atHome ? context.PopularElements.For(context.Session.Day + 1) : context.PopularToday;
+            if (context == null || context.Session == null || context.Market == null) return MarketDay.None;
+            return atHome ? context.Market.For(context.Session.Day + 1) : context.MarketToday;
         }
 
         // ------------------------------------------------------------------ 선택 (판매 등록 연결 지점)

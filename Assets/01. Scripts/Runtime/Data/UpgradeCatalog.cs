@@ -78,15 +78,15 @@ namespace CardShop.Cards
         [Tooltip("진열장 칸 수")]
         public int[] showcaseSlots = { 3, 6, 10 };
         [Tooltip("판매 등록 칸 추가 (EconomyConfig.salesDisplaySlots에 더함)")]
-        public int[] extraSalesSlots = { 0, 2, 2 };
-        [Tooltip("즉시 판매 비율 추가 (EconomyConfig.instantSellRate에 더함)")]
-        public float[] instantSellBonus = { 0f, 0f, 0.1f };
+        public int[] extraSalesSlots = { 0, 2, 4 };
+        [Tooltip("매입가(즉시 판매) 추가 비율 (0.1 = +10%). DEC-040 뒤로 쓰지 않음(0)")]
+        public float[] instantSellBonus = { 0f, 0f, 0f };
         [Tooltip("커뮤니티 화면이 며칠 뒤 인기 속성까지 보여 주나 (1 = 내일, 2 = 모레)")]
         public int[] forecastDays = { 1, 2, 2 };
         [Tooltip("이 컴퓨터 단계부터 카드 시세표(오늘 · 내일 값)")]
         public int priceListLevel = 3;
         [Tooltip("손님 인내 시간 추가 비율 (0.1 = +10%)")]
-        public float[] patienceBonus = { 0f, 0.1f, 0.2f };
+        public float[] patienceBonus = { 0f, 0.15f, 0.25f };
         [Tooltip("매일 퇴근 후 무료 팩 추가")]
         public int[] extraFreePacks = { 0, 0, 1 };
         [Tooltip("이 바인더 단계부터 금박 바인더 UI")]
@@ -137,18 +137,18 @@ namespace CardShop.Cards
                 L(100, "진열 칸 6 → 10칸 + 진열장 조명")),
             // NoteBook_0x는 노트북 컴퓨터가 아니라 공책(22 × 26cm)이라 바인더 그대로 (11-20 크기 확인)
             T(UpgradeKind.Binder, "바인더",
-                L(60, "판매 등록 칸 4 → 6칸", V("LowPoly:Room/NoteBook_02", new Vector3(-1.72f, 0.8f, 1.72f), 180f)),
-                L(140, "금박 바인더 · 즉시 판매 60 → 70%", V("LowPoly:Room/Book_03", new Vector3(-1.72f, 0.8f, 1.45f), 180f))),
+                L(80, "판매 등록 칸 4 → 6칸", V("LowPoly:Room/NoteBook_02", new Vector3(-1.72f, 0.8f, 1.72f), 180f)),
+                L(140, "금박 바인더 · 판매 등록 칸 6 → 8칸", V("LowPoly:Room/Book_03", new Vector3(-1.72f, 0.8f, 1.45f), 180f))),
             // F5: 2단계 = 책상 오른쪽 끝에 보조 모니터 (에셋에 노트북 컴퓨터가 없음), 3단계 = + 스마트홈 기기
             T(UpgradeKind.Computer, "컴퓨터",
                 // 책상(x 0.59 ~ 1.81) 오른쪽 위에 보조 모니터, 스마트홈은 왼쪽(피규어 0.72와 키보드 1.2 사이 뒤쪽)
-                L(70, "모레 인기 속성까지 보기", V("LowPoly:Room/PC_Screen", new Vector3(1.53f, 0.71f, 1.72f), 200f, scale: 0.8f)),
-                L(150, "카드 시세표 (오늘 · 내일 값)", V("LowPoly:Room/SmartHome", new Vector3(1.05f, 0.71f, 1.75f), 180f))),
+                L(70, "모레 인기 속성 · 내일 인기 강도까지 보기", V("LowPoly:Room/PC_Screen", new Vector3(1.53f, 0.71f, 1.72f), 200f, scale: 0.8f)),
+                L(130, "카드 시세표 (오늘 · 내일 배율과 값)", V("LowPoly:Room/SmartHome", new Vector3(1.05f, 0.71f, 1.75f), 180f))),
             // F5 (Q5): 좁은 침대(처음 Bed2_01, 1.16m) → 넓은 침대 Bed1_02(1.84m) → 킹 Bed1_03 가로 1.25배, 벽 모서리에 맞춰 커짐.
             // 씬에 Bed_Tier_0 · 1 · 2가 있으면 그쪽이 우선 (SceneTiers, 지금 Shop.unity) — 이 목록은 집 실내를 초기화해 "Bed"가 다시 생겼을 때 쓰임
             T(UpgradeKind.Bed, "침대",
-                L(70, "손님 인내심 +10%", Bed("LowPoly:Room/Bed1_02", 1f)),
-                L(130, "손님 인내심 +20% · 무료 팩 매일 +1", Bed("LowPoly:Room/Bed1_03", 1.25f))),
+                L(50, "손님 인내심 +15%", Bed("LowPoly:Room/Bed1_02", 1f)),
+                L(130, "손님 인내심 +25% · 무료 팩 매일 +1", Bed("LowPoly:Room/Bed1_03", 1.25f))),
             T(UpgradeKind.Poster, "포스터",
                 L(15, "꾸미기", V("LowPoly:Room/Picture_03", new Vector3(0f, 1.55f, -2.88f), 0f, new Vector3(0f, 0f, -1f)))),
             T(UpgradeKind.Rug, "러그",

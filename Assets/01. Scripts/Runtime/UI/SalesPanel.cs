@@ -115,7 +115,10 @@ namespace CardShop.UI
             if (card == null || Context == null) return;
 
             bool sold = Context.Sales.TrySellInstantly(Context.Session, card.id, out int price);
-            message = sold ? $"{card.displayName} 판매  {MoneyText.Signed(price)}" : "보유한 카드가 없어요";
+            bool bulkOnly = !sold && Context.Session.Collection.CountOf(card.id) > 0 && Context.Sales.InstantPrice(card, Context.Session) <= 0;
+            message = sold ? $"{card.displayName} 판매  {MoneyText.Signed(price)}"
+                : bulkOnly ? $"{RarityName(card.rarity)}은 낱장 매입가가 없어요\n'{RarityName(SellAllMax)} 이하 모두 팔기'로 묶어서 팔아요"
+                : "보유한 카드가 없어요";
             if (sold) { Sfx.Play(SoundId.MoneyIn, transform.position); Context.Events.RaiseHappened(GameMoment.InstantSold); }
             Refresh();
         }
@@ -212,6 +215,19 @@ namespace CardShop.UI
             return styles != null ? styles.Get(r).label : r.ToString();
         }
 
+        // 매입가 한 줄 (DEC-041): 노멀은 묶음 값, 판매 등록할 수 있는 카드는 가게 값과 비교
+        string BuybackLine(CardData card, GameSession session)
+        {
+            float value = Context.Sales.InstantValue(card, session);
+            int price = Context.Sales.InstantPrice(card, session);
+            if (price <= 0 && value > 0f)
+                return $"매입가  {Mathf.RoundToInt(1f / value)}장에 {MoneyText.Format(1)} (모두 팔기)";
+            string line = $"매입가  {MoneyText.Format(price)}";
+            if (Context.Sales.CanDisplay(card))
+                line += $"  ·  가게에 올리면 {MoneyText.Format(Context.EconomyRules.SellPrice(card, MarketDay.None))}+";
+            return line;
+        }
+
         protected override void Redraw()
         {
             if (Context == null || Context.Session == null) return;
@@ -230,7 +246,7 @@ namespace CardShop.UI
                     : $"판매 등록 불가 ({RarityName(Context.Economy.minDisplayRarity)} 이상만)";
                 selectedLabel.text =
                     $"{card.displayName}  ({RarityName(card.rarity)})\n" +
-                    $"보유 {count}장\n{display}\n즉시 판매가  {MoneyText.Format(Context.Sales.InstantPrice(card, session))}";
+                    $"보유 {count}장\n{display}\n{BuybackLine(card, session)}";
             }
             displayButton.interactable = card != null;
             sellButton.interactable = card != null;

@@ -82,17 +82,17 @@ namespace CardShop.Tests
         public void SellPrice_MatchesDesignTable(CardRarity r, int normalPrice, int popularPrice)
         {
             CardData card = Card(CardKind.Slime, CardElement.Fire, r);
-            Assert.AreEqual(normalPrice, rules.SellPrice(card, CardElement.Water));
-            Assert.AreEqual(popularPrice, rules.SellPrice(card, CardElement.Fire));
+            Assert.AreEqual(normalPrice, rules.SellPrice(card, Fixture.Hot(CardElement.Water)));
+            Assert.AreEqual(popularPrice, rules.SellPrice(card, Fixture.Hot(CardElement.Fire)));
             Object.DestroyImmediate(card);
         }
 
         [Test]
         public void GrossPrice_NoFloatRoundingLossWithOddMultiplier()
         {
-            economy.popularMultiplier = 1.3f; // 20 × 1.3f = 25.9999… → 내림하면 25가 되던 버그
+            // 20 × 1.3f = 25.9999… → 내림하면 25가 되던 버그
             CardData card = Card(CardKind.Slime, CardElement.Fire, CardRarity.SuperRare);
-            Assert.AreEqual(26, rules.GrossPrice(card, CardElement.Fire));
+            Assert.AreEqual(26, rules.GrossPrice(card, Fixture.Hot(CardElement.Fire, 1.3f)));
             Object.DestroyImmediate(card);
         }
 
@@ -100,8 +100,8 @@ namespace CardShop.Tests
         public void PopularElement_DoesNotApplyToFieldOrSnack()
         {
             CardData snack = Card(CardKind.Snack, CardElement.None, CardRarity.Unique);
-            Assert.AreEqual(90, rules.SellPrice(snack, CardElement.None));
-            Assert.IsFalse(rules.IsPopular(snack, CardElement.None));
+            Assert.AreEqual(90, rules.SellPrice(snack, MarketDay.None));
+            Assert.IsFalse(rules.IsPopular(snack, Fixture.Hot(CardElement.None)));
             Object.DestroyImmediate(snack);
         }
 

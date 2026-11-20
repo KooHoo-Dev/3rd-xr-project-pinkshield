@@ -17,7 +17,7 @@ namespace CardShop.Logic
     /// <summary>
     /// 판매 진열과 손님 구매 (기획서 5-4, 설계서 Q8 · Q10).
     /// - 진열하면 카드가 보유 목록에서 빠져 진열대로 갑니다. 도감은 그대로 유지됩니다(Q9).
-    /// - 손님은 진열 카드 중 1장을 균등하게 고르고, 등급별 구매 확률로 삽니다. 못 사면 가게 재고를 삽니다(수입 없음).
+    /// - 손님은 진열 카드를 모두 둘러보고 1장까지 삽니다(PickPurchase). 못 사면 가게 재고를 삽니다(수입 없음).
     /// - 안 팔린 카드는 하루가 끝날 때 보유 목록으로 돌아옵니다.
     /// </summary>
     public sealed class SalesRules
@@ -61,23 +61,26 @@ namespace CardShop.Logic
             return DisplayResult.Ok;
         }
 
-        /// <summary>즉시 판매 비율 = 기본 + 바인더 업그레이드 (최대 1)</summary>
-        public float InstantRate(GameSession s) =>
-            Mathf.Min(1f, economy.instantSellRate + (upgrades != null && s != null ? upgrades.InstantSellBonus(s.Upgrades) : 0f));
+        /// <summary>
+        /// 매입가 1장 값 (소수 그대로): 등급 매입가 × (1 + 바인더 보너스). 인기 속성 · 수수료와 무관 (경제시스템_설계 5장, DEC-041).
+        /// 노멀은 0.2라 1장만으로는 0 → "모두 팔기"에서 합계를 낸 뒤 내림합니다.
+        /// </summary>
+        public float InstantValue(CardData card, GameSession s = null) =>
+            rarity.BuybackPrice(card.rarity) * (1f + (upgrades != null && s != null ? upgrades.InstantSellBonus(s.Upgrades) : 0f));
 
-        /// <summary>즉시 판매가: 기준가 × 즉시 판매 비율, 소수점 내림, 최소 1. 수수료 · 인기 속성 배율 없음(고정 가격). s가 없으면 기본 비율.</summary>
+        /// <summary>낱장 즉시 판매가 (매입가 내림). 0이면 낱장으로는 못 팖.</summary>
         public int InstantPrice(CardData card, GameSession s = null) =>
-            Mathf.Max(1, Mathf.FloorToInt(rarity.BasePrice(card.rarity) * InstantRate(s) + 1e-4f));
+            Mathf.Max(0, Mathf.FloorToInt(InstantValue(card, s) + 1e-4f));
 
         /// <summary>
-        /// 보유한 카드를 집에서 바로 팝니다(모든 등급). 카드는 보유 목록에서 1장 빠지고(도감은 유지)
-        /// 값은 곧바로 지갑에 들어갑니다. 하루 장부에는 적지 않습니다. 보유하지 않았으면 false.
+        /// 보유한 카드를 집에서 바로 팝니다(매입가). 카드는 보유 목록에서 1장 빠지고(도감은 유지)
+        /// 값은 곧바로 지갑에 들어갑니다. 하루 장부에는 적지 않습니다. 보유하지 않았거나 낱장 값이 0(노멀)이면 false.
         /// </summary>
         public bool TrySellInstantly(GameSession s, string cardId, out int price)
         {
             price = 0;
             CardData card = cards.Get(cardId);
-            if (card == null || !s.Collection.Remove(cardId)) return false;
+            if (card == null || InstantPrice(card, s) <= 0 || !s.Collection.Remove(cardId)) return false;
             price = InstantPrice(card, s);
             s.Wallet.Add(price);
             return true;
@@ -89,34 +92,38 @@ namespace CardShop.Logic
         /// </summary>
         public int QuoteSellAllUpTo(GameSession s, CardRarity maxRarity, out int total)
         {
-            total = 0;
             int count = 0;
+            float sum = 0f;
             foreach (KeyValuePair<string, int> e in s.Collection.Owned)
             {
                 CardData card = cards.Get(e.Key);
                 if (card == null || card.rarity > maxRarity) continue;
                 count += e.Value;
-                total += InstantPrice(card, s) * e.Value;
+                sum += InstantValue(card, s) * e.Value;
             }
+            total = Mathf.FloorToInt(sum + 1e-4f); // 노멀 0.2 × 13장 = 2.6 → 2
             return count;
         }
 
         /// <summary>maxRarity 이하 등급의 보유 카드를 모두 즉시 판매합니다(도감은 유지). 판 장수를 돌려주고 합계는 total.</summary>
         public int SellAllUpTo(GameSession s, CardRarity maxRarity, out int total)
         {
-            total = 0;
             int count = 0;
+            float sum = 0f;
             var ids = new List<string>(s.Collection.Owned.Keys); // 파는 동안 목록이 바뀌므로 먼저 복사
             foreach (string id in ids)
             {
                 CardData card = cards.Get(id);
                 if (card == null || card.rarity > maxRarity) continue;
-                while (TrySellInstantly(s, id, out int price))
+                float value = InstantValue(card, s);
+                while (s.Collection.Remove(id))
                 {
                     count++;
-                    total += price;
+                    sum += value;
                 }
             }
+            total = Mathf.FloorToInt(sum + 1e-4f); // 합계를 낸 뒤 내림 (노멀 묶음 판매)
+            if (total > 0) s.Wallet.Add(total);
             return count;
         }
 
@@ -133,17 +140,47 @@ namespace CardShop.Logic
         }
 
         /// <summary>
-        /// 1단계: 손님이 계산대에 가져올 물건을 고릅니다. 진열 카드 1장을 균등하게 고르고 등급별 구매 확률로 판정,
-        /// 탈락하거나 진열이 비었으면 null(가게 재고 카드팩). 아직 진열대 · 장부는 바꾸지 않습니다
+        /// 1단계: 손님이 계산대에 가져올 물건을 고릅니다 (경제시스템_설계 13-2 · 8장, DEC-041 Q5 · Q8).
+        /// 손님은 진열 카드를 모두 둘러보고(인기 카드를 먼저 볼 가능성이 큼), 카드마다
+        /// "등급 구매 확률 × browseBuyFactor × 인기 배율"로 판정해 처음 통과한 1장을 삽니다. 모두 탈락하면 null(가게 재고).
+        /// 그래서 판매 칸이 많을수록 더 잘 팔립니다. 아직 진열대 · 장부는 바꾸지 않습니다
         /// (바코드를 찍기 전에 손님이 기다리다 떠나면 판매가 없어야 하므로).
         /// </summary>
-        public CardData PickPurchase(GameSession s)
+        public CardData PickPurchase(GameSession s, MarketDay market)
         {
             if (s.SalesDisplay.Count == 0) return null;
-            int index = random.Range(0, s.SalesDisplay.Count);
-            CardData card = cards.Get(s.SalesDisplay[index]);
-            if (card == null || random.NextDouble() >= rarity.Get(card.rarity).customerBuyChance) return null;
-            return card;
+
+            // 가중치 무작위 순서: 키 = u^(1/w) 큰 순 (가중치가 클수록 앞에 오기 쉬움)
+            var order = new List<KeyValuePair<double, CardData>>(s.SalesDisplay.Count);
+            foreach (string id in s.SalesDisplay)
+            {
+                CardData c = cards.Get(id);
+                if (c == null) continue;
+                double w = LookWeight(prices.PopularRank(c, market));
+                double u = random.NextDouble();
+                order.Add(new KeyValuePair<double, CardData>(System.Math.Pow(u, 1.0 / w), c));
+            }
+            order.Sort((a, b) => b.Key.CompareTo(a.Key));
+
+            foreach (KeyValuePair<double, CardData> e in order)
+                if (random.NextDouble() < BuyChance(e.Value, market)) return e.Value;
+            return null;
+        }
+
+        /// <summary>둘러보다 이 카드를 살 확률 (한 장 기준).</summary>
+        public float BuyChance(CardData card, MarketDay market)
+        {
+            float chance = rarity.Get(card.rarity).customerBuyChance * economy.browseBuyFactor;
+            int rank = prices.PopularRank(card, market);
+            if (rank == 1) chance *= economy.primaryBuyBoost;
+            else if (rank == 2) chance *= economy.secondaryBuyBoost;
+            return Mathf.Min(economy.maxBuyChance, chance);
+        }
+
+        double LookWeight(int rank)
+        {
+            float w = rank == 1 ? economy.primaryLookWeight : rank == 2 ? economy.secondaryLookWeight : 1f;
+            return w > 0.01f ? w : 0.01f;
         }
 
         /// <summary>
@@ -151,23 +188,23 @@ namespace CardShop.Logic
         /// 카드가 그새 진열대에서 사라졌으면 가게 재고를 산 것으로 보고 false.
         /// <paramref name="net"/>: 정산 때 받을 금액(수수료 뒤). 판매가 아니면 0.
         /// </summary>
-        public bool CompleteSale(GameSession s, CardData card, CardElement popular, out int net)
+        public bool CompleteSale(GameSession s, CardData card, MarketDay market, out int net)
         {
             net = 0;
             s.Ledger.customersServed++;
             if (card == null || !s.SalesDisplay.Remove(card.id)) return false;
-            net = prices.SellPrice(card, popular);
+            net = prices.SellPrice(card, market);
             s.Ledger.sales.Add(new DayLedger.Sale
             {
                 cardId = card.id,
-                gross = prices.GrossPrice(card, popular),
+                gross = prices.GrossPrice(card, market),
                 net = net,
             });
             return true;
         }
 
         /// <summary>손님이 내는 금액(수수료 전). 계산대 화면 표시용.</summary>
-        public int CustomerPrice(CardData card, CardElement popular) => prices.GrossPrice(card, popular);
+        public int CustomerPrice(CardData card, MarketDay market) => prices.GrossPrice(card, market);
 
         /// <summary>하루가 끝날 때 안 팔린 진열 카드를 보유 목록으로 돌려놓습니다. 돌려놓은 장수를 돌려줍니다.</summary>
         public int ReturnUnsold(GameSession s)

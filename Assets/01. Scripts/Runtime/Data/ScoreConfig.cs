@@ -22,9 +22,9 @@ namespace CardShop.Cards
         [Tooltip("높은 랭크부터. 위에서부터 처음 만족하는 랭크가 선택됩니다.")]
         public Rank[] ranks =
         {
-            new Rank { name = "S", minScore = 2800, isSuccess = true },
-            new Rank { name = "A", minScore = 2200, isSuccess = true },
-            new Rank { name = "B", minScore = 1500, isSuccess = true },
+            new Rank { name = "S", minScore = 1800, isSuccess = true },
+            new Rank { name = "A", minScore = 1300, isSuccess = true },
+            new Rank { name = "B", minScore = 900, isSuccess = true },
             new Rank { name = "C", minScore = 0, isSuccess = false },
         };
 

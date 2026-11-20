@@ -24,7 +24,7 @@ namespace CardShop.EditorTools
 
         // 모델은 cm 단위 · 얼굴이 FBX +X (Unity로 오면 -X). Toon City People 남녀 손님 머리(머리카락 포함)를 덮도록
         // 배치 렌더로 맞춘 값 (11-20): 폭 약 0.34m · 눈 구멍이 손님 눈 높이 · 얼굴 쪽으로 3cm (손님 머리는 뼈보다 얼굴 쪽으로 나와 있음)
-        const float MeshScale = 1.05f;
+        const float MeshScale = 0.8f; // 11-20 사용자가 프리팹에서 1.05 → 0.8로 줄임 (다시 만들어도 유지)
         static readonly Vector3 MeshOffset = new Vector3(0f, -0.114f, 0.03f); // 머리 가운데(머리 뼈 + maskHeadOffset) 기준
 
         [MenuItem("Tools/CardShop/초기화/Thief/복면 프리팹 다시 만들기")]

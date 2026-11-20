@@ -34,7 +34,7 @@ namespace CardShop.Tests
         {
             Assert.AreEqual(40, catalog.Get(UpgradeKind.Showcase).levels[0].price);
             Assert.AreEqual(100, catalog.Get(UpgradeKind.Showcase).levels[1].price);
-            Assert.AreEqual(60, catalog.Get(UpgradeKind.Binder).levels[0].price);
+            Assert.AreEqual(80, catalog.Get(UpgradeKind.Binder).levels[0].price);
             Assert.AreEqual(140, catalog.Get(UpgradeKind.Binder).levels[1].price);
             Assert.AreEqual(3, rules.MaxLevel(UpgradeKind.Bed));
             Assert.AreEqual(2, rules.MaxLevel(UpgradeKind.Poster));
@@ -112,7 +112,7 @@ namespace CardShop.Tests
 
             BuyAndOpen(UpgradeKind.Bed);
             BuyAndOpen(UpgradeKind.Computer);
-            Assert.AreEqual(1.1f, rules.PatienceMultiplier(s.Upgrades), 1e-5f);
+            Assert.AreEqual(1.15f, rules.PatienceMultiplier(s.Upgrades), 1e-5f);
             Assert.AreEqual(0, rules.ExtraFreePacks(s.Upgrades));
             Assert.AreEqual(2, rules.ForecastDays(s.Upgrades));
 
@@ -120,7 +120,7 @@ namespace CardShop.Tests
             BuyAndOpen(UpgradeKind.Computer);
             BuyAndOpen(UpgradeKind.Showcase);
             BuyAndOpen(UpgradeKind.Showcase);
-            Assert.AreEqual(1.2f, rules.PatienceMultiplier(s.Upgrades), 1e-5f);
+            Assert.AreEqual(1.25f, rules.PatienceMultiplier(s.Upgrades), 1e-5f);
             Assert.AreEqual(1, rules.ExtraFreePacks(s.Upgrades));
             Assert.IsTrue(rules.HasPriceList(s.Upgrades));
             Assert.AreEqual(10, rules.ShowcaseSlots(s.Upgrades));
@@ -128,23 +128,21 @@ namespace CardShop.Tests
         }
 
         [Test]
-        public void BinderUpgrade_AddsSalesSlotsAndInstantRate()
+        // DEC-040: 바인더 3단계는 즉시 판매 대신 판매 칸 6 → 8 (매입가는 그대로)
+        public void BinderUpgrade_AddsSalesSlots_BuybackUnchanged()
         {
             var sales = new SalesRules(f.Economy, f.Rarity, new EconomyRules(f.Economy, f.Rarity), f.Db, new ScriptedRandom(), rules);
-            CardData unique = f.Db.Get("F-U"); // 기준가 100
+            CardData unique = f.Db.Get("F-U"); // 매입가 25
             Assert.AreEqual(4, sales.SlotCount(s));
-            Assert.AreEqual(60, sales.InstantPrice(unique, s));
+            Assert.AreEqual(25, sales.InstantPrice(unique, s));
 
             BuyAndOpen(UpgradeKind.Binder);
             Assert.AreEqual(6, sales.SlotCount(s));
-            Assert.AreEqual(60, sales.InstantPrice(unique, s));
 
             BuyAndOpen(UpgradeKind.Binder);
             Assert.IsTrue(rules.GoldBinder(s.Upgrades));
-            Assert.AreEqual(70, sales.InstantPrice(unique, s));
-            s.Collection.Add("F-U");
-            Assert.IsTrue(sales.TrySellInstantly(s, "F-U", out int got));
-            Assert.AreEqual(70, got);
+            Assert.AreEqual(8, sales.SlotCount(s));
+            Assert.AreEqual(25, sales.InstantPrice(unique, s));
         }
 
         [Test]
@@ -152,10 +150,10 @@ namespace CardShop.Tests
         {
             var score = new ScoreRules(f.Score, f.Rarity, f.Db);
             int before = score.Calculate(s).Score;
-            rules.TryBuy(s, UpgradeKind.Bed, out int price); // 돈 70 → 가구 70
+            rules.TryBuy(s, UpgradeKind.Bed, out int price); // 돈 50 → 가구 50
             FinalResult after = score.Calculate(s);
-            Assert.AreEqual(70, price);
-            Assert.AreEqual(70, after.FurnitureValue);
+            Assert.AreEqual(50, price);
+            Assert.AreEqual(50, after.FurnitureValue);
             Assert.AreEqual(before, after.Score, "산 가격 100%를 자산으로: 점수는 그대로 (DEC-031 Q2)");
         }
 

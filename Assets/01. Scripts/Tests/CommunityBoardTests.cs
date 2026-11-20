@@ -18,8 +18,10 @@ namespace CardShop.Tests
         {
             f = new Fixture();
             s = new GameSession(0);
-            // 인덱스: 0 불, 1 물, 2 땅 → 1~2일 불, 3~4일 물, 5~6일 불, 7일 땅
-            var schedule = new PopularElementSchedule(DayCount, 2, new ScriptedRandom().Int(0, 1, 0, 2));
+            // 인덱스: 0 불, 1 물, 2 땅, 3 공기 → 1순위: 1~2일 불, 3~4일 물, 5~6일 불, 7일 땅 / 2순위는 공기 · 땅 (물 카드가 끼지 않게)
+            // 주기마다 1순위 Int, 2순위 Int, 강도 Double
+            var schedule = new MarketSchedule(DayCount, f.Economy, new ScriptedRandom()
+                .Int(0, 3, 1, 3, 0, 3, 2, 3).Double(0.5, 0.5, 0.5, 0.5));
             board = new CommunityBoard(schedule, f.Db, new EconomyRules(f.Economy, f.Rarity));
         }
 

@@ -30,9 +30,10 @@ namespace CardShop.Tests
         public void Mask_IsHeadSized()
         {
             Bounds b = RootSpaceBounds(out _);
-            Assert.That(b.size.x, Is.InRange(0.28f, 0.40f), "좌우 폭 (만화풍 큰 머리)");
-            Assert.That(b.size.z, Is.InRange(0.30f, 0.44f), "앞뒤 깊이");
-            Assert.That(b.max.y, Is.InRange(0.08f, 0.20f), "머리 가운데에서 정수리까지");
+            // 11-20 사용자가 Play에서 너무 커 보여 크기 1.05 → 0.8로 줄임 (예전 범위 × 0.8/1.05)
+            Assert.That(b.size.x, Is.InRange(0.21f, 0.31f), "좌우 폭");
+            Assert.That(b.size.z, Is.InRange(0.22f, 0.34f), "앞뒤 깊이");
+            Assert.That(b.max.y, Is.InRange(0.03f, 0.13f), "머리 가운데에서 정수리까지");
         }
 
         [Test]

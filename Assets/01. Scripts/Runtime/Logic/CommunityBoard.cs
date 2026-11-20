@@ -8,6 +8,10 @@ namespace CardShop.Logic
     public sealed class CommunityReport
     {
         public CardElement Today { get; }
+        /// <summary>오늘 시세 전체 (1순위 · 2순위 · 강도, DEC-041)</summary>
+        public MarketDay TodayMarket { get; }
+        /// <summary>내일 시세 (내일이 없으면 None)</summary>
+        public MarketDay TomorrowMarket { get; }
         /// <summary>내일의 인기 속성(예보). 내일이 없으면(마지막 날) None.</summary>
         public CardElement Tomorrow { get; }
         public bool HasTomorrow => Tomorrow != CardElement.None;
@@ -15,10 +19,12 @@ namespace CardShop.Logic
         public IReadOnlyList<CardData> TopCards { get; }
         public IReadOnlyList<string> MoodLines { get; }
 
-        public CommunityReport(CardElement today, CardElement tomorrow, IReadOnlyList<CardData> topCards, IReadOnlyList<string> moodLines)
+        public CommunityReport(MarketDay today, MarketDay tomorrow, IReadOnlyList<CardData> topCards, IReadOnlyList<string> moodLines)
         {
-            Today = today;
-            Tomorrow = tomorrow;
+            TodayMarket = today;
+            TomorrowMarket = tomorrow;
+            Today = today.Primary;
+            Tomorrow = tomorrow.Primary;
             TopCards = topCards;
             MoodLines = moodLines;
         }
@@ -41,11 +47,11 @@ namespace CardShop.Logic
         public const string HaveTopLine = "{1} 갖고 있으면 지금이 기회 같은데요";
         public const string NoTopLine = "{0} 수퍼레어 이상은 다들 품절이라던데...";
 
-        readonly PopularElementSchedule schedule;
+        readonly MarketSchedule schedule;
         readonly CardDatabase cards;
         readonly EconomyRules economy;
 
-        public CommunityBoard(PopularElementSchedule schedule, CardDatabase cards, EconomyRules economy)
+        public CommunityBoard(MarketSchedule schedule, CardDatabase cards, EconomyRules economy)
         {
             this.schedule = schedule;
             this.cards = cards;
@@ -68,17 +74,17 @@ namespace CardShop.Logic
 
         public CommunityReport Build(int day, int dayCount, Collection collection)
         {
-            CardElement today = schedule.For(day);
-            CardElement tomorrow = day + 1 <= dayCount ? schedule.For(day + 1) : CardElement.None;
+            MarketDay todayM = schedule.For(day);
+            MarketDay tomorrowM = day + 1 <= dayCount ? schedule.For(day + 1) : MarketDay.None;
 
-            List<CardData> top = FindTopCards(today, collection);
-            return new CommunityReport(today, tomorrow, top, BuildMoodLines(today, tomorrow, top));
+            List<CardData> top = FindTopCards(todayM, collection);
+            return new CommunityReport(todayM, tomorrowM, top, BuildMoodLines(todayM.Primary, tomorrowM.Primary, top));
         }
 
-        List<CardData> FindTopCards(CardElement today, Collection collection)
+        List<CardData> FindTopCards(MarketDay today, Collection collection)
         {
             var found = new List<CardData>();
-            if (today == CardElement.None || collection == null) return found;
+            if (!today.HasPopular || collection == null) return found;
 
             foreach (CardData card in cards.cards)
             {
