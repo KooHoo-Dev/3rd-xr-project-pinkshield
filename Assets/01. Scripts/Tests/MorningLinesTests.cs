@@ -19,7 +19,9 @@ namespace CardShop.Tests
             Assert.AreEqual(MorningMood.SuperRare, MorningLines.MoodFor(2, 7, Ledger(2)));
             Assert.AreEqual(MorningMood.Unique, MorningLines.MoodFor(2, 7, Ledger(3)));
             Assert.AreEqual(MorningMood.Legendary, MorningLines.MoodFor(2, 7, Ledger(4)));
-            Assert.AreEqual(MorningMood.Legendary, MorningLines.MoodFor(2, 7, Ledger(3, god: true)), "갓팩은 레전더리 기분");
+            Assert.AreEqual(MorningMood.GodPack, MorningLines.MoodFor(2, 7, Ledger(4, god: true)), "갓팩은 레전더리보다 우선");
+            Assert.AreEqual(MorningMood.LastDay, MorningLines.MoodFor(7, 7, Ledger(4, god: true)), "마지막 날이 갓팩보다 우선");
+            Assert.AreEqual(MorningMood.GodPack, MorningLines.MoodFor(8, 7, Ledger(3, god: true), endless: true), "연장 날에도 갓팩 기분");
         }
 
         [Test]
@@ -70,7 +72,7 @@ namespace CardShop.Tests
             Assert.AreEqual(MorningMood.Endless, MorningLines.MoodFor(9, 7, Ledger(-1, 0), endless: true), "팩 안 연 날도 연장 기분");
             Assert.AreEqual(MorningMood.Endless, MorningLines.MoodFor(8, 7, null, endless: true));
             Assert.AreEqual(MorningMood.Unique, MorningLines.MoodFor(8, 7, Ledger(3), endless: true), "수퍼레어 이상은 그 기분이 우선");
-            Assert.AreEqual(MorningMood.Legendary, MorningLines.MoodFor(8, 7, Ledger(1, god: true), endless: true));
+            Assert.AreEqual(MorningMood.GodPack, MorningLines.MoodFor(8, 7, Ledger(1, god: true), endless: true));
         }
 
         [Test]
@@ -81,6 +83,16 @@ namespace CardShop.Tests
             Assert.IsNotEmpty(a);
             Assert.AreNotEqual(a, b, "연속 연장 날 대사가 같음");
             StringAssert.DoesNotContain("{day}", a);
+        }
+
+        [Test]
+        public void Display_AddsSecondLine_OnlyWhenCardsOnDisplay()
+        {
+            Assert.IsNull(MorningLines.DisplayMoodFor(0));
+            Assert.AreEqual(MorningMood.DisplayOne, MorningLines.DisplayMoodFor(1));
+            Assert.AreEqual(MorningMood.DisplayMany, MorningLines.DisplayMoodFor(3));
+            StringAssert.DoesNotContain("\n", MorningLines.For(3, 7, Ledger(1)), "진열이 없으면 한 줄");
+            Assert.AreEqual(2, MorningLines.For(3, 7, Ledger(1), onDisplay: 2).Split('\n').Length, "진열이 있으면 두 줄");
         }
     }
 }
