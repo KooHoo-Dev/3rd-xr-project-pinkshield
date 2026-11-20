@@ -209,7 +209,7 @@ namespace CardShop.Core.Phases
 
     /// <summary>
     /// 퇴근 후 집 (시연 피드백). 안 팔린 판매 등록 카드는 내가 내릴 때까지 그대로 둡니다
-    /// (11-20 플레이 뒤 DEC-037 · BUG-021: 예전에는 집에 올 때마다 모두 돌려놓아 매일 다시 등록해야 했음).
+    /// (11-20 플레이 뒤 DEC-037 · BUG-022: 예전에는 집에 올 때마다 모두 돌려놓아 매일 다시 등록해야 했음).
     /// 반환은 마지막 날에만(DayEndPhase). 침대 버튼 = Advance → 다음 날 아침.
     /// </summary>
     public sealed class HomePhase : GamePhase

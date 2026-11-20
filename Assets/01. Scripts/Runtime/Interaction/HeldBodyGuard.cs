@@ -7,7 +7,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 namespace CardShop.Interaction
 {
     /// <summary>
-    /// 손에 쥔 물건 ↔ 플레이어 몸(CharacterController) 충돌 끄기 (11-20 플레이 뒤 BUG-022).
+    /// 손에 쥔 물건 ↔ 플레이어 몸(CharacterController) 충돌 끄기 (11-20 플레이 뒤 BUG-021).
     /// 쥔 쓰레기를 허리 아래로 들면 발 앞의 "턱"이 되어 몸이 그 위로 올라서고, 그대로 쓰레기통 위에 서던 문제.
     /// 리그 손(상호작용기)이 무엇이든 쥐는 동안 그 물건의 충돌체와 몸의 충돌을 끄고, 놓은 뒤 몸과 떨어지면 다시 켭니다
     /// (겹친 채 켜면 물리가 물건을 튕겨 냄). 쥐기 전부터 꺼져 있던 짝(대걸레: Broom이 늘 끔)은 건드리지 않습니다.
