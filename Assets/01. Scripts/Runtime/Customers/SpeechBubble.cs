@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CardShop.UI;
 using TMPro;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace CardShop.Customers
     /// → 만화식 구름 말풍선을 글자 '뒤에' 그립니다. 동그라미 스프라이트(코드로 만든 원 하나)를 겹쳐
     ///   몸통(타원) + 가장자리 뭉게(작은 원들) + 꼬리(머리 쪽 작은 원 2개)를 만들고, 같은 모양을 조금 크게 진한 색으로 깔아 테두리를 냅니다.
     ///   글자 길이에 맞춰 크기가 바뀌어도 모양이 깨지지 않습니다(이미지 에셋 불필요).
+    /// UI 개편 C안(3번 판): 왼쪽 위에 분홍 "손님" 이름표(NameTag), 대사는 한 글자씩(TypewriterText).
     /// 사라질 때는 투명해지지 않고 작아지며 사라집니다 (11-19 피드백: 겹친 원들이 반투명해지면 서로 비쳐 동그라미 자국이 보였음).
     /// </summary>
     public sealed class SpeechBubble : MonoBehaviour
@@ -37,6 +39,8 @@ namespace CardShop.Customers
         static Sprite circle;
 
         TextMeshPro text;
+        NameTag nameTag;
+        TypewriterText typing;
         Transform cloud;
         readonly List<SpriteRenderer> fills = new List<SpriteRenderer>();
         readonly List<SpriteRenderer> outlines = new List<SpriteRenderer>();
@@ -79,6 +83,11 @@ namespace CardShop.Customers
             bubble.text.color = TextColor;
             bubble.text.GetComponent<MeshRenderer>().sortingOrder = 2;
             ((RectTransform)textGo.transform).sizeDelta = new Vector2(MaxTextWidth, 0.5f);
+            bubble.typing = new TypewriterText(bubble.text);
+
+            // 이름표: 구름(순서 0~1) · 글자(2)보다 앞
+            bubble.nameTag = NameTag.Create(go.transform, FontSize * 0.6f, 3);
+            bubble.nameTag.Set(BubbleStyle.Customer.Label, BubbleStyle.Customer.Line);
 
             go.SetActive(false);
             return bubble;
@@ -123,10 +132,12 @@ namespace CardShop.Customers
         {
             if (string.IsNullOrEmpty(message)) return;
             text.text = message;
+            text.maxVisibleCharacters = 99999; // 구름 크기는 다 쓴 글자 기준
             duration = Mathf.Max(0.5f, seconds);
             left = duration;
             gameObject.SetActive(true);
             Layout();
+            typing.Restart();
             pop = 1f;
             Follow();
         }
@@ -161,6 +172,9 @@ namespace CardShop.Customers
             Place(used++, new Vector2(-w * 0.12f, TailHeight * 0.75f), Vector2.one * 0.04f);
             Place(used++, new Vector2(-w * 0.18f, TailHeight * 0.2f), Vector2.one * 0.024f);
 
+            // 이름표: 몸통 왼쪽 위 모서리에 걸치게 (구름 뭉게 바깥쪽까지 보이도록 조금 위)
+            nameTag.PinTo(new Rect(-w * 0.5f, cy - h * 0.5f, w, h + bump * 0.3f));
+
             for (int i = used; i < fills.Count; i++)
             {
                 fills[i].enabled = false;
@@ -182,7 +196,11 @@ namespace CardShop.Customers
 
         void LateUpdate()
         {
-            if (IsPaused == null || !IsPaused()) left -= Time.deltaTime;
+            if (IsPaused == null || !IsPaused())
+            {
+                left -= Time.deltaTime;
+                typing.Tick(Time.deltaTime);
+            }
             if (left <= 0f) { gameObject.SetActive(false); return; }
             // 마지막 FadeSeconds 동안 꼬리 끝(머리 위)을 향해 작아짐. 원들이 불투명한 채라 겹친 자국이 생기지 않음
             pop = left < FadeSeconds ? Mathf.Max(0.01f, Mathf.SmoothStep(0f, 1f, left / FadeSeconds)) : 1f;

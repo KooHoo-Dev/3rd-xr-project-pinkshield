@@ -30,13 +30,13 @@ namespace CardShop.EditorTools.Interior
 
         // ------------------------------------------------------------------ 메뉴
 
-        [MenuItem("Tools/CardShop/Interior/Rebuild Shop Interior Prefab", priority = 61)]
+        [MenuItem("Tools/CardShop/초기화/Interior/Rebuild Shop Interior Prefab", priority = 61)]
         static void RebuildShopMenu() { if (Confirm("ShopInterior")) Save(BuildShop(), ShopPath); }
 
-        [MenuItem("Tools/CardShop/Interior/Rebuild Shop Street Prefab", priority = 62)]
+        [MenuItem("Tools/CardShop/초기화/Interior/Rebuild Shop Street Prefab", priority = 62)]
         static void RebuildStreetMenu() { if (Confirm("ShopStreet")) Save(BuildStreet(), StreetPath); }
 
-        [MenuItem("Tools/CardShop/Interior/Rebuild Home Interior Prefab", priority = 63)]
+        [MenuItem("Tools/CardShop/초기화/Interior/Rebuild Home Interior Prefab", priority = 63)]
         static void RebuildHomeMenu() { if (Confirm("HomeInterior")) Save(BuildHome(), HomePath); }
 
         static bool Confirm(string name)
@@ -56,7 +56,7 @@ namespace CardShop.EditorTools.Interior
             if (AssetDatabase.LoadAssetAtPath<GameObject>(BlocksPath) == null) Save(BuildBlocks(), BlocksPath);
         }
 
-        [MenuItem("Tools/CardShop/Interior/Rebuild Street Blocks Prefab", priority = 64)]
+        [MenuItem("Tools/CardShop/초기화/Interior/Rebuild Street Blocks Prefab", priority = 64)]
         static void RebuildBlocksMenu() { if (Confirm("ShopStreetBlocks")) Save(BuildBlocks(), BlocksPath); }
 
         /// <summary>배치 모드(-executeMethod): 확인 창 없이 거리 보강 프리팹을 다시 만들고 Build Shop Scene까지 실행</summary>
