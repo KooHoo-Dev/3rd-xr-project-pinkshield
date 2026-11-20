@@ -23,9 +23,10 @@ namespace CardShop.Logic
         }
 
         public BinderTab Tab { get; private set; } = BinderTab.All;
+        public BinderSortOrder Sort { get; private set; } = BinderSortOrder.Dex;
         public int Page { get; private set; }
 
-        public BinderLayout Layout => layout ??= new BinderLayout(BinderTabs.FilterIds(cards, Tab), perPage);
+        public BinderLayout Layout => layout ??= new BinderLayout(BinderSort.Ids(cards, Tab, Sort), perPage);
         public BinderLayout FullLayout => fullLayout ??= new BinderLayout(BinderTabs.FilterIds(cards, BinderTab.All), perPage);
         public int PageCount => Layout.PageCount;
 
@@ -43,8 +44,23 @@ namespace CardShop.Logic
             Page = 0;
         }
 
-        /// <summary>새 게임: 전체 탭 첫 쪽.</summary>
-        public void Reset() => ShowTab(BinderTab.All);
+        /// <summary>정렬을 바꾸고 첫 쪽으로 (탭은 그대로, F1).</summary>
+        public void ShowSort(BinderSortOrder next)
+        {
+            if (next != Sort)
+            {
+                Sort = next;
+                layout = null;
+            }
+            Page = 0;
+        }
+
+        /// <summary>새 게임: 전체 탭 · 도감순 첫 쪽.</summary>
+        public void Reset()
+        {
+            ShowSort(BinderSortOrder.Dex);
+            ShowTab(BinderTab.All);
+        }
 
         /// <summary>
         /// 그 카드가 있는 쪽으로. 지금 탭에 없는 카드면 그 카드의 속성 탭으로 바꿈. 바인더에 없는 카드면 false (그대로).

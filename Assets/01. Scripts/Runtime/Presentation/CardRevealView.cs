@@ -42,7 +42,7 @@ namespace CardShop.Presentation
             body = GetComponent<Rigidbody>();
             visual = transform.Find("Visual");
             if (visual == null) Debug.LogWarning("[CardRevealView] 카드 프리팹에 Visual 자식이 없습니다. Build Card Prefab 을 다시 실행하세요.", this);
-            grab.selectEntered.AddListener(_ => GrabStarted?.Invoke(this));
+            grab.selectEntered.AddListener(_ => { PlayPickSound(); GrabStarted?.Invoke(this); });
             grab.selectExited.AddListener(_ => GrabEnded?.Invoke(this));
             grab.throwOnDetach = false; // 공개용 카드는 키네마틱이라 던질 수 없음 (XRI 경고 방지)
             if (body != null)
@@ -125,6 +125,17 @@ namespace CardShop.Presentation
             rt.localPosition = new Vector3(b.min.x + b.size.x * 0.84f, b.min.y + b.size.y * 0.835f, b.min.z - 0.0003f);
             rt.localRotation = Quaternion.identity;
             return text;
+        }
+
+        // 카드를 쥐는 순간 "사락" (공개 카드 · 보관함 카드, F4). 양손으로 연달아 쥐어도 겹치지 않게 0.1초 간격
+        const float PickGap = 0.1f;
+        static float lastPick = -1f;
+
+        void PlayPickSound()
+        {
+            if (Time.unscaledTime - lastPick < PickGap) return;
+            lastPick = Time.unscaledTime;
+            Sfx.Play(SoundId.CardPick, transform.position);
         }
 
         /// <summary>묶음에 있는 동안은 잡히지 않게(넘기기 순서가 꼬이지 않도록).</summary>

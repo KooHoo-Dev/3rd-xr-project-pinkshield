@@ -18,6 +18,7 @@ namespace CardShop.Cards
         NewCard = 3,         // 처음 얻은 카드
         PileLand = 4,        // 카드가 더미에 내려앉음
         PileStash = 5,       // 더미가 보관함으로 날아감
+        CardPick = 6,        // 카드를 손에 쥠 (11-20 플레이 F4, 0.1~0.2초 종이 "사락", 연달아 쥐면 0.1초 간격)
         // 가게
         ScanBeep = 10,       // 바코드 (비우면 코드로 만든 삑)
         PosPay = 11,         // 결제 완료
