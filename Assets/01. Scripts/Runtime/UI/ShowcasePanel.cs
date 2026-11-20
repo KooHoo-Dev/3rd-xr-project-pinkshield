@@ -17,7 +17,7 @@ namespace CardShop.UI
     {
         // 문구는 한 곳에 모읍니다.
         const string NoSelection = "바인더에서 진열할 카드를 골라 주세요";
-        const string Hint = "책장 진열대의 카드는 손으로 꺼내 볼 수 있어요";
+        const string Hint = "보관함 카드는 손으로 옮기거나 바인더 위로 내려요";
 
         // 패널 크기 (1px = 1mm). 판매 패널(440 × 820)과 폭을 맞춤
         const float Width = 440f, Height = 760f;
@@ -115,14 +115,14 @@ namespace CardShop.UI
         {
             CardData card = binder != null ? binder.SelectedCard : null;
             if (card == null || Context == null) return;
-            // 보관함이 있으면 바인더 위에 카드를 꺼내 손으로 꽂게 함 (11-20 J5), 없으면 예전처럼 바로 진열
+            // 보관함이 있으면 바로 빈 칸에 꽂히며 날아감 (DEC-036, 소리 · 진동은 보관함이), 없으면 데이터만
             CardCase box = CardCase.Instance;
-            ShowcaseResult result = box != null ? box.PullOut(card) : ShowcaseRules.TryAdd(Context.Session, card.id, Capacity);
+            ShowcaseResult result = box != null ? box.Place(card) : ShowcaseRules.TryAdd(Context.Session, card.id, Capacity);
             switch (result)
             {
                 case ShowcaseResult.Ok:
-                    message = box != null ? $"{card.displayName}을(를) 꺼냈어요! 집어서 모니터 위 보관함에 꽂아요" : $"{card.displayName} 진열 완료!";
-                    Sfx.Play(SoundId.PileLand, transform.position);
+                    message = $"{card.displayName}을(를) 모니터 위 보관함에 세웠어요!";
+                    if (box == null) Sfx.Play(SoundId.PileLand, transform.position);
                     break;
                 case ShowcaseResult.Full: message = "진열장이 가득 찼어요 (슬라임마켓에서 늘릴 수 있어요)"; break;
                 default: message = "진열할 카드가 없어요 (판매 등록 중인 카드는 빼고)"; break;

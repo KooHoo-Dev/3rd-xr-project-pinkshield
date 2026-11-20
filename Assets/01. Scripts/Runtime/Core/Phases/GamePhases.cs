@@ -208,9 +208,9 @@ namespace CardShop.Core.Phases
     }
 
     /// <summary>
-    /// 퇴근 후 집 (시연 피드백). 안 팔린 진열 카드는 집으로 가져옵니다(반환 시점을 DayEnd에서 옮김:
-    /// 집에서 내일 팔 카드를 다시 등록해도 DayEnd가 지우지 않도록). 책상(바인더) · 컴퓨터(커뮤니티)는 이후 단계에서 연결.
-    /// 침대 버튼 = Advance → 다음 날 아침.
+    /// 퇴근 후 집 (시연 피드백). 안 팔린 판매 등록 카드는 내가 내릴 때까지 그대로 둡니다
+    /// (11-20 플레이 뒤 DEC-037 · BUG-021: 예전에는 집에 올 때마다 모두 돌려놓아 매일 다시 등록해야 했음).
+    /// 반환은 마지막 날에만(DayEndPhase). 침대 버튼 = Advance → 다음 날 아침.
     /// </summary>
     public sealed class HomePhase : GamePhase
     {
@@ -219,8 +219,8 @@ namespace CardShop.Core.Phases
 
         public override void Enter()
         {
-            int returned = Context.Sales.ReturnUnsold(Context.Session);
-            Log(returned > 0 ? $"안 팔린 진열 카드 {returned}장을 집으로 가져옴" : "집에 도착");
+            int listed = Context.Session.SalesDisplay.Count;
+            Log(listed > 0 ? $"집에 도착 (판매 등록 {listed}장 유지)" : "집에 도착");
         }
 
         public override void OnAdvanceRequested() => Flow.GoToFaded(GamePhaseId.DayEnd);
@@ -232,7 +232,7 @@ namespace CardShop.Core.Phases
         }
     }
 
-    /// <summary>하루 마무리. 미판매 진열 카드는 HomePhase가 이미 돌려놨고, 여기서는 마지막 날에만 돌려놓습니다. 선반 재배치는 DayStarted를 받은 선반이 합니다. 마지막 날이면 최종 정산.</summary>
+    /// <summary>하루 마무리. 안 팔린 판매 등록 카드는 다음 날까지 그대로 두고, 마지막 날에만 돌려놓습니다(최종 점수용). 선반 재배치는 DayStarted를 받은 선반이 합니다. 마지막 날이면 최종 정산.</summary>
     public sealed class DayEndPhase : GamePhase
     {
         public DayEndPhase(GameFlow f, GameContext c) : base(f, c) { }
@@ -240,7 +240,7 @@ namespace CardShop.Core.Phases
 
         public override void Enter()
         {
-            // 평소의 반환은 HomePhase가 합니다. 여기서 또 하면 집에서 등록한 카드가 사라지므로 마지막 날만(최종 점수용).
+            // 평소에는 반환하지 않음 (DEC-037). 마지막 날만(최종 점수에 카드 가치).
             bool endless = Context.Session.Endless.Active;
             int returned = endless ? 0 : Context.Sales.ReturnUnsoldOnFinalDay(Context.Session, Context.Campaign.DayCount);
             if (returned > 0) Log($"안 팔린 진열 카드 {returned}장 반환 (마지막 날)");
