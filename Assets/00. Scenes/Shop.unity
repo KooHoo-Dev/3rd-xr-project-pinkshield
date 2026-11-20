@@ -7607,10 +7607,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41b1b08e6ef18304c856549a8480dc43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cleanup.TrashBin
-  radius: 0.32
+  radius: 0.4
   dropHeight: 1.3
   hint: {fileID: 1995993018}
-  climbBlocker: {x: 0.5, y: 1.1, z: 0.5}
+  climbBlocker: {x: 0.5, y: 1.6, z: 0.5}
 --- !u!4 &316958064
 Transform:
   m_ObjectHideFlags: 0
