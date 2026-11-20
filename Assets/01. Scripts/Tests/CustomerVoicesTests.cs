@@ -43,11 +43,23 @@ namespace CardShop.Tests
         }
 
         [Test]
-        public void Man_UsesAdultSlots_RegardlessOfAge()
+        public void YoungMan_PrefersBoySlot_ThenFallsBackToAdult()
         {
-            foreach (VoiceKind kind in Enum.GetValues(typeof(VoiceKind)))
-                Assert.AreEqual(CustomerVoices.Candidates(kind, false, false), CustomerVoices.Candidates(kind, false, true));
+            Assert.AreEqual(new[] { SoundId.CustomerWowBoy, SoundId.CustomerWowMale, SoundId.CustomerVoiceMale },
+                CustomerVoices.Candidates(VoiceKind.Wow, false, true));
+            Assert.AreEqual(new[] { SoundId.CustomerVoiceBoy, SoundId.CustomerVoiceMale },
+                CustomerVoices.Candidates(VoiceKind.Light, false, true));
+            Assert.AreEqual(new[] { SoundId.CustomerVoiceMale },
+                CustomerVoices.Candidates(VoiceKind.Light, false, false));
+        }
+
+        [Test]
+        public void Man_HasOwnImpatientSlot_AndAngryForAllAges()
+        {
+            Assert.AreEqual(new[] { SoundId.CustomerImpatientMale, SoundId.CustomerVoiceMale },
+                CustomerVoices.Candidates(VoiceKind.Impatient, false, false));
             Assert.AreEqual(new[] { SoundId.CustomerAngry }, CustomerVoices.Candidates(VoiceKind.Angry, false, false));
+            Assert.AreEqual(new[] { SoundId.CustomerAngry }, CustomerVoices.Candidates(VoiceKind.Angry, false, true));
         }
     }
 }

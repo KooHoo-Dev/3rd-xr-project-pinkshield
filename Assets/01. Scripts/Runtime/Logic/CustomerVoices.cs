@@ -21,16 +21,21 @@ namespace CardShop.Logic
             _ => VoiceKind.Light,
         };
 
-        /// <summary>칸 후보 (앞이 우선). 남자는 아직 나이 구분 칸이 없어 어른 칸을 씁니다.</summary>
+        /// <summary>칸 후보 (앞이 우선). 젊은 칸이 비어 있으면 어른 칸으로 넘어갑니다.</summary>
         public static SoundId[] Candidates(VoiceKind kind, bool female, bool young)
         {
             if (!female)
             {
                 return kind switch
                 {
-                    VoiceKind.Wow => new[] { SoundId.CustomerWowMale, SoundId.CustomerVoiceMale },
+                    VoiceKind.Wow => young
+                        ? new[] { SoundId.CustomerWowBoy, SoundId.CustomerWowMale, SoundId.CustomerVoiceMale }
+                        : new[] { SoundId.CustomerWowMale, SoundId.CustomerVoiceMale },
+                    VoiceKind.Impatient => new[] { SoundId.CustomerImpatientMale, SoundId.CustomerVoiceMale },
                     VoiceKind.Angry => new[] { SoundId.CustomerAngry },
-                    _ => new[] { SoundId.CustomerVoiceMale }, // 남자 재촉 소리는 아직 없음
+                    _ => young
+                        ? new[] { SoundId.CustomerVoiceBoy, SoundId.CustomerVoiceMale }
+                        : new[] { SoundId.CustomerVoiceMale },
                 };
             }
             return kind switch

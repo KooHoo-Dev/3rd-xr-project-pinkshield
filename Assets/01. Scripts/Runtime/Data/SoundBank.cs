@@ -67,7 +67,11 @@ namespace CardShop.Cards
         BgmShopChill = 70,            // 2일차부터 BgmShop과 번갈아
         BgmShopLucky = 71,
         ThiefHurtMale = 72,           // 대걸레에 맞은 도둑 "아야" (11-20 G6, 임시: 화남 클립 음높이 올림)
-        ThiefHurtFemale = 73,            // 전날 유니크 이상을 뽑은 다음 날 (기분 좋은 날)
+        ThiefHurtFemale = 73,
+        // 손님 목소리 추가 (11-20 G7: 남자 재촉 · 젊은 남자)
+        CustomerImpatientMale = 74,   // 남자 한숨 · "come on" (줄 재촉)
+        CustomerVoiceBoy = 75,        // 젊은 남자 가벼운 반응 (비면 어른 남자 칸)
+        CustomerWowBoy = 76,          // 젊은 남자 와우 (비면 어른 남자 칸)
     }
 
     /// <summary>
