@@ -18,6 +18,7 @@ namespace CardShop.Presentation
         const float FadeSeconds = 0.3f;
 
         TextMeshPro text;
+        TextPlate plate;
         float hideAt;
 
         public static WorldToast Create(Transform parent, TMP_FontAsset font)
@@ -31,6 +32,9 @@ namespace CardShop.Presentation
             toast.text.alignment = TextAlignmentOptions.Center;
             toast.text.textWrappingMode = TextWrappingModes.NoWrap;
             ((RectTransform)go.transform).sizeDelta = new Vector2(0.4f, 0.06f);
+            // 알림 쪽지 (UI_개편_설계 C안): 검은 띠 대신 종이 + 잉크 글자
+            toast.text.color = UiTheme.Ink;
+            toast.plate = TextPlate.Attach(toast.text, UiTheme.Paper, new Vector2(0.018f, 0.012f), 0.01f, UiTheme.Kraft, 0.002f);
             go.SetActive(false);
             return toast;
         }
@@ -38,11 +42,12 @@ namespace CardShop.Presentation
         public void Show(string message, Vector3 position)
         {
             transform.position = position;
-            // 배경을 더 진하게 + 글자 둘레 여백 (11-19 피드백: 밝은 배경 앞에서 잘 안 보임)
-            text.text = $"<mark={UiTheme.MarkStrong} padding=\"6,6,3,3\">{message}</mark>";
+            // 불투명 종이 판이라 밝은 배경 앞에서도 읽힘 (11-19 피드백: 예전 검은 띠는 밝은 배경 앞에서 잘 안 보였음)
+            text.text = message;
             text.alpha = 1f;
             hideAt = Time.time + SecondsFor(message);
             gameObject.SetActive(true);
+            if (plate != null) { plate.Fit(); plate.SetAlpha(1f); }
             FaceCamera();
         }
 
@@ -66,6 +71,7 @@ namespace CardShop.Presentation
             float left = hideAt - Time.time;
             if (left <= 0f) { gameObject.SetActive(false); return; }
             text.alpha = Mathf.Clamp01(left / FadeSeconds);
+            if (plate != null) plate.SetAlpha(text.alpha);
             FaceCamera();
         }
 

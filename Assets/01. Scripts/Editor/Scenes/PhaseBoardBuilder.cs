@@ -47,7 +47,7 @@ namespace CardShop.EditorTools
             WorldUi.AddText(c, "Credit", Credit, new Vector2(0.04f, 0.03f), new Vector2(0.96f, 0.11f), 24f, UiTheme.SubText, font);
 
             // 버튼 높이 74mm(0.12) · 간격 37mm(0.06)
-            Button start = WorldUi.AddButton(c, "영업 시작", new Vector2(0.25f, 0.38f), new Vector2(0.75f, 0.50f), font);
+            Button start = WorldUi.AddButton(c, TitleBoard.StartLabel, new Vector2(0.25f, 0.38f), new Vector2(0.75f, 0.50f), font);
             start.GetComponentInChildren<TMP_Text>().fontSize = 36f;
             Button recalibrate = WorldUi.AddButton(c, "눈높이 맞추기", new Vector2(0.25f, 0.20f), new Vector2(0.75f, 0.32f), font);
 

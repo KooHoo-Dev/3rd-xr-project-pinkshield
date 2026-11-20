@@ -52,6 +52,19 @@ namespace CardShop.UI
         InputAction pauseAction;
         Coroutine countdown;
 
+        // 손에 든 클립보드처럼 (UI_개편_설계 C안 7번 판). 씬은 그대로 두고 실행할 때 칠함.
+        // 튜토리얼 · 무한 모드 버튼은 [이어서 하기]를 복제하므로 그쪽에서 다시 칠함
+        void Awake()
+        {
+            if (root == null) return;
+            UiSkin.ApplyPanel(root.transform, UiSurface.Clipboard);
+            UiSkin.StyleButton(resumeButton, UiButtonKind.Primary);
+            UiSkin.StyleButton(restartButton, UiButtonKind.Danger);
+            UiSkin.StyleButton(confirmYesButton, UiButtonKind.Danger);
+            Transform title = root.transform.Find("Title");
+            if (title != null && title.TryGetComponent(out TMP_Text t)) t.text = "잠깐 쉬는 중";
+        }
+
         void OnEnable()
         {
             resumeButton.onClick.AddListener(OnResume);

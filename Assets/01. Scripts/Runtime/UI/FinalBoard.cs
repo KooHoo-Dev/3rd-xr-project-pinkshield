@@ -20,6 +20,12 @@ namespace CardShop.UI
         RectTransform advanceRect;
         Vector2 advanceMin, advanceMax;
 
+        // 끝은 "상장" 종이 (UI_개편_설계 C안 10번 판). 씬은 그대로 두고 실행할 때 칠함
+        void Awake()
+        {
+            if (content != null) UiSkin.ApplyPanel(content.transform, UiSurface.Paper);
+        }
+
         protected override void Start()
         {
             base.Start();
@@ -31,6 +37,7 @@ namespace CardShop.UI
             GameObject go = Instantiate(advance.gameObject, advance.transform.parent, false);
             go.name = "Button_Continue";
             continueButton = go.GetComponent<Button>();
+            UiSkin.StyleButton(continueButton, UiButtonKind.Primary); // 계속 일하기가 이 판의 주 버튼
             continueButton.onClick = new Button.ButtonClickedEvent(); // 복제된 [타이틀로] 연결을 떼어 냄
             continueButton.onClick.AddListener(OnContinue);
             TMP_Text label = go.GetComponentInChildren<TMP_Text>(true);

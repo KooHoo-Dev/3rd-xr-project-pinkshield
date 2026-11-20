@@ -8,6 +8,9 @@ namespace CardShop.Logic
     {
         const string Col = "<pos=68%>";
 
+        /// <summary>영수증 점선 한 줄 (정산 합계 위)</summary>
+        public const string Rule = "<color=#9C93AE>- - - - - - - - - - - - - - - - - - - -</color>";
+
         /// <summary>+12 / −3 / 0 (빼기는 읽기 쉬운 유니코드 마이너스)</summary>
         public static string Signed(int v) => v > 0 ? "+" + v : v < 0 ? "−" + (-v) : "0";
 
@@ -46,6 +49,7 @@ namespace CardShop.Logic
             sb.Append($"판매 {l.sales.Count}장").Append(Col).Append(MoneyText.Signed(rules.SalesTotal(l))).Append('\n');
             if (l.thievesCaught > 0) sb.Append($"<size=80%>도둑 {l.thievesCaught}명 잡음!</size>\n");
             if (l.freePackStolen) sb.Append("<size=80%>도둑이 오늘 무료 팩을 가져감</size>\n");
+            sb.Append(Rule).Append('\n'); // 영수증 점선 (UI_개편_설계 4번 판)
             sb.Append($"<b>합계</b>{Col}<b>{MoneyText.Signed(total)}</b>\n");
             sb.Append($"<size=80%>내 자산</size>{Col}<size=80%>{MoneyText.Format(money)}</size>");
             return sb.ToString();

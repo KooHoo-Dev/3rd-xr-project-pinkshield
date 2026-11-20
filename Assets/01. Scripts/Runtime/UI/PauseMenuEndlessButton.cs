@@ -55,6 +55,7 @@ namespace CardShop.UI
             text = go.GetComponentInChildren<TMP_Text>(true);
             if (text != null) text.text = Label;
             button = go.GetComponent<Button>();
+            UiSkin.StyleButton(button, UiButtonKind.Paper); // 원본 [이어서 하기]는 분홍(Primary)이라 다시 칠함
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(OnClick);
         }

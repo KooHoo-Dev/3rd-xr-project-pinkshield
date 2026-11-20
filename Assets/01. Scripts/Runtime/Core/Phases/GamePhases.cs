@@ -27,7 +27,7 @@ namespace CardShop.Core.Phases
     }
 
     /// <summary>
-    /// 타이틀. 플레이어는 가게 앞 인도에 서 있고(DayTransition), 타이틀 판의 [영업 시작] → 새 세션 → 페이드 → 1일차 인트로.
+    /// 타이틀. 플레이어는 가게 앞 인도에 서 있고(DayTransition), 타이틀 판의 [출근하기] → 새 세션 → 페이드 → 1일차 인트로.
     /// </summary>
     public sealed class TitlePhase : GamePhase
     {

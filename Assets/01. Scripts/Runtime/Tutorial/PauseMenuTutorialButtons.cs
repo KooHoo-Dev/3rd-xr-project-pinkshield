@@ -85,6 +85,7 @@ namespace CardShop.Tutorial
             var text = go.GetComponentInChildren<TMP_Text>(true);
             if (text != null) text.text = label;
             var button = go.GetComponent<Button>();
+            CardShop.UI.UiSkin.StyleButton(button, CardShop.UI.UiButtonKind.Normal); // 원본 [이어서 하기]는 분홍(Primary)이라 다시 칠함
             button.onClick.RemoveAllListeners(); // 복제본에 남은 런타임 연결은 없지만 안전하게
             return button;
         }
