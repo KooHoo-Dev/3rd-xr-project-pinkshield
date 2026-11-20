@@ -21,6 +21,7 @@ namespace CardShop.Customers
         const float FadeSeconds = 0.3f;
         // 손님 키를 줄여도 글자 크기는 같게: 크기는 월드 기준으로 맞춤 (3차 피드백으로 키움)
         const float FontSize = 0.4f;
+        const float NameTagFontSize = 0.32f; // "손님" 이름표 글자: 말풍선 글자와 따로 (11-20: 글자의 80%)
         const float MaxTextWidth = 0.8f;
         // 이 거리까지는 기본 크기, 더 멀면 거리에 비례해 키움 (최대 MaxDistanceScale배)
         const float ReferenceDistance = 1.5f;
@@ -86,8 +87,8 @@ namespace CardShop.Customers
             bubble.typing = new TypewriterText(bubble.text);
 
             // 이름표: 구름(순서 0~1) · 글자(2)보다 앞
-            bubble.nameTag = NameTag.Create(go.transform, FontSize * 0.6f, 3);
-            bubble.nameTag.Set(BubbleStyle.Customer.Label, BubbleStyle.Customer.Line);
+            bubble.nameTag = NameTag.Create(go.transform, NameTagFontSize, 3);
+            bubble.nameTag.Set(BubbleStyle.Customer.Label, BubbleStyle.Customer.TagFill, BubbleStyle.Customer.Line);
 
             go.SetActive(false);
             return bubble;
@@ -131,7 +132,8 @@ namespace CardShop.Customers
         public void Say(string message, float seconds)
         {
             if (string.IsNullOrEmpty(message)) return;
-            text.text = message;
+            text.fontStyle |= FontStyles.Bold; // 말풍선 글자는 모두 굵게 (11-20)
+            text.text = CardShop.UI.PaperBubble.EmphasisByColor(message); // 강조는 색으로만
             text.maxVisibleCharacters = 99999; // 구름 크기는 다 쓴 글자 기준
             duration = Mathf.Max(0.5f, seconds);
             left = duration;

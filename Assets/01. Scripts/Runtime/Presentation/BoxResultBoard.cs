@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using CardShop.Cards;
 using CardShop.Logic;
+using CardShop.UI;
 using TMPro;
 using UnityEngine;
 
@@ -40,6 +41,7 @@ namespace CardShop.Presentation
         readonly Func<CardRarityStyles> styles;
         readonly Settings settings;
         TextMeshPro board;
+        TextPlate plate;
 
         public BoxResultBoard(Transform parent, Transform anchor, CardRevealPool pool,
             Func<TMP_FontAsset> font, Func<CardRarityStyles> styles, Settings settings)
@@ -65,10 +67,10 @@ namespace CardShop.Presentation
             for (int i = 0; i < packs.Count; i++)
             {
                 rows.Append(RevealText.BoxRow(packs[i], i + 1, st));
-                text.text = RevealText.BoxProgress(rows.ToString(), i + 1, packs.Count);
+                SetText(text, RevealText.BoxProgress(rows.ToString(), i + 1, packs.Count), i + 1, packs.Count);
                 yield return new WaitForSeconds(s.RowInterval);
             }
-            text.text = RevealText.BoxSummary(packs, rows.ToString(), st);
+            SetText(text, RevealText.BoxSummary(packs, rows.ToString(), st), packs.Count, packs.Count);
 
             // 가장 좋은 카드가 맨 앞(0번)이므로 뒤에서부터 놓아 마지막에 터지게 (폭죽은 하나라 앞 카드 폭죽은 다음 카드가 이어받음)
             List<(int pack, int card)> best = RevealQueue.PickHighlights(packs, s.HighlightCount);
@@ -86,6 +88,31 @@ namespace CardShop.Presentation
         public void Hide()
         {
             if (board != null) board.gameObject.SetActive(false);
+        }
+
+        // 글을 바꾸고 판 크기를 맞춤. RevealText의 어두운 띠(<mark>)는 카드 재질 판이 대신하므로 벗기고,
+        // 제목 줄 아래에 "10팩 중 몇 번째" 칸 줄을 끼움 (지금 연 팩까지 금색)
+        void SetText(TextMeshPro text, string markup, int opened, int total)
+        {
+            markup = markup.Replace($"<mark={UiTheme.Mark}>", "").Replace("</mark>", "");
+            int nl = markup.IndexOf('\n');
+            string counter = Counter(opened, total);
+            text.text = nl < 0 ? markup + "\n" + counter : markup.Substring(0, nl + 1) + counter + markup.Substring(nl);
+            if (plate != null) plate.Fit();
+        }
+
+        /// <summary>
+        /// 분홍 막대 칸 10개 + 「3 / 10 팩」 (11-20 샘플 5번). 칸은 글꼴 기호(■□) 대신 전각 공백에 &lt;mark&gt; 색을 칠해 그림 —
+        /// 기호 글자가 글꼴에 없어 네모로 깨지는 일이 없음.
+        /// </summary>
+        static string Counter(int opened, int total)
+        {
+            int n = Mathf.Min(opened, total);
+            var sb = new StringBuilder();
+            for (int i = 0; i < total; i++)
+                sb.Append(i < n ? "<mark=#FF8CBFFF>　</mark> " : "<mark=#4A3873FF>　</mark> "); // 　 = 전각 공백
+            string gold = ColorUtility.ToHtmlStringRGB(UiTheme.Gold);
+            return sb.Append($" <color=#{gold}>{n} / {total} 팩</color>").ToString();
         }
 
         // 카운터 위 가로 한 줄의 index번째 자리
@@ -109,6 +136,8 @@ namespace CardShop.Presentation
             var rt = (RectTransform)go.transform;
             rt.pivot = new Vector2(0.5f, 0f);
             rt.sizeDelta = new Vector2(0.3f, 0.3f);
+            // 팩 결과판과 같은 카드 재질: 진보라 판 + 금박 테두리 (UI_개편_설계 C안)
+            plate = TextPlate.Attach(board, UiTheme.CardBack, new Vector2(0.022f, 0.016f), 0.014f, UiTheme.Gold, 0.003f);
             return board;
         }
     }

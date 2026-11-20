@@ -11,7 +11,8 @@ namespace CardShop.UI
     /// <summary>
     /// 바인더 오른쪽의 진열장 패널 (집_업그레이드_설계 2장 E1). 바인더에서 고른 카드를 [진열장에 세우기]로 책장 진열대에 세우고,
     /// 진열 중인 카드 버튼을 누르면 내립니다. 규칙은 순수 C# ShowcaseRules, 실물 카드는 CardCase(모니터 위 보관함)가 그립니다.
-    /// 판매 패널(바인더 왼쪽)과 같은 모양이며, 씬을 다시 빌드하지 않도록 HomeUpgradeInstaller가 런타임에 만듭니다.
+    /// 판매 패널과 같은 모양이며, 씬을 다시 빌드하지 않도록 HomeUpgradeInstaller가 런타임에 만듭니다.
+    /// 만든 뒤 SalesShowcasePage가 판매 패널과 함께 모니터 [판매 · 진열] 쪽으로 옮깁니다 (DEC-042, 모니터가 없으면 바인더 오른쪽 그대로).
     /// </summary>
     public sealed class ShowcasePanel : HomePanel
     {

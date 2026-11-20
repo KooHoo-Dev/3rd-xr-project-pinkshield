@@ -34,6 +34,8 @@ namespace CardShop.Tutorial
         [SerializeField] float followSharpness = 6f;
         [Tooltip("글자 크기 (TMP 3D 단위, WorldToast는 0.25)")]
         [SerializeField] float fontSize = 0.28f;
+        [Tooltip("이름표(사장님 · 혼잣말) 글자 크기. 말풍선 글자와 따로 — 이름표 판이 이 글자에 맞춰짐 (11-20: 글자의 80%)")]
+        [SerializeField] float nameTagFontSize = 0.224f;
         [Tooltip("글자 영역 너비 (m). 이 너비에서 줄바꿈")]
         [SerializeField] float textWidth = 0.75f;
 
@@ -60,7 +62,7 @@ namespace CardShop.Tutorial
             text.richText = true;
             ((RectTransform)go.transform).sizeDelta = new Vector2(textWidth, 0.12f);
             // 맨 위에 그리기: 눈앞에 든 팩 · 진열대에 가려 가끔 안 보였음 (11-20 피드백). 자막과 같은 순서 값
-            paper = PaperBubble.Attach(text, new Vector2(0.03f, 0.02f), 0.018f, 100);
+            paper = PaperBubble.Attach(text, new Vector2(0.03f, 0.02f), 0.018f, nameTagFontSize, 100);
             paper.DrawOnTop();
             go.SetActive(false);
         }

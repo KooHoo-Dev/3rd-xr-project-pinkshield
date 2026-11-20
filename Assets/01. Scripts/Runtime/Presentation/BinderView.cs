@@ -258,7 +258,7 @@ namespace CardShop.Presentation
                 int money = context != null && context.Session != null ? context.Session.Wallet.Money : 0; // 판매하면 Collection.Changed로 다시 그려짐 (FIX B3)
                 if (!pageLabel.enableAutoSizing) // 한 줄이 넘치면 줄임, 원래 크기(30)보다 커지지는 않게 (씬 다시 빌드 없이)
                 { pageLabel.fontSizeMax = pageLabel.fontSize; pageLabel.fontSizeMin = 20f; pageLabel.enableAutoSizing = true; }
-                pageLabel.text = $"<color=#FFD84D>내 자산 {MoneyText.Format(money)}</color>  ·  {tabName}{Page + 1} / {PageCount} 쪽  ·  도감 {found} / {total}{starHint}";
+                pageLabel.text = $"<color=#E2BE6A>내 자산 {MoneyText.Format(money)}</color>  ·  {tabName}{Page + 1} / {PageCount} 쪽  ·  도감 {found} / {total}{starHint}";
             }
         }
 
