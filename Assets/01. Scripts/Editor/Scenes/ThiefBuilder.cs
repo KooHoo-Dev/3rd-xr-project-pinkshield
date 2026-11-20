@@ -106,8 +106,15 @@ namespace CardShop.EditorTools
             return stand;
         }
 
-        // 머리 전체를 덮는 검은 복면 + 눈 구멍 띠 (도둑 머리 뼈에 붙여 씀). 원점 = 머리 가운데, +Z = 얼굴 앞
+        // 복면 원본: 니트 복면 프리팹(ThiefMaskBuilder)을 그대로 씀 (씬에 따로 두지 않음). 모델이 없을 때만 기본 도형 복면
         static GameObject CreateMaskTemplate(Transform root)
+        {
+            GameObject prefab = ThiefMaskBuilder.LoadOrBuild();
+            return prefab != null ? prefab : CreatePrimitiveMask(root);
+        }
+
+        // 머리 전체를 덮는 검은 복면 + 눈 구멍 띠 (도둑 머리 뼈에 붙여 씀). 원점 = 머리 가운데, +Z = 얼굴 앞
+        static GameObject CreatePrimitiveMask(Transform root)
         {
             var go = new GameObject("ThiefMask_Template (꺼 둔 원본)");
             go.transform.SetParent(root);
