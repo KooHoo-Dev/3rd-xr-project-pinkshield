@@ -229,7 +229,7 @@ namespace CardShop.Tutorial
             TutorialStep s = progress.Active;
             if (wrongSaid || s == null) return;
             wrongSaid = true;
-            view.ChangeText(Format(s.line) + "\n<size=80%><color=#FFD27F>그건 나중에! 지금은 이것부터.</color></size>");
+            view.ChangeText(Format(s.line) + "\n<size=80%><color=#C23A47>그건 나중에! 지금은 이것부터.</color></size>");
             view.Flash();
         }
 

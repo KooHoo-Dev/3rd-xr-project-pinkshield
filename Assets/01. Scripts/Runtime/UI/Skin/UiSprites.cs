@@ -24,6 +24,18 @@ namespace CardShop.UI
             Get($"frame{thickness}_{pixelsPerUnit}", () => Make(Radius * 2 + 2, Radius * 2 + 2,
                 (x, y, w, h) => RoundedCoverage(x, y, w, h, Radius) * (1f - InsetCoverage(x, y, w, h, Radius, thickness)), pixelsPerUnit, Radius));
 
+        /// <summary>점선 한 칸 길이 (픽셀): 선 DashPeriod/2 + 빈칸 DashPeriod/2</summary>
+        public const int DashPeriod = 16;
+
+        /// <summary>
+        /// 둥근 사각형 점선 테두리 (혼잣말 말풍선). 모서리는 실선, 곧은 변만 점선.
+        /// 가운데 한 칸(DashPeriod)을 반복해야 점이 늘어나지 않으므로 SpriteRenderer는 <see cref="SpriteDrawMode.Tiled"/>로 씁니다.
+        /// </summary>
+        public static Sprite DashedFrame(int thickness, float pixelsPerUnit = 100f) =>
+            Get($"dashed{thickness}_{pixelsPerUnit}", () => Make(Radius * 2 + DashPeriod, Radius * 2 + DashPeriod,
+                (x, y, w, h) => RoundedCoverage(x, y, w, h, Radius) * (1f - InsetCoverage(x, y, w, h, Radius, thickness)) * DashMask(x, y, w, h, Radius),
+                pixelsPerUnit, Radius));
+
         /// <summary>원 (도장 바탕 · 아이콘)</summary>
         public static Sprite Circle() => Get("circle", () => Make(128, 128, (x, y, w, h) => RoundedCoverage(x, y, w, h, 64), 100f, 0));
 
@@ -62,6 +74,16 @@ namespace CardShop.UI
             float dx = px - cx, dy = py - cy;
             float outside = Mathf.Sqrt(dx * dx + dy * dy) - ir;
             return Mathf.Clamp01(0.5f - outside);
+        }
+
+        /// <summary>점선 무늬: 곧은 변(모서리 border 사이)에서 DashPeriod마다 앞 절반만 1, 모서리는 늘 1</summary>
+        public static float DashMask(int x, int y, int w, int h, int border)
+        {
+            bool midX = x >= border && x < w - border;
+            bool midY = y >= border && y < h - border;
+            if (midX == midY) return 1f; // 모서리 (또는 안쪽 빈 곳)
+            int along = midX ? x - border : y - border;
+            return along % DashPeriod < DashPeriod / 2 ? 1f : 0f;
         }
 
         /// <summary>톱니: 위쪽은 꽉 차고, 아래로 갈수록 가운데만 남는 삼각형</summary>

@@ -1,41 +1,43 @@
 using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Presentation;
+using CardShop.UI;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace CardShop.Tutorial
 {
     /// <summary>
     /// 튜토리얼 자막 판 (빌드피드백_11-19_FIX설계 B1). 대상 옆에 붙던 말풍선 대신 눈 앞 아래쪽에 고정된 자막:
-    /// ① 말하는 사람 칩 ② 대사(큰 흰 글씨) ③ 할 일(노란 굵은 글씨). 카드 · 물건에 가려지지 않게 맨 위에 그립니다.
-    /// 머리를 15° 넘게 돌리면 천천히 따라옵니다 (완전 고정은 멀미). 새 안내가 뜨면 커지며 등장 + 띵 + 양손 약한 진동,
+    /// ① 말하는 사람 이름표 ② 대사 ③ 할 일(진한 분홍). 종이 말풍선(<see cref="PaperBubble"/>: 사장님 노랑 실선 · 혼잣말 하늘색 점선, UI_개편_설계 9번 판).
+    /// 카드 · 물건에 가려지지 않게 맨 위에 그립니다.
+    /// 자리는 퇴근 · 아침 혼잣말처럼 정면에 한 번 놓고 고정, 시야 밖이 1초 이어지거나 멀리 걸어가면 다시 정면에 (<see cref="CaptionPlacement"/>, 11-20).
+    /// 새 안내가 뜨면 커지며 등장 + 띵 + 양손 약한 진동,
     /// 할 일을 마치면 할 일 줄이 초록 ✓로 바뀌고 잠깐 보여 준 뒤 다음 안내로 넘어갑니다.
     /// 튜토리얼 정지(GameFlow.IsHeld) 중에는 칩 옆에 "[시간 멈춤]", 풀리면 잠깐 "▶ 다시 시작!" (DEC-028).
     /// </summary>
     public sealed class TutorialCaption : MonoBehaviour
     {
-        const float Distance = 1.0f;          // 눈에서 (m)
-        const float PitchDown = 32f;          // 눈높이보다 아래로 (도). 손 · 물건을 가리지 않게 더 아래 (11-19 2차)
-        const float FollowAngle = 35f;        // 이만큼 넘게 고개를 돌리면 따라옴 (도). 11-20 H2: 15°는 둘러볼 때마다 따라다녀 35°로
-        const float FollowSharpness = 7.5f;   // 약 0.4초에 따라옴
         const float PopSeconds = 0.2f;
         const float DoneSeconds = 0.6f;       // ✓를 보여 주는 시간
         const float ResumeSeconds = 1.5f;     // "▶ 다시 시작!"을 보여 주는 시간
         const float FontSize = 0.32f;         // 11-19 2차: 0.42는 시야를 너무 덮어 줄임
         const float Width = 0.75f;
-        const string Panel = "#2A1E45D0";     // 진보라, 뒤가 살짝 비침 (UiTheme A)
-        const string Chip = "#FF8CBF";        // 분홍 (UiTheme.Accent)
-        const string Task = "#FFD84D";
-        const string Done = "#7CF29A";
+        const int SortBase = 100;             // 다른 3D 글자 판(알림 쪽지 등)보다 위에
+        // 종이 위에서 읽히는 진한 색 (UiSkin.PaperColorFor와 같은 계열)
+        const string Task = "#ED5C99";        // 할 일 = 진한 분홍 (UiTheme.Stamp)
+        const string Done = "#2FA37C";        // 완료 = 진한 초록 (UiTheme.MoneyPlus)
+        const string Hold = "#C23A47";        // 시간 멈춤 = 빨강 (UiTheme.Danger)
 
         TextMeshPro text;
+        PaperBubble paper;
         TutorialSpeaker speaker;
         string body, task;
-        float yaw, shownFor, doneUntil = -1f;
-        bool following, held;
+        float shownFor, doneUntil = -1f;
+        float outOfViewFor;       // 시야 밖이 이어진 시간 (초)
+        Vector3 placedFrom;       // 놓을 때의 머리 위치
+        bool held;
         float resumedUntil = -1f;
         GameFlow flow;
         System.Action afterDone; // ✓ 보여 주는 동안 들어온 다음 Show / Hide
@@ -52,10 +54,9 @@ namespace CardShop.Tutorial
             c.text.textWrappingMode = TextWrappingModes.Normal;
             c.text.richText = true;
             ((RectTransform)go.transform).sizeDelta = new Vector2(Width, 0.2f);
-            // 맨 위에 그리기: 깊이 검사를 끄고 투명 물체보다 나중에 (TMP SDF 셰이더의 ZTest 속성)
-            Material m = c.text.fontMaterial;
-            m.SetFloat("unity_GUIZTestMode", (float)CompareFunction.Always);
-            m.renderQueue = (int)RenderQueue.Overlay;
+            // 종이 말풍선 + 이름표 (UI_개편_설계 9번 판). 맨 위에 그리기: 글자 · 판 · 이름표 모두 깊이 검사를 끄고 투명 물체보다 나중에
+            c.paper = PaperBubble.Attach(c.text, new Vector2(0.035f, 0.022f), 0.02f, SortBase);
+            c.paper.DrawOnTop();
             go.SetActive(false);
             return c;
         }
@@ -90,10 +91,11 @@ namespace CardShop.Tutorial
             doneUntil = Time.unscaledTime + DoneSeconds;
         }
 
-        /// <summary>가만히 있을 때: 다시 커지며 진동 (할 일 줄은 이미 보이므로 글은 그대로)</summary>
+        /// <summary>가만히 있을 때: 지금 보는 정면으로 다시 놓고 커지며 진동 (자막을 놓쳐서 멈춰 있을 수 있음. 글은 그대로)</summary>
         public void Nudge()
         {
             if (!gameObject.activeSelf) return;
+            Reposition();
             shownFor = 0f;
             Buzz();
         }
@@ -105,14 +107,15 @@ namespace CardShop.Tutorial
             gameObject.SetActive(false);
         }
 
-        /// <summary>지금 머리 정면으로 바로 놓음 (등장 · 헤드셋을 다시 쓴 뒤)</summary>
+        /// <summary>지금 보는 정면에 놓고 고정 (새 안내 · 가만히 있을 때 · 시야 밖 · 헤드셋을 다시 쓴 뒤)</summary>
         public void Reposition()
         {
             Transform head = Head();
             if (head == null) return;
-            yaw = head.eulerAngles.y;
-            following = false;
-            Place(head);
+            Pose p = CaptionPlacement.Front(head.position, head.forward);
+            transform.SetPositionAndRotation(p.position, p.rotation);
+            placedFrom = head.position;
+            outOfViewFor = 0f;
         }
 
         bool Defer(System.Action action)
@@ -124,16 +127,14 @@ namespace CardShop.Tutorial
 
         void Redraw(bool done)
         {
-            string who = speaker == TutorialSpeaker.Boss ? "사장님" : "혼잣말";
-            string bodyColor = speaker == TutorialSpeaker.Boss ? "#FFFFFF" : "#D1DBFF";
-            string state = held ? $"   <color={Task}>[시간 멈춤] 따라 해 보세요</color>"
-                         : resumedUntil >= 0f ? $"   <color={Done}>▶ 다시 시작!</color>" : "";
-            string s = $"<mark={Panel} padding=\"30,30,16,16\"><size=55%><color={Chip}><b>● {who}</b></color><b>{state}</b></size>\n" +
-                       $"<color={bodyColor}>{body}</color>";
+            // 말하는 사람은 이름표가 보여 주므로, 첫 줄은 정지 상태가 있을 때만
+            string state = held ? $"<size=60%><color={Hold}>[시간 멈춤] 따라 해 보세요</color></size>\n"
+                         : resumedUntil >= 0f ? $"<size=60%><color={Done}>▶ 다시 시작!</color></size>\n" : "";
+            string s = state + body;
             if (!string.IsNullOrEmpty(task))
-                s += done ? $"\n<size=85%><color={Done}><b>✓ 완료!</b></color></size>"
-                          : $"\n<size=85%><color={Task}><b>▶ {task}</b></color></size>";
-            text.text = s + "</mark>";
+                s += done ? $"\n<size=85%><color={Done}>✓ 완료!</color></size>"
+                          : $"\n<size=85%><color={Task}>▶ {task}</color></size>";
+            paper.Show(speaker == TutorialSpeaker.Boss ? BubbleStyle.Boss : BubbleStyle.Self, s);
         }
 
         void LateUpdate()
@@ -155,21 +156,14 @@ namespace CardShop.Tutorial
 
             Transform head = Head();
             if (head == null) return;
-            float delta = Mathf.Abs(Mathf.DeltaAngle(yaw, head.eulerAngles.y));
-            if (delta > FollowAngle) following = true;
-            if (following)
+            // 고정해 두다가, 시야 밖이 잠시 이어지거나 멀리 걸어가면(페이즈 이동 포함) 정면에 다시 놓고 다시 커지며 등장
+            bool outOfView = CaptionPlacement.IsOutOfView(head.position, head.forward, transform.position);
+            outOfViewFor = outOfView ? outOfViewFor + dt : 0f;
+            if (outOfViewFor >= CaptionPlacement.OutOfViewSeconds || CaptionPlacement.WalkedAway(placedFrom, head.position))
             {
-                yaw = Mathf.LerpAngle(yaw, head.eulerAngles.y, 1f - Mathf.Exp(-FollowSharpness * dt));
-                if (delta < 1f) following = false;
+                Reposition();
+                shownFor = 0f;
             }
-            Place(head);
-        }
-
-        // 눈에서 yaw 방향으로 Distance, PitchDown만큼 아래. TMP 글자는 -Z 쪽에서 읽히므로 forward = 눈 → 자막
-        void Place(Transform head)
-        {
-            Vector3 dir = Quaternion.Euler(PitchDown, yaw, 0f) * Vector3.forward;
-            transform.SetPositionAndRotation(head.position + dir * Distance, Quaternion.LookRotation(dir, Vector3.up));
         }
 
         // 정지가 바뀌면 칩 옆 상태 글자를 다시 그림

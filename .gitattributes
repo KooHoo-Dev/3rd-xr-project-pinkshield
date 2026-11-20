@@ -1,0 +1,43 @@
+# 줄바꿈 · 합치기 규칙 (11-20)
+# - 문제: Unity는 씬 · 프리팹 · 에셋을 LF로 저장하는데, Git(core.autocrlf=true)은 작업 폴더에 CRLF를 기대해서
+#   내용이 같은 파일 100여 개가 "바뀜"으로 떠 진짜 수정(맵 수정 등)이 묻혔음.
+# - 해결: Unity YAML 파일은 작업 폴더에서도 LF로 둠 (저장소 안은 이미 LF라 다시 커밋할 것 없음).
+#   두 곳에서 같은 씬을 고쳤을 때는 Unity 씬 합치기 도구(UnityYAMLMerge)로 합침 — 설정 · 규칙은 CLAUDE.md "씬 저장 규칙".
+
+# 나머지 글자 파일은 Git이 알아서 (코드 .cs는 지금처럼 Windows 줄바꿈)
+* text=auto
+
+# Unity YAML
+*.unity              text eol=lf merge=unityyamlmerge
+*.prefab             text eol=lf merge=unityyamlmerge
+*.asset              text eol=lf merge=unityyamlmerge
+*.mat                text eol=lf merge=unityyamlmerge
+*.anim               text eol=lf merge=unityyamlmerge
+*.controller         text eol=lf merge=unityyamlmerge
+*.overrideController text eol=lf merge=unityyamlmerge
+*.physicMaterial     text eol=lf merge=unityyamlmerge
+*.mask               text eol=lf merge=unityyamlmerge
+*.playable           text eol=lf merge=unityyamlmerge
+*.lighting           text eol=lf merge=unityyamlmerge
+*.spriteatlas        text eol=lf merge=unityyamlmerge
+*.preset             text eol=lf merge=unityyamlmerge
+*.signal             text eol=lf merge=unityyamlmerge
+*.meta               text eol=lf
+
+# 그림 · 소리 · 모델 · 글꼴 (줄바꿈을 건드리지 않음)
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.tga   binary
+*.tif   binary
+*.psd   binary
+*.exr   binary
+*.fbx   binary
+*.ogg   binary
+*.mp3   binary
+*.wav   binary
+*.ttf   binary
+*.otf   binary
+*.pdf   binary
+*.zip   binary

@@ -59,6 +59,11 @@ namespace CardShop.UI
         /// <summary>카드 재질 판 (팩 결과) 바탕</summary>
         public static readonly Color CardBack = new Color(0.231f, 0.169f, 0.349f, 0.96f);
 
+        /// <summary>사장님 말풍선 테두리 · 이름표 (노랑 실선)</summary>
+        public static readonly Color BossLine = new Color(0.96f, 0.76f, 0.2f);
+        /// <summary>혼잣말 말풍선 테두리 · 이름표 (하늘색 점선)</summary>
+        public static readonly Color SelfLine = new Color(0.45f, 0.74f, 0.95f);
+
         /// <summary>3D 글자 뒤 띠 (&lt;mark=…&gt;). 판 바탕보다 조금 어두운 보라, 알파 CC</summary>
         public const string Mark = "#3B2B59CC";
         /// <summary>혼잣말 · 손목 재화처럼 더 진하게 가려야 하는 띠</summary>
