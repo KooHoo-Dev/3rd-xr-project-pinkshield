@@ -119,7 +119,7 @@ namespace CardShop.Customers
             hooks.Say(agent, CustomerMoment.Checkout, null);
             checkoutAgent = agent;
             if (counter != null) counter.Begin((bought, count, net) => OnPaid(agent, bought, count, net));
-            else Debug.LogWarning("[CheckoutLine] CheckoutCounter가 없어 계산할 수 없습니다 (Build Shop Scene 다시 실행).");
+            else Debug.LogWarning("[CheckoutLine] CheckoutCounter가 없어 계산할 수 없습니다 (Shop 씬에서 직접 연결).");
         }
 
         void OnPaid(CustomerAgent agent, CardData bought, int itemCount, int net)

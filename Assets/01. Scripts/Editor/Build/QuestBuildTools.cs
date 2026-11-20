@@ -107,7 +107,7 @@ namespace CardShop.EditorTools
             string[] scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
             if (scenes.Length == 0)
             {
-                Debug.LogError("[QuestBuildTools] 빌드 씬이 없습니다. Tools > CardShop > Build Shop Scene 을 먼저 실행하세요.");
+                Debug.LogError("[QuestBuildTools] 빌드 씬이 없습니다. Shop.unity가 있는지 확인하세요 (처음 상태로 만들려면 Tools > CardShop > 초기화 > Rebuild Shop Scene).");
                 return null;
             }
 

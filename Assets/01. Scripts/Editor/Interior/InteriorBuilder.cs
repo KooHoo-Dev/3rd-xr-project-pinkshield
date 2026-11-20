@@ -42,7 +42,7 @@ namespace CardShop.EditorTools.Interior
         static bool Confirm(string name)
         {
             ExternalArt.EnsureUrpMaterials();
-            return EditorUtility.DisplayDialog("Interior", $"{name} 프리팹을 처음 배치로 다시 만들까요?\n프리팹 모드에서 손으로 고친 내용은 사라집니다.\n(씬에 반영하려면 Build Shop Scene을 다시 실행)", "다시 만들기", "취소");
+            return EditorUtility.DisplayDialog("Interior", $"{name} 프리팹을 처음 배치로 다시 만들까요?\n프리팹 모드에서 손으로 고친 내용은 사라집니다.\n(Shop 씬의 프리팹 인스턴스에 바로 반영됩니다. 씬에서 덧씌운 수정은 풀릴 수 있습니다)", "다시 만들기", "취소");
         }
 
         /// <summary>Build Shop Scene에서 호출: URP 변환 후, 없는 프리팹만 만듭니다.</summary>

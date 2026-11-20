@@ -16,7 +16,7 @@ namespace CardShop.Core
         [Tooltip("빌더가 다시 만들어도 같은 오브젝트를 찾는 이름. 씬 안에서 겹치지 않아야 합니다.")]
         public string key;
 
-        [Tooltip("맵 수정 도구에서 손으로 붙인 이름표 (빌더가 모르는 오브젝트). 키가 계층 경로라 Build Shop Scene 뒤 같은 경로를 찾아 자리를 되살림")]
+        [Tooltip("맵 수정 도구에서 손으로 붙인 이름표 (빌더가 모르는 오브젝트). 키가 계층 경로라 씬 초기화(Rebuild Shop Scene) 뒤 같은 경로를 찾아 자리를 되살림")]
         public bool addedByHand;
 
         [Header("빌더 기본 자리 (손대지 마세요: 옮겼는지 판단하는 기준)")]

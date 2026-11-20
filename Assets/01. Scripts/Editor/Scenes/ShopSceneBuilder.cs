@@ -24,7 +24,7 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 namespace CardShop.EditorTools
 {
     /// <summary>
-    /// Shop 씬(게임 유일 씬)의 골격을 만듭니다. 메뉴: Tools > CardShop > Build Shop Scene
+    /// Shop 씬(게임 유일 씬)의 골격을 만듭니다. 메뉴: Tools > CardShop > 초기화 > Rebuild Shop Scene (11-20부터 초기화용)
     /// 카드·팩 프리팹도 함께 다시 만듭니다. 배치(blockout)·소품은 만든 뒤 씬에서 직접 작업하세요.
     ///
     /// 배치 기준: 플레이어는 원점에서 +Z를 봄. 카운터는 앞(z≈0.7), 팩 선반 테이블은 왼쪽.
@@ -43,11 +43,17 @@ namespace CardShop.EditorTools
 
         static TMP_FontAsset font;
 
-        [MenuItem("Tools/CardShop/Build Shop Scene", priority = 30)]
+        // 11-20부터 Shop.unity를 원본으로 두고 씬에서 직접 다듬음. 빌더는 씬이 망가졌을 때 처음 상태로 되돌리는 초기화용으로만 남김
+        [MenuItem("Tools/CardShop/초기화/Rebuild Shop Scene (씬 새로 만들기)", priority = 900)]
         static void BuildFromMenu()
         {
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath) != null &&
-                !EditorUtility.DisplayDialog("Build Shop Scene", $"{ScenePath} 를 새로 만들까요? 씬에서 한 작업이 사라집니다.", "새로 만들기", "취소"))
+                !EditorUtility.DisplayDialog("Rebuild Shop Scene (초기화)",
+                    $"{ScenePath} 를 코드 기본값으로 처음부터 다시 만듭니다.\n\n" +
+                    "씬에서 손으로 다듬은 디테일(거리 소품 추가 · 삭제, 프리팹 덧씌운 수정, 직접 연결한 참조)은 모두 사라집니다.\n" +
+                    "이름표(PlacementKey) · 자리표가 붙은 위치만 되살립니다.\n\n" +
+                    "씬이 망가져서 처음 상태가 필요할 때만 쓰세요.",
+                    "모두 지우고 다시 만들기", "취소"))
                 return;
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
             Build();

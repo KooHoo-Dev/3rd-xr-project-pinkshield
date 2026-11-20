@@ -89,13 +89,13 @@ namespace CardShop.EditorTools
             if (mark != null)
             {
                 EditorGUILayout.LabelField("이름표", mark.key + (mark.addedByHand ? " (손으로 붙임)" : ""));
-                EditorGUILayout.LabelField("상태", mark.IsMoved ? "기본 자리에서 옮김 — Build Shop Scene 뒤에도 유지" : "기본 자리");
+                EditorGUILayout.LabelField("상태", mark.IsMoved ? "기본 자리에서 옮김 — 씬 초기화(Rebuild) 뒤에도 유지" : "기본 자리");
                 using (new EditorGUI.DisabledScope(!mark.IsMoved))
                     if (GUILayout.Button("기본 자리로")) ResetToDefault(mark);
                 return;
             }
 
-            EditorGUILayout.HelpBox("이름표(PlacementKey)가 없습니다. 씬을 저장하면 옮긴 자리는 남지만, Build Shop Scene을 다시 실행하면 사라질 수 있습니다.\n" +
+            EditorGUILayout.HelpBox("이름표(PlacementKey)가 없습니다. 씬을 저장하면 옮긴 자리는 남지만, 씬 초기화(Rebuild Shop Scene)를 하면 사라질 수 있습니다.\n" +
                                     "빌더가 다시 만드는 물건이면 이름표를 붙여 두세요 (키 = 계층 경로: " + HierarchyPath.Of(go.transform) + ")", MessageType.Warning);
             if (GUILayout.Button("이름표 붙이기"))
             {

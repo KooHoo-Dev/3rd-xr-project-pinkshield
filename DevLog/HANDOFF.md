@@ -193,7 +193,7 @@
 ## 7. 알아 둘 것
 - MonoBehaviour는 **파일 하나에 클래스 하나, 파일 이름 = 클래스 이름**. 어기면 프리팹에서 조용히 Missing Script가 됩니다(BUG-001). 회귀 테스트 `PackPrefab_HasNoMissingScriptsAndOpenMethod`가 잡아 줍니다.
 - Rigidbody가 있는 물체를 스크립트로 순간이동시킬 때는 `Teleport()`처럼 Transform과 Rigidbody를 **함께** 옮깁니다(BUG-003).
-- `Shop.unity`는 `Tools > CardShop > Build Shop Scene`으로 다시 만들 수 있습니다. 씬에서 손으로 옮긴 위치는 빌더 코드(예: `PackTablePos`)에도 반영해야 다시 만들 때 사라지지 않습니다.
+- **11-20부터 `Shop.unity`가 원본**입니다. 씬에서 직접 다듬고, 새 기능의 오브젝트 · 참조도 씬에 직접 넣습니다(빠진 연결은 `SceneSetupTests`가 잡음). 빌더는 `Tools > CardShop > 초기화 > Rebuild Shop Scene`으로 옮겨 초기화용으로만 남겼습니다 — 실행하면 거리 디테일 같은 손 작업이 사라지고 이름표(PlacementKey) · 자리표 위치만 되살아납니다.
 - `NotoSansKR-Regular SDF.asset`은 다이내믹 폰트라 새 글자를 쓰면 저절로 바뀝니다. 커밋에 섞여도 정상입니다.
 - **카드 그림 누끼**: Gemini는 투명 PNG를 잘 못 만들고, 배경을 지워도 바닥 그림자가 불투명한 회색으로 남습니다. `DevLog/tools/card-nukki.ps1`
   - `-Mode dark`: 어두운 단색 배경(공기 속성) · `-Mode light`: 흰색·밝은 회색 배경 · `-Mode shadow`: 이미 투명한 그림의 그림자만

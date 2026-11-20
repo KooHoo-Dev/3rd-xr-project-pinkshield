@@ -32,7 +32,7 @@ namespace CardShop.UI
         [SerializeField] TMP_Text messageLabel;
         [SerializeField] Button displayButton;
         [SerializeField] Button sellButton;
-        [Tooltip("레어 이하 모두 팔기 (비우면 기능 없음 — Build Shop Scene 다시 실행)")]
+        [Tooltip("레어 이하 모두 팔기 (비우면 기능 없음 — Shop 씬에서 버튼 연결)")]
         [SerializeField] Button sellAllButton;
         [Tooltip("판매 등록 중인 카드 버튼(판매 등록 칸 수만큼). 누르면 판매 등록 취소")]
         [SerializeField] Button[] displayedButtons;

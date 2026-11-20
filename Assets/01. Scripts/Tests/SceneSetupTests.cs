@@ -35,7 +35,7 @@ namespace CardShop.Tests
                     missing.Add($"{mb.gameObject.name}/{mb.GetType().Name}.{it.propertyPath}");
                 }
             }
-            Assert.IsEmpty(missing, "미연결 참조 (Build Shop Scene 다시 실행):\n" + string.Join("\n", missing));
+            Assert.IsEmpty(missing, "미연결 참조 (Shop 씬에서 직접 연결):\n" + string.Join("\n", missing));
         }
 
         // 검사 대상: CardShop 클래스가 직접 선언한 필드만 (XRI 부모 클래스 필드 · UnityEvent 내부 값은 제외).
@@ -88,7 +88,7 @@ namespace CardShop.Tests
             var counter = Object.FindAnyObjectByType<CardShop.Customers.CheckoutCounter>();
             Assert.IsNotNull(counter, "계산대 없음");
             var so = new SerializedObject(counter);
-            Assert.IsNotNull(so.FindProperty("bag").objectReferenceValue, "종이봉투 미연결 (Build Shop Scene 다시 실행)");
+            Assert.IsNotNull(so.FindProperty("bag").objectReferenceValue, "종이봉투 미연결 (Shop 씬에서 직접 연결)");
 
             var config = so.FindProperty("shopItems").objectReferenceValue as CardShop.Cards.ShopItemConfig;
             Assert.IsNotNull(config, "품목 설정 미연결");
@@ -150,7 +150,7 @@ namespace CardShop.Tests
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
             var transition = Object.FindAnyObjectByType<CardShop.Presentation.DayTransition>();
-            Assert.IsNotNull(transition, "DayTransition 없음 (Build Shop Scene 다시 실행)");
+            Assert.IsNotNull(transition, "DayTransition 없음 (Shop 씬에 추가 · 연결)");
             var sleep = GameObject.Find("Button_Sleep");
             Assert.IsNotNull(sleep, "잠자기 버튼 없음");
             Assert.Greater(sleep.GetComponent<CardShop.Interaction.PokeButton>().pressed.GetPersistentEventCount(), 0, "잠자기 버튼에 연결된 동작 없음");
@@ -164,15 +164,15 @@ namespace CardShop.Tests
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
             var director = Object.FindAnyObjectByType<CardShop.Customers.CustomerDirector>();
-            Assert.IsNotNull(director, "CustomerDirector 없음 (Build Shop Scene 다시 실행)");
+            Assert.IsNotNull(director, "CustomerDirector 없음 (Shop 씬에 추가 · 연결)");
             var so = new SerializedObject(director);
             Assert.Greater(so.FindProperty("browseSpots").arraySize, 0, "구경 자리 없음");
-            Assert.AreEqual(ShopLayout.BrowsePositions.Length, so.FindProperty("browseSpots").arraySize, "구매 자리 수가 ShopLayout과 다름 (11-19 손님 동선, Build Shop Scene 다시 실행)");
-            Assert.Greater(so.FindProperty("browseWaitSlots").arraySize, 0, "구매 자리 대기 줄 없음 (Build Shop Scene 다시 실행)");
+            Assert.AreEqual(ShopLayout.BrowsePositions.Length, so.FindProperty("browseSpots").arraySize, "구매 자리 수가 ShopLayout과 다름 (11-19 손님 동선, Shop 씬에서 지점 추가 · 연결)");
+            Assert.Greater(so.FindProperty("browseWaitSlots").arraySize, 0, "구매 자리 대기 줄 없음 (Shop 씬에 추가 · 연결)");
             Assert.Greater(so.FindProperty("queueSlots").arraySize, 0, "계산대 줄 자리 없음");
             // 줄 동선 통로 · 말풍선 대사 (2026-11-18 기기 테스트 피드백)
             foreach (string point in new[] { "entryTurn", "aisleLow", "counterExit", "lineSet", "bubbleFont" })
-                Assert.IsNotNull(so.FindProperty(point).objectReferenceValue, $"CustomerDirector.{point} 미연결 (Build Shop Scene 다시 실행)");
+                Assert.IsNotNull(so.FindProperty(point).objectReferenceValue, $"CustomerDirector.{point} 미연결 (Shop 씬에서 직접 연결)");
 
             var roster = (CardShop.Cards.CustomerRoster)so.FindProperty("roster").objectReferenceValue;
             Assert.Greater(roster.entries.Count, 0, "손님 외형 목록이 비어 있음");
@@ -217,7 +217,7 @@ namespace CardShop.Tests
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
             var director = Object.FindAnyObjectByType<CardShop.Cleanup.CleanupDirector>();
-            Assert.IsNotNull(director, "CleanupDirector 없음 (Build Shop Scene 다시 실행)");
+            Assert.IsNotNull(director, "CleanupDirector 없음 (Shop 씬에 추가 · 연결)");
             var so = new SerializedObject(director);
 
             SerializedProperty trash = so.FindProperty("trashTemplates");
@@ -254,7 +254,7 @@ namespace CardShop.Tests
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
             var binder = Object.FindAnyObjectByType<CardShop.Presentation.BinderView>();
-            Assert.IsNotNull(binder, "BinderView 없음 (Build Shop Scene 다시 실행)");
+            Assert.IsNotNull(binder, "BinderView 없음 (Shop 씬에 추가 · 연결)");
             var so = new SerializedObject(binder);
             SerializedProperty slots = so.FindProperty("slots");
             Assert.Greater(slots.arraySize, 0, "바인더 칸 없음");
