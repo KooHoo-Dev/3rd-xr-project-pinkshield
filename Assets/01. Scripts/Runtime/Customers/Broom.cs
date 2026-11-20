@@ -27,7 +27,8 @@ namespace CardShop.Customers
 
         void Awake() => grab = GetComponent<XRGrabInteractable>();
 
-        // 1.2m 막대를 몸 가까이 들면 플레이어 몸(CharacterController)에 걸려 이동이 막히므로 서로 부딪치지 않게 함
+        // 1.2m 막대를 몸 가까이 들면 플레이어 몸(CharacterController)에 걸려 이동이 막히므로 서로 부딪치지 않게 함.
+        // 다른 물건은 쥔 동안만 끄지만(HeldBodyGuard), 대걸레는 세워 둔 자리에서도 몸에 걸리므로 늘 끔 (가드는 이미 꺼진 짝을 건드리지 않음)
         void Start()
         {
             var body = FindAnyObjectByType<CharacterController>();

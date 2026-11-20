@@ -20,7 +20,7 @@ namespace CardShop.Cleanup
         readonly List<Transform> carried = new List<Transform>();
 
         [Tooltip("플레이어가 통 위로 올라서지 못하게 막는 상자 (가로 · 높이 · 깊이, m). 0이면 안 만듦")]
-        [SerializeField] Vector3 climbBlocker = new Vector3(0.5f, 1.1f, 0.5f);
+        [SerializeField] Vector3 climbBlocker = new Vector3(0.5f, 1.6f, 0.5f); // 11-20 플레이 뒤 BUG-022: 1.1 → 1.6 (보험, 머리 위까지는 안 감)
 
         public void Configure(DropHint dropHint) => hint = dropHint;
 
