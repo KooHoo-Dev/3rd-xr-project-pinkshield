@@ -17,6 +17,14 @@ Unity 6000.3 · URP 17.3 · XRI 3.5.1 · OpenXR (Meta Quest). 기획·설계 문
 - **지금 모델**: 설계 · 결정, 여러 시스템에 걸친 수정, 다른 모델 결과 검토(맡긴 일의 결과는 항상 확인)
 - **맡기지 않음 (손해)**: Unity 배치 테스트 실행(결과 줄만 걸러 직접 보는 게 훨씬 쌈 — 11-19 Haiku에 맡겼더니 약 6만 토큰), 도구 몇 번으로 끝나는 일, 설명(브리핑)이 결과보다 긴 일, 이 대화에서 막 읽은 코드를 고치는 일, 사용자와 주고받으며 정해야 하는 일
 
+## 씬 저장 규칙 (11-20) — 맵 수정이 사라지거나 섞이지 않게
+- **`Shop.unity`(씬) · 씬에 놓인 프리팹은 원래 폴더(Unity 에디터가 여는 곳)에서만 고칩니다.** 작업 폴더(`.claude/worktrees/…`) 세션은 씬 파일을 고치지 않고, 자리는 코드가 씬의 앵커(`CardCaseAnchor` 같은 빈 오브젝트)를 읽게 만듭니다. 씬을 꼭 바꿔야 하면 사용자에게 Unity에서 할 일을 알려 줍니다.
+  - 이유: 씬 파일은 두 곳에서 고치면 git이 자동으로 합치지 못해 한쪽 수정을 잃기 쉬움.
+- **맵을 고친 날은 그날 커밋합니다** — 원래 폴더에서 새 브랜치 `claude/map-edits-<MMDD>`에 씬 · 프리팹만. 작업 브랜치에는 그 브랜치를 합쳐 가져옵니다. `/devlog day`가 커밋 안 된 씬을 알려 줍니다.
+- 줄바꿈 · 합치기: `.gitattributes`가 Unity 파일을 LF로 두고 `merge=unityyamlmerge`(Unity 씬 합치기 도구)를 씁니다. 도구 경로는 저장소 설정(`git config merge.unityyamlmerge.driver`)에 있고 **Unity 버전을 바꾸면 경로도 바꿔야** 합니다 (`…/Editor/<버전>/Editor/Data/Tools/UnityYAMLMerge.exe`).
+- 가구는 씬이 아니라 프리팹(`Assets/03. Prefabs/Interior/HomeInterior.prefab` · `ShopInterior.prefab` 등)에 있습니다. 씬에서 가구를 옮겼으면 그 인스턴스의 **Overrides → Apply All**로 프리팹에 넣어 두면 `Shop.unity`가 덜 바뀌어 충돌이 줄어듭니다. 프리팹을 처음 배치로 다시 만드는 메뉴는 `Tools/CardShop/초기화/Interior/…`(손으로 고친 것이 사라짐).
+- 실행 중에 글꼴 그림에 글자가 저절로 더해진 `*SDF.asset` 변경은 맵 수정과 따로 커밋하거나 되돌립니다.
+
 ## DevLog (작업노트) — 꼭 지킬 것
 개발 과정은 `DevLog/`(Assets 밖)에 기록하고, 포트폴리오 기술 문서의 재료로 씁니다. 자세한 규칙은 `DevLog/README.md`, 작성 절차는 `/devlog` 스킬.
 

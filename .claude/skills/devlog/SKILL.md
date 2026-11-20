@@ -25,6 +25,7 @@ DevLog 폴더: 프로젝트 루트 `DevLog/` (Assets 밖). 규칙은 `DevLog/REA
    - 그날 생성·수정된 BUG/DEC/AI 기록
 3. "한 일"·"AI 협업" 표를 채웁니다. 이미 있는 내용은 지우지 않고 보탭니다.
 4. "내일 할 일"은 사용자가 말한 것만. 없으면 비워 둡니다.
+5. **커밋 안 된 씬 확인 (11-20 추가)**: 원래 폴더(Unity가 여는 곳, 작업 폴더 worktree 아님)에서 `git status --short -- "Assets/00. Scenes" "Assets/03. Prefabs"`를 봅니다. 바뀐 씬 · 프리팹이 있으면 "오늘 맵 수정이 아직 커밋되지 않았어요"라고 알리고 커밋할지 묻습니다(사용자가 원하면 새 브랜치 `claude/map-edits-<MMDD>`에 그 파일만). 씬은 원래 폴더 한 곳에서만 고치는 규칙은 CLAUDE.md "씬 저장 규칙".
 
 ## `/devlog bug [BUG-NNN] [설명]`
 - **번호 없음** → 새 카드. `templates/bug.md` 양식으로 만들고, 아는 사실(증상·재현·로그)을 채웁니다. 스크린샷이 클립보드에 있다고 하면 `powershell -File DevLog/tools/devlog-paste.ps1 -Bug BUG-NNN -Name before`.
