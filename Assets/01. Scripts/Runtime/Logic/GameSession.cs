@@ -34,7 +34,7 @@ namespace CardShop.Logic
             Day++;
             Previous = Ledger;
             Ledger = new DayLedger();
-            Upgrades.AdvanceDay(); // 어제 산 가구는 오늘 아침 택배로 도착
+            Upgrades.AdvanceDay(); // 어젯밤 안 연 택배 상자는 아침에 저절로 열림 (DEC-040 U5)
         }
     }
 

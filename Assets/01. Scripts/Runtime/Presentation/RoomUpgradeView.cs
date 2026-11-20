@@ -11,7 +11,8 @@ namespace CardShop.Presentation
     /// <summary>
     /// 방이 업그레이드 상태(GameSession.Upgrades)를 그대로 보여 주게 합니다 (집_업그레이드_설계 3장 E2).
     /// - 가구: 상자를 연 단계까지의 모델을 놓거나(UpgradeCatalog.Visual) 원래 가구를 바꿔 놓음(예: 침대). 새 게임이면 처음 방으로
-    /// - 택배: 와 있는 상자(UpgradeStatus.Arrived)마다 DeliveryBox를 바닥에 놓고, 잡아서 열면 UpgradeState.Open → 가구가 바뀜
+    /// - 택배: 와 있는 상자(UpgradeStatus.Arrived)마다 DeliveryBox를 바닥에 놓고, 잡아서 열면 UpgradeState.Open → 가구가 바뀜.
+    ///   방금 산 것은 DoorbellDelay 뒤 초인종 소리 · "택배 왔어요"와 함께 나타남 (DEC-040 U5)
     /// - 바인더 3단계: 바인더 · 판매 · 진열장 패널 바탕을 금색으로
     /// 집 실내(HomeInterior) 아래에 있어 집에서만 켜집니다. 모델 경계 상자는 켜져 있을 때만 정확하므로 켜진 동안에만 다시 그립니다.
     /// </summary>
@@ -42,6 +43,10 @@ namespace CardShop.Presentation
         readonly Dictionary<UpgradeKind, List<GameObject>> spawned = new Dictionary<UpgradeKind, List<GameObject>>();
         readonly Dictionary<UpgradeKind, List<Transform>> hidden = new Dictionary<UpgradeKind, List<Transform>>();
         readonly Dictionary<UpgradeKind, DeliveryBox> boxes = new Dictionary<UpgradeKind, DeliveryBox>();
+        // 그날 밤 택배 (DEC-040 U5): 산 뒤 잠깐 있다가 초인종(현관 소리)과 함께 상자가 나타남
+        public const float DoorbellDelay = 4f;
+        readonly Dictionary<UpgradeKind, float> doorbellAt = new Dictionary<UpgradeKind, float>();
+        bool primed; // 집에 들어온 뒤 첫 그리기는 기다리지 않고 바로 놓음
         readonly Dictionary<Image, Color> panelColors = new Dictionary<Image, Color>();
         bool gold;
 
@@ -79,13 +84,15 @@ namespace CardShop.Presentation
             bound = session?.Upgrades;
             if (bound != null) bound.Changed += MarkDirty;
             dirty = true;
+            primed = false;
+            doorbellAt.Clear();
         }
 
         void MarkDirty() => dirty = true;
 
         void LateUpdate()
         {
-            if (!dirty || bound == null) return;
+            if (bound == null || (!dirty && doorbellAt.Count == 0)) return;
             dirty = false;
             foreach (UpgradeCatalog.Track t in catalog.tracks)
                 if (t != null) ApplyFurniture(t, bound.LevelOf(t.kind));
@@ -130,6 +137,7 @@ namespace CardShop.Presentation
             {
                 UpgradeKind kind = arrived[i];
                 if (boxes.TryGetValue(kind, out DeliveryBox existing) && existing != null) continue;
+                if (primed && !RingDoorbell(kind)) continue; // 방금 산 것: 초인종이 울릴 때까지 기다림
                 var local = new Vector3((i % BoxesPerRow) * BoxStepX, 0f, (i / BoxesPerRow) * BoxStepZ);
                 Vector3 world = start.position + Quaternion.Euler(0f, startYaw, 0f) * local;
                 DeliveryBox box = DeliveryBox.Create(transform, world, startYaw + 15f * i, kind, TrackName(kind),
@@ -137,6 +145,26 @@ namespace CardShop.Presentation
                 box.Opened += OnBoxOpened;
                 boxes[kind] = box;
             }
+            primed = true;
+            foreach (UpgradeKind k in new List<UpgradeKind>(doorbellAt.Keys))
+                if (!arrived.Contains(k)) doorbellAt.Remove(k);
+        }
+
+        // 처음 보면 초인종 시각을 정하고 false, 그 시각이 되면 소리 · 알림을 내고 true
+        bool RingDoorbell(UpgradeKind kind)
+        {
+            if (!doorbellAt.TryGetValue(kind, out float at))
+            {
+                doorbellAt[kind] = Time.time + DoorbellDelay;
+                return false;
+            }
+            if (Time.time < at) return false;
+            doorbellAt.Remove(kind);
+            Pose door = PlacementAnchor.Find(BoxAnchorKey, DefaultBoxPose(interior));
+            Sfx.Play(SoundId.HomeDoor, door.position);
+            if (toast == null) toast = WorldToast.Create(transform, font);
+            toast.Show($"띵동! {TrackName(kind)} 택배 왔어요", door.position + Vector3.up * 0.9f);
+            return true;
         }
 
         void OnBoxOpened(DeliveryBox box)

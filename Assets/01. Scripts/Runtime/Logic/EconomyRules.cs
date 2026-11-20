@@ -21,9 +21,13 @@ namespace CardShop.Logic
 
         public bool IsPopular(CardData card, MarketDay market) => PopularRank(card, market) > 0;
 
-        /// <summary>오늘 시세 배율 (인기 아니면 1)</summary>
+        /// <summary>하락 속성 카드인가 (무한 모드, 슬라임만)</summary>
+        public bool IsFalling(CardData card, MarketDay market) =>
+            config.popularElementEnabled && card != null && card.kind == CardKind.Slime && market.IsFalling(card.element);
+
+        /// <summary>오늘 시세 배율 (인기 아니면 1, 하락 속성이면 그 배율)</summary>
         public float Multiplier(CardData card, MarketDay market) =>
-            PopularRank(card, market) > 0 ? market.MultiplierOf(card.element) : 1f;
+            PopularRank(card, market) > 0 || IsFalling(card, market) ? market.MultiplierOf(card.element) : 1f;
 
         /// <summary>인기 속성 배율 적용 · 수수료 전 가격 (손님이 내는 값).</summary>
         public int GrossPrice(CardData card, MarketDay market) =>

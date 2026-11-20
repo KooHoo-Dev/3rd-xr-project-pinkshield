@@ -62,6 +62,16 @@ namespace CardShop.Cards
         [Range(0, 1)] public float secondaryBonusShare = 0.5f;
         [Tooltip("무한 모드 연장 날의 주기 길이 (최소 · 최대 일)")]
         public Vector2Int endlessCycleDays = new Vector2Int(1, 3);
+        [Tooltip("무한 모드: 연장 3일마다 '소폭 상승' 가중치를 이만큼 마지막 강도(폭등)로 옮김")]
+        public float endlessBoomShiftPer3Days = 2f;
+        public float endlessBoomShiftMax = 12f;
+        [Tooltip("무한 모드: 연장 이 날부터 '역대급' 강도와 하락 속성이 나옴 (경제시스템_설계 7-1)")]
+        public int endlessWildFromExtraDay = 4;
+        public PopularTier endlessWildTier = new PopularTier { name = "역대급", multiplier = 4f, weight = 2f };
+        [Tooltip("하락 속성 배율 (인기 2개와 다른 속성 1개)")]
+        public float fallingMultiplier = 0.8f;
+        [Tooltip("손님이 하락 속성 카드를 먼저 볼 가중치")]
+        public float fallingLookWeight = 0.5f;
 
         [System.Serializable]
         public class PopularTier

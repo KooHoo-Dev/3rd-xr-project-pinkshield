@@ -42,16 +42,13 @@ namespace CardShop.Tests
         }
 
         [Test]
-        public void Buy_SpendsMoney_ArrivesNextDay_OpenRaisesLevel()
+        // DEC-040 U5: 사면 그날 밤 바로 택배 상자가 옴 (효과는 상자를 연 뒤)
+        public void Buy_SpendsMoney_ArrivesSameNight_OpenRaisesLevel()
         {
             Assert.AreEqual(BuyResult.Ok, rules.TryBuy(s, UpgradeKind.Showcase, out int price));
             Assert.AreEqual(40, price);
             Assert.AreEqual(960, s.Wallet.Money);
-            Assert.AreEqual(UpgradeStatus.Ordered, s.Upgrades.StatusOf(UpgradeKind.Showcase));
-            Assert.AreEqual(3, rules.ShowcaseSlots(s.Upgrades), "주문만으로는 효과 없음");
-
-            s.AdvanceDay();
-            Assert.AreEqual(UpgradeStatus.Arrived, s.Upgrades.StatusOf(UpgradeKind.Showcase));
+            Assert.AreEqual(UpgradeStatus.Arrived, s.Upgrades.StatusOf(UpgradeKind.Showcase), "그날 밤 도착");
             CollectionAssert.AreEqual(new[] { UpgradeKind.Showcase }, s.Upgrades.Arrived());
             Assert.AreEqual(3, rules.ShowcaseSlots(s.Upgrades), "상자를 열기 전");
 
@@ -64,9 +61,8 @@ namespace CardShop.Tests
         [Test]
         public void UnopenedBox_OpensItselfNextMorning()
         {
-            rules.TryBuy(s, UpgradeKind.Bed, out _);
-            s.AdvanceDay(); // 도착
-            s.AdvanceDay(); // 안 열고 하루 지남 → 저절로 열림
+            rules.TryBuy(s, UpgradeKind.Bed, out _); // 그날 밤 도착
+            s.AdvanceDay(); // 안 열고 잠 → 아침에 저절로 열림
             Assert.AreEqual(2, s.Upgrades.LevelOf(UpgradeKind.Bed));
             Assert.AreEqual(UpgradeStatus.None, s.Upgrades.StatusOf(UpgradeKind.Bed));
         }
@@ -77,8 +73,7 @@ namespace CardShop.Tests
             rules.TryBuy(s, UpgradeKind.Binder, out _);
             Assert.AreEqual(BuyResult.Pending, rules.Check(s, UpgradeKind.Binder));
             Assert.AreEqual(BuyResult.Ok, rules.Check(s, UpgradeKind.Bed));
-            s.AdvanceDay();
-            Assert.AreEqual(BuyResult.Pending, rules.Check(s, UpgradeKind.Binder), "상자가 와 있어도 아직");
+            Assert.AreEqual(BuyResult.Pending, rules.Check(s, UpgradeKind.Binder), "상자가 와 있어도 열기 전엔 아직");
             s.Upgrades.Open(UpgradeKind.Binder);
             Assert.AreEqual(BuyResult.Ok, rules.Check(s, UpgradeKind.Binder));
             Assert.AreEqual(140, rules.NextLevel(s.Upgrades, UpgradeKind.Binder).price);
@@ -194,7 +189,6 @@ namespace CardShop.Tests
         void BuyAndOpen(UpgradeKind kind)
         {
             Assert.AreEqual(BuyResult.Ok, rules.TryBuy(s, kind, out _), kind.ToString());
-            s.AdvanceDay();
             Assert.IsTrue(s.Upgrades.Open(kind));
         }
     }

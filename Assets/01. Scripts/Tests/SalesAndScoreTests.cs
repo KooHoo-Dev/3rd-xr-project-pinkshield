@@ -400,6 +400,37 @@ namespace CardShop.Tests
             }
         }
 
+        // 무한 모드 연장 4일(11일차)부터 하락 속성 · 공식 기간과 연장 3일까지는 없음 (7-1)
+        [Test]
+        public void Endless_FallingElementFromExtraDay4_DiffersFromPopular()
+        {
+            var schedule = new MarketSchedule(7, economy, new SystemRandomSource(5));
+            for (int day = 1; day <= 60; day++)
+            {
+                MarketDay m = schedule.For(day);
+                if (m.Falling == CardElement.None) continue;
+                Assert.AreNotEqual(m.Primary, m.Falling, $"{day}일차");
+                Assert.AreNotEqual(m.Secondary, m.Falling, $"{day}일차");
+                Assert.AreEqual(0.8f, m.MultiplierOf(m.Falling), 1e-5f);
+                Assert.AreEqual(0, m.RankOf(m.Falling), "하락은 인기 아님");
+            }
+            for (int day = 1; day <= 7; day++) Assert.AreEqual(CardElement.None, schedule.For(day).Falling, $"공식 {day}일차");
+            bool any = false;
+            for (int day = 20; day <= 60; day++) any |= schedule.For(day).Falling != CardElement.None;
+            Assert.IsTrue(any, "연장 4일 이후에는 하락 속성이 나옴");
+        }
+
+        [Test]
+        public void FallingElement_LowersPrice_SlimeOnly()
+        {
+            var fixture = new Fixture();
+            var rules = new EconomyRules(fixture.Economy, fixture.Rarity);
+            var m = new MarketDay(CardElement.Water, 1.6f, CardElement.Earth, 1.3f, 1, "상승", CardElement.Fire, 0.8f);
+            Assert.AreEqual(16, rules.GrossPrice(fixture.Db.Get("F-SR"), m), "불 수퍼레어 20 × 0.8");
+            Assert.AreEqual(500, rules.GrossPrice(fixture.Db.Get("SN-L"), m), "간식은 그대로");
+            fixture.Destroy();
+        }
+
         [Test]
         public void SameSeed_SameSchedule()
         {

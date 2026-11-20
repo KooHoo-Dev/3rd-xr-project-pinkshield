@@ -97,9 +97,44 @@ namespace CardShop.Logic
         /// <summary>손님 인내 시간 배율 (1.1 = +10%)</summary>
         public float PatienceMultiplier(UpgradeState st) => 1f + UpgradeCatalog.At(catalog.patienceBonus, st.LevelOf(UpgradeKind.Bed), 0f);
 
-        public int ExtraFreePacks(UpgradeState st) => UpgradeCatalog.At(catalog.extraFreePacks, st.LevelOf(UpgradeKind.Bed), 0);
+        public int ExtraFreePacks(UpgradeState st) =>
+            UpgradeCatalog.At(catalog.extraFreePacks, st.LevelOf(UpgradeKind.Bed), 0)
+            + (AllDecorOwned(st) ? CozyRoomFreePacks : 0); // 꾸미기 5종 "아늑한 방" (DEC-040 U3)
+
+        /// <summary>꾸미기를 모두 갖추면 매일 더 받는 무료 팩</summary>
+        public const int CozyRoomFreePacks = 1;
 
         /// <summary>최종 점수의 가구 값 = 산 가격 100% (DEC-031 Q2)</summary>
         public static int FurnitureValue(UpgradeState st) => st.Spent;
+
+        /// <summary>산 가구 단계 수 (모든 분야의 단계 − 1 합, 꾸미기 1개 = 1). 방 점수 · 방 도감용 (DEC-040 U4)</summary>
+        public static int FurniturePieces(UpgradeState st)
+        {
+            int n = 0;
+            foreach (UpgradeKind k in (UpgradeKind[])System.Enum.GetValues(typeof(UpgradeKind))) n += st.LevelOf(k) - 1;
+            return n;
+        }
+
+        /// <summary>살 수 있는 가구 단계 전체 수 (카탈로그 기준, "방 꾸미기 n / 전체")</summary>
+        public int TotalPieces()
+        {
+            int n = 0;
+            if (catalog.tracks != null) foreach (UpgradeCatalog.Track t in catalog.tracks) if (t != null && t.levels != null) n += t.levels.Length;
+            return n;
+        }
+
+        /// <summary>꾸미기를 모두 갖췄나 ("아늑한 방", DEC-040 U3)</summary>
+        public bool AllDecorOwned(UpgradeState st)
+        {
+            bool any = false;
+            if (catalog.tracks != null)
+                foreach (UpgradeCatalog.Track t in catalog.tracks)
+                {
+                    if (t == null || !IsDecor(t.kind)) continue;
+                    any = true;
+                    if (st.LevelOf(t.kind) < MaxLevel(t.kind)) return false;
+                }
+            return any;
+        }
     }
 }

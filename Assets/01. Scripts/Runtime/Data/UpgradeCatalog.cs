@@ -150,16 +150,16 @@ namespace CardShop.Cards
                 L(50, "손님 인내심 +15%", Bed("LowPoly:Room/Bed1_02", 1f)),
                 L(130, "손님 인내심 +25% · 무료 팩 매일 +1", Bed("LowPoly:Room/Bed1_03", 1.25f))),
             T(UpgradeKind.Poster, "포스터",
-                L(15, "꾸미기", V("LowPoly:Room/Picture_03", new Vector3(0f, 1.55f, -2.88f), 0f, new Vector3(0f, 0f, -1f)))),
+                L(15, "꾸미기 · 5종 모으면 무료 팩 매일 +1", V("LowPoly:Room/Picture_03", new Vector3(0f, 1.55f, -2.88f), 0f, new Vector3(0f, 0f, -1f)))),
             T(UpgradeKind.Rug, "러그",
-                L(20, "꾸미기", R("LowPoly:Room/Catpet_03", "Rug"))),
+                L(20, "꾸미기 · 5종 모으면 무료 팩 매일 +1", R("LowPoly:Room/Catpet_03", "Rug"))),
             T(UpgradeKind.Lamp, "스탠드 조명",
-                L(25, "꾸미기", V("LowPoly:Light/Lamp_01", new Vector3(-2.15f, 0f, -0.75f), 90f, light: true))),
+                L(25, "꾸미기 · 5종 모으면 무료 팩 매일 +1", V("LowPoly:Light/Lamp_01", new Vector3(-2.15f, 0f, -0.75f), 90f, light: true))),
             T(UpgradeKind.Figure, "슬라임 피규어",
-                L(30, "꾸미기", V("Assets/03. Prefabs/Interior/Decor/SlimeFigure_Pink.prefab", new Vector3(0.72f, 0.71f, 1.7f), 180f, scale: 3f))),
+                L(30, "꾸미기 · 5종 모으면 무료 팩 매일 +1", V("Assets/03. Prefabs/Interior/Decor/SlimeFigure_Pink.prefab", new Vector3(0.72f, 0.71f, 1.7f), 180f, scale: 3f))),
             // F6 (Q6): 침대 위 오른쪽 벽, 바닥에서 2.1m. 뒷면을 벽(+X)에 붙임
             T(UpgradeKind.AirCon, "에어컨",
-                L(35, "꾸미기", V("LowPoly:Room/AirCondition", new Vector3(2.38f, 2.1f, -1.67f), -90f, new Vector3(1f, -1f, 0f)))),
+                L(35, "꾸미기 · 5종 모으면 무료 팩 매일 +1", V("LowPoly:Room/AirCondition", new Vector3(2.38f, 2.1f, -1.67f), -90f, new Vector3(1f, -1f, 0f)))),
         };
 
         static Visual Bed(string path, float widen) => new Visual

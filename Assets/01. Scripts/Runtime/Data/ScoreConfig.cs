@@ -19,6 +19,11 @@ namespace CardShop.Cards
         [Tooltip("도감 1종당 점수")]
         public int pointsPerCollected = 10;
 
+        [Tooltip("방 점수: 가구 1단계(꾸미기 1개)마다 (DEC-040 U4 '방 도감')")]
+        public int pointsPerFurniturePiece = 15;
+        [Tooltip("진열장 세트 1개(같은 속성 수퍼레어 이상 3장)마다 (DEC-040 U1)")]
+        public int pointsPerShowcaseSet = 60;
+
         [Tooltip("높은 랭크부터. 위에서부터 처음 만족하는 랭크가 선택됩니다.")]
         public Rank[] ranks =
         {

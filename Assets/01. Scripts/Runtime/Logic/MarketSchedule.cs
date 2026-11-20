@@ -19,9 +19,15 @@ namespace CardShop.Logic
         public int TierIndex { get; }
         /// <summary>"소폭 상승" · "상승" · "급등" · "폭등"</summary>
         public string TierName { get; }
+        /// <summary>하락 속성 (무한 모드 연장 4일부터, 없으면 None) · 배율</summary>
+        public CardElement Falling { get; }
+        public float FallingMultiplier { get; }
 
-        public MarketDay(CardElement primary, float primaryMultiplier, CardElement secondary, float secondaryMultiplier, int tierIndex, string tierName)
+        public MarketDay(CardElement primary, float primaryMultiplier, CardElement secondary, float secondaryMultiplier, int tierIndex, string tierName,
+            CardElement falling = CardElement.None, float fallingMultiplier = 1f)
         {
+            Falling = falling;
+            FallingMultiplier = fallingMultiplier;
             Primary = primary;
             PrimaryMultiplier = primaryMultiplier;
             Secondary = secondary;
@@ -41,14 +47,16 @@ namespace CardShop.Logic
             return 0;
         }
 
-        /// <summary>속성의 가격 배율 (인기 아니면 1)</summary>
+        public bool IsFalling(CardElement element) => element != CardElement.None && element == Falling;
+
+        /// <summary>속성의 가격 배율 (인기 아니면 1, 하락 속성이면 FallingMultiplier)</summary>
         public float MultiplierOf(CardElement element)
         {
             switch (RankOf(element))
             {
                 case 1: return PrimaryMultiplier;
                 case 2: return SecondaryMultiplier;
-                default: return 1f;
+                default: return IsFalling(element) ? FallingMultiplier : 1f;
             }
         }
     }
@@ -107,6 +115,7 @@ namespace CardShop.Logic
 
         MarketDay RollCycle()
         {
+            int extraDay = byDay.Count + 1 - officialDays; // 이 주기가 시작하는 연장 날 (공식 기간이면 0 이하)
             CardElement primary;
             do primary = SlimeElements[random.Range(0, SlimeElements.Length)];
             while (primary == lastPrimary);
@@ -116,27 +125,51 @@ namespace CardShop.Logic
             do secondary = SlimeElements[random.Range(0, SlimeElements.Length)];
             while (secondary == primary);
 
-            int tier = PickTier();
-            float mult = tier >= 0 ? config.popularTiers[tier].multiplier : 1.5f;
-            string name = tier >= 0 ? config.popularTiers[tier].name : "상승";
+            List<EconomyConfig.PopularTier> tiers = TiersFor(extraDay);
+            int tier = PickTier(tiers);
+            float mult = tier >= 0 ? tiers[tier].multiplier : 1.5f;
+            string name = tier >= 0 ? tiers[tier].name : "상승";
             float second = 1f + (mult - 1f) * config.secondaryBonusShare;
-            return new MarketDay(primary, mult, secondary, second, tier, name);
+
+            // 무한 모드 연장 4일부터: 인기 2개와 다른 속성 하나가 하락 (7-1)
+            CardElement falling = CardElement.None;
+            if (extraDay >= config.endlessWildFromExtraDay && config.endlessWildFromExtraDay > 0)
+                do falling = SlimeElements[random.Range(0, SlimeElements.Length)];
+                while (falling == primary || falling == secondary);
+            return new MarketDay(primary, mult, secondary, second, tier, name, falling, config.fallingMultiplier);
         }
 
-        int PickTier()
+        // 강도 표: 공식 기간은 설정 그대로. 연장 날은 3일마다 소폭 → 폭등으로 가중치를 옮기고, 연장 4일부터 "역대급" 추가 (7-1)
+        List<EconomyConfig.PopularTier> TiersFor(int extraDay)
         {
-            EconomyConfig.PopularTier[] tiers = config.popularTiers;
-            if (tiers == null || tiers.Length == 0) return -1;
+            var list = new List<EconomyConfig.PopularTier>();
+            if (config.popularTiers != null)
+                foreach (EconomyConfig.PopularTier t in config.popularTiers)
+                    list.Add(new EconomyConfig.PopularTier { name = t.name, multiplier = t.multiplier, weight = t.weight });
+            if (extraDay <= 0 || list.Count < 2) return list;
+
+            float shift = System.Math.Min(config.endlessBoomShiftMax, config.endlessBoomShiftPer3Days * (extraDay / 3));
+            shift = System.Math.Min(shift, list[0].weight);
+            list[0].weight -= shift;
+            list[list.Count - 1].weight += shift;
+            if (extraDay >= config.endlessWildFromExtraDay && config.endlessWildTier != null && config.endlessWildTier.weight > 0f)
+                list.Add(config.endlessWildTier);
+            return list;
+        }
+
+        int PickTier(List<EconomyConfig.PopularTier> tiers)
+        {
+            if (tiers.Count == 0) return -1;
             float sum = 0f;
             foreach (EconomyConfig.PopularTier t in tiers) sum += t.weight > 0f ? t.weight : 0f;
             if (sum <= 0f) return 0;
             double r = random.NextDouble() * sum;
-            for (int i = 0; i < tiers.Length; i++)
+            for (int i = 0; i < tiers.Count; i++)
             {
                 r -= tiers[i].weight > 0f ? tiers[i].weight : 0f;
                 if (r < 0) return i;
             }
-            return tiers.Length - 1;
+            return tiers.Count - 1;
         }
     }
 }

@@ -51,6 +51,9 @@ namespace CardShop.UI
                 CardElement after = ctx.Upgrades.ForecastDays(ctx.Session.Upgrades) >= 2
                     ? ctx.Market.For(ctx.Session.Day + 2).Primary : CardElement.None;
                 if (after != CardElement.None) tomorrow += "\n" + string.Format(AfterTomorrowFormat, CommunityBoard.ElementName(after));
+                // 무한 모드 연장 4일부터 하락 속성 (경제시스템_설계 7-1)
+                if (tm.Falling != CardElement.None)
+                    today += $"\n하락  <color=#7FA8FF>{CommunityBoard.ElementName(tm.Falling)}</color> 슬라임 아무도 안 찾음" + (priceListOn ? $" (×{tm.FallingMultiplier:0.0#})" : "");
                 forecastLabel.text = today + "\n" + tomorrow;
             }
 

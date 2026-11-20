@@ -156,7 +156,7 @@ namespace CardShop.Logic
             {
                 CardData c = cards.Get(id);
                 if (c == null) continue;
-                double w = LookWeight(prices.PopularRank(c, market));
+                double w = prices.IsFalling(c, market) ? System.Math.Max(0.01, economy.fallingLookWeight) : LookWeight(prices.PopularRank(c, market));
                 double u = random.NextDouble();
                 order.Add(new KeyValuePair<double, CardData>(System.Math.Pow(u, 1.0 / w), c));
             }

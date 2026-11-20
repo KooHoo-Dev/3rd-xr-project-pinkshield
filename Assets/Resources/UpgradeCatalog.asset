@@ -113,7 +113,7 @@ MonoBehaviour:
     displayName: "\uD3EC\uC2A4\uD130"
     levels:
     - price: 15
-      effect: "\uAFB8\uBBF8\uAE30"
+      effect: "\uAFB8\uBBF8\uAE30 \xB7 5\uC885 \uBAA8\uC73C\uBA74 \uBB34\uB8CC \uD329 \uB9E4\uC77C +1"
       visuals:
       - modelPath: LowPoly:Room/Picture_03
         model: {fileID: 8053550952898919800, guid: 788ef17667cdad549a1b52c9f37b2c65, type: 3}
@@ -129,7 +129,7 @@ MonoBehaviour:
     displayName: "\uB7EC\uADF8"
     levels:
     - price: 20
-      effect: "\uAFB8\uBBF8\uAE30"
+      effect: "\uAFB8\uBBF8\uAE30 \xB7 5\uC885 \uBAA8\uC73C\uBA74 \uBB34\uB8CC \uD329 \uB9E4\uC77C +1"
       visuals:
       - modelPath: LowPoly:Room/Catpet_03
         model: {fileID: 5059929299895181224, guid: 2131c85c878a65244ad8dd24a806ec6e, type: 3}
@@ -145,7 +145,7 @@ MonoBehaviour:
     displayName: "\uC2A4\uD0E0\uB4DC \uC870\uBA85"
     levels:
     - price: 25
-      effect: "\uAFB8\uBBF8\uAE30"
+      effect: "\uAFB8\uBBF8\uAE30 \xB7 5\uC885 \uBAA8\uC73C\uBA74 \uBB34\uB8CC \uD329 \uB9E4\uC77C +1"
       visuals:
       - modelPath: LowPoly:Light/Lamp_01
         model: {fileID: 8446088109260437507, guid: cd2732c0a3f49584db67f1ca8f164102, type: 3}
@@ -161,7 +161,7 @@ MonoBehaviour:
     displayName: "\uC2AC\uB77C\uC784 \uD53C\uADDC\uC5B4"
     levels:
     - price: 30
-      effect: "\uAFB8\uBBF8\uAE30"
+      effect: "\uAFB8\uBBF8\uAE30 \xB7 5\uC885 \uBAA8\uC73C\uBA74 \uBB34\uB8CC \uD329 \uB9E4\uC77C +1"
       visuals:
       - modelPath: Assets/03. Prefabs/Interior/Decor/SlimeFigure_Pink.prefab
         model: {fileID: 5528634919848449210, guid: 5e3c40c2d93a3564ea5740c339616eb0, type: 3}
@@ -177,7 +177,7 @@ MonoBehaviour:
     displayName: "\uC5D0\uC5B4\uCEE8"
     levels:
     - price: 35
-      effect: "\uAFB8\uBBF8\uAE30"
+      effect: "\uAFB8\uBBF8\uAE30 \xB7 5\uC885 \uBAA8\uC73C\uBA74 \uBB34\uB8CC \uD329 \uB9E4\uC77C +1"
       visuals:
       - modelPath: LowPoly:Room/AirCondition
         model: {fileID: 9039956538950093274, guid: f41e08e55b905544a949d9733744ce0e, type: 3}

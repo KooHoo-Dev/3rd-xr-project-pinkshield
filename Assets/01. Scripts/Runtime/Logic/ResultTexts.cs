@@ -62,6 +62,8 @@ namespace CardShop.Logic
             sb.Append("내 자산").Append(Col).Append(MoneyText.Format(r.Money)).Append('\n');
             sb.Append("카드 가치").Append(Col).Append(MoneyText.Format(r.CardValue)).Append('\n');
             if (r.FurnitureValue > 0) sb.Append("가구 값").Append(Col).Append(MoneyText.Format(r.FurnitureValue)).Append('\n');
+            if (r.RoomPoints > 0) sb.Append($"방 꾸미기 {r.FurniturePieces}개").Append(Col).Append(Signed(r.RoomPoints)).Append('\n');
+            if (r.SetPoints > 0) sb.Append($"진열장 세트 {r.ShowcaseSets.Count}개").Append(Col).Append(Signed(r.SetPoints)).Append('\n');
             sb.Append($"도감 {r.CollectedKinds}/{r.TotalKinds}종").Append(Col).Append(Signed(r.CollectionPoints)).Append('\n');
             sb.Append($"<size=80%>수퍼레어 이상 {r.RareCollected}/{r.RareTotal}종 · 연 팩 {r.PacksOpened}개</size>\n");
             if (r.BestCard != null) sb.Append($"<size=80%>최고의 카드: {r.BestCard.displayName}</size>\n");
