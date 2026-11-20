@@ -16,8 +16,8 @@ namespace CardShop.EditorTools
     /// </summary>
     public static class QuestBuildTools
     {
-        public const string ProductName = "카드깡 알바생의 하루 VR";
-        public const string ApplicationId = "com.KooHooEdu.cardkkangvr";
+        public const string ProductName = "퇴근하고 한 팩 VR";
+        public const string ApplicationId = "com.KooHooEdu.onepackaftershift";
         public const string OutputDir = "Builds/Quest"; // .gitignore의 /Builds/ 에 포함
         const string ApkName = "CardKkangVR.apk";
 
