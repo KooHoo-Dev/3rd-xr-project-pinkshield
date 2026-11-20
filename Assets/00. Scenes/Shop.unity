@@ -14318,6 +14318,7 @@ MonoBehaviour:
   - {fileID: 466161842}
   - {fileID: 1029564121}
   - {fileID: 804725768}
+  undisplayAllButton: {fileID: 0}
 --- !u!114 &678021152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37637,7 +37638,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uCE74\uB4DC\uAE61 \uC54C\uBC14\uC0DD\uC758 \uD558\uB8E8"
+  m_text: "\uD1F4\uADFC\uD558\uACE0 \uD55C \uD329"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 29e28123920a96c44a8416a41c2da4d9, type: 2}
   m_sharedMaterial: {fileID: -6801016509701406347, guid: 29e28123920a96c44a8416a41c2da4d9, type: 2}
