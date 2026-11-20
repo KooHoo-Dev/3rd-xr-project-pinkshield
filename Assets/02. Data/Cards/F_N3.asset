@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: F_N3
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CardData
   id: F-N3
+  number: 3
   kind: 0
   element: 1
   rarity: 0
-  displayName: "\uAF2C\uB9C8 \uBD88\uAF43 \uC2AC\uB77C\uC784"
+  displayName: "\uB178\uC744 \uC2AC\uB77C\uC784"
   description: 
   basePrice: 1
   character: {fileID: 2800000, guid: 99945893e69247443afe0f19e4b37aff, type: 3}

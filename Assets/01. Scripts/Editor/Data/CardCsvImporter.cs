@@ -64,6 +64,7 @@ namespace CardShop.Cards.EditorTools
                 }
 
                 card.id = id;
+                card.number = imported.Count + 1; // 바인더 도감 번호와 같은 순서 (BinderCursor.NumberOf)
                 card.kind = kind;
                 card.element = element;
                 card.rarity = rarity;

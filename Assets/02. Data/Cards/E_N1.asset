@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: E_N1
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CardData
   id: E-N1
+  number: 17
   kind: 0
   element: 3
   rarity: 0

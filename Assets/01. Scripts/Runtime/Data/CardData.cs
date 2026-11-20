@@ -12,6 +12,9 @@ namespace CardShop.Cards
         [Tooltip("기획서·아트 파일 이름과 같은 ID (예: F-N1)")]
         public string id;
 
+        [Tooltip("도감 번호 (1부터, cards.csv 순서). CSV 임포트 시 채워집니다.")]
+        public int number;
+
         public CardKind kind;
         public CardElement element;
         public CardRarity rarity;

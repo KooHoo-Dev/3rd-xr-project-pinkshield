@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: W_U
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CardData
   id: W-U
+  number: 15
   kind: 0
   element: 2
   rarity: 3
-  displayName: "\uC2EC\uD574 \uC5EC\uC655 \uC2AC\uB77C\uC784"
+  displayName: "\uC0B0\uD638 \uACF5\uC8FC \uC2AC\uB77C\uC784"
   description: 
   basePrice: 100
   character: {fileID: 2800000, guid: 17d6e93016eb8c44c85ae36c72530fc0, type: 3}

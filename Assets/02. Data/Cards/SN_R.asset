@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: SN_R
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CardData
   id: SN-R
+  number: 47
   kind: 2
   element: 0
   rarity: 1
-  displayName: "\uAFC0\uBC29\uC6B8 \uCFE0\uD0A4"
+  displayName: "\uBB3C\uBC29\uC6B8\uBB34\uB2AC \uC54C"
   description: 
   basePrice: 5
   character: {fileID: 0}

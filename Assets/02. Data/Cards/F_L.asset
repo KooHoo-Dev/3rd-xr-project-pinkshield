@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: F_L
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CardData
   id: F-L
+  number: 8
   kind: 0
   element: 1
   rarity: 4
