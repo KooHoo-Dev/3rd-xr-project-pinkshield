@@ -38,11 +38,13 @@ namespace CardShop.UI
             return tag;
         }
 
-        public void Set(string label, Color fill)
+        /// <param name="line">알약 테두리 (기본 = 없음)</param>
+        public void Set(string label, Color fill, Color line = default)
         {
             text.text = label;
             text.color = UiTheme.Ink;
-            plate.SetStyle(fill, default);
+            text.fontStyle |= FontStyles.Bold;
+            plate.SetStyle(fill, line);
             plate.Fit();
         }
 

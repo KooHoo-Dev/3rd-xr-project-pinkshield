@@ -88,7 +88,7 @@ namespace CardShop.Customers
 
             // 이름표: 구름(순서 0~1) · 글자(2)보다 앞
             bubble.nameTag = NameTag.Create(go.transform, NameTagFontSize, 3);
-            bubble.nameTag.Set(BubbleStyle.Customer.Label, BubbleStyle.Customer.Line);
+            bubble.nameTag.Set(BubbleStyle.Customer.Label, BubbleStyle.Customer.TagFill, BubbleStyle.Customer.Line);
 
             go.SetActive(false);
             return bubble;
@@ -132,7 +132,8 @@ namespace CardShop.Customers
         public void Say(string message, float seconds)
         {
             if (string.IsNullOrEmpty(message)) return;
-            text.text = message;
+            text.fontStyle |= FontStyles.Bold; // 말풍선 글자는 모두 굵게 (11-20)
+            text.text = CardShop.UI.PaperBubble.EmphasisByColor(message); // 강조는 색으로만
             text.maxVisibleCharacters = 99999; // 구름 크기는 다 쓴 글자 기준
             duration = Mathf.Max(0.5f, seconds);
             left = duration;

@@ -75,8 +75,11 @@ namespace CardShop.Presentation
                 TMP_Text s = sortButton.GetComponentInChildren<TMP_Text>(true);
                 if (s != null)
                 {
-                    s.text = BinderSort.Label(sort); // 기호(⇅)는 글꼴에 없을 수 있어 글자만
-                    s.color = sort == BinderSortOrder.Rarity ? selectedText : Color.white;
+                    // 기호(⇅)는 글꼴에 없을 수 있어 글자만. 11-20 Play "레어도 정렬 버튼이 없음": "도감순"만 보여서 정렬 버튼인지 몰랐음 → 위에 "정렬"
+                    s.text = $"<size=65%>정렬</size>\n{BinderSort.Label(sort)}";
+                    s.enableAutoSizing = true;
+                    s.fontSizeMin = 10f;
+                    s.color = CardShop.UI.UiTheme.Ink; // 밝은 색인 탭 위 (BinderSkin, 11-20)
                     s.fontStyle = FontStyles.Bold;
                 }
             }
@@ -92,7 +95,7 @@ namespace CardShop.Presentation
                 bool hot = popular != CardElement.None && e == popular;
                 bool warm = !hot && second != CardElement.None && e == second;
                 label.text = hot ? $"★{BinderTabs.Label(t)}" : warm ? $"☆{BinderTabs.Label(t)}" : BinderTabs.Label(t);
-                label.color = on ? selectedText : Color.white;
+                label.color = on ? CardShop.UI.UiTheme.Ink : CardShop.UI.UiTheme.InkSoft; // 밝은 색인 탭 위, 고른 탭은 굵게 + 밑줄
                 label.fontStyle = on ? FontStyles.Bold | FontStyles.Underline : FontStyles.Normal;
             }
         }

@@ -33,12 +33,20 @@ namespace CardShop.UI
         public void Show(BubbleStyle style, string richText)
         {
             text.color = UiTheme.Ink;
-            text.text = richText;
-            plate.SetStyle(UiTheme.Paper, style.Line, style.Dashed);
-            nameTag.Set(style.Label, style.Line);
+            text.fontStyle |= FontStyles.Bold; // 말풍선 글자는 모두 굵게 (11-20 피드백: 예전처럼). UiFonts가 굵기를 지워도 보일 때마다 다시
+            text.text = EmphasisByColor(richText);
+            plate.SetStyle(style.Fill, style.Line, style.Dashed);
+            nameTag.Set(style.Label, style.TagFill, style.Line);
             plate.Fit();
             nameTag.PinTo(plate.Area);
         }
+
+        /// <summary>강조 색 (진한 분홍): 굵기는 모두 같게 두고 강조는 색으로만 (11-20 피드백 "굵기가 들쭉날쭉")</summary>
+        public const string Emphasis = "#D2407F";
+
+        /// <summary>&lt;b&gt;강조&lt;/b&gt; → 강조 색. 모든 글자가 이미 굵어서 &lt;b&gt;를 더하면 그 부분만 두 번 부풀어 들쭉날쭉해 보임</summary>
+        public static string EmphasisByColor(string rich) =>
+            string.IsNullOrEmpty(rich) ? rich : rich.Replace("<b>", $"<color={Emphasis}>").Replace("</b>", "</color>");
 
         /// <summary>글자 · 판 · 이름표를 함께 (0~1)</summary>
         public void SetAlpha(float a)

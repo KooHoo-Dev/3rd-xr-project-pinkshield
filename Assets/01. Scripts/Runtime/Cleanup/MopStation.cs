@@ -83,7 +83,7 @@ namespace CardShop.Cleanup
         static void RenameLabel()
         {
             foreach (TextMeshPro t in FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (t.text.StartsWith("빗자루")) t.text = "대걸레\n(청소 · 도둑 잡기)";
+                if (t.text != null && t.text.StartsWith("빗자루")) t.text // 글이 아직 없는(null) 글자도 있음 (11-20 NullReference) = "대걸레\n(청소 · 도둑 잡기)";
         }
 
         static Transform Part(Transform parent, PrimitiveType shape, Vector3 size, Vector3 localPos, Material mat) =>

@@ -15,16 +15,30 @@ namespace CardShop.UI
     public sealed class CommunityScreen : HomePanel
     {
         // 문구는 한 곳에 모읍니다.
-        const string TodayFormat = "오늘 인기  <color=#FFC857>{0}</color> {1} · 2순위 <color=#FFB07A>{2}</color>";
-        const string TomorrowFormat = "내일 예보  <color=#7FD1FF>{0}</color>{1} · 2순위 {2}";
+        // 어두운 SlimeOS 창 위 눈 편한 색 (11-20, 채도 약 70%)
+        const string TodayFormat = "오늘 인기  <color=#F0A868>{0}</color> {1} · 2순위 <color=#E39A86>{2}</color>";
+        const string TomorrowFormat = "내일 예보  <color=#86C3EA>{0}</color>{1} · 2순위 {2}";
         const string TomorrowNone = "내일 예보  없음 (마지막 날)";
-        const string AfterTomorrowFormat = "모레 예보  <color=#B39DFF>{0}</color>";
+        const string AfterTomorrowFormat = "모레 예보  <color=#B8A6F0>{0}</color>";
         const string TopHeader = "인기 카드 TOP3";
         const string TopEmpty = "아직 가진 인기 카드가 없어요";
 
         [SerializeField] TMP_Text forecastLabel;
         [SerializeField] TMP_Text topLabel;
         [SerializeField] TMP_Text moodLabel;
+
+        /// <summary>
+        /// 글자를 다른 곳(모니터 SlimeOS 창의 캔버스 글자)으로 옮김. 씬의 3D 글자는 숨김 (CommunityWindow, UI 개편 8번).
+        /// </summary>
+        public void Rehost(GameObject newContent, TMP_Text forecast, TMP_Text top, TMP_Text mood)
+        {
+            if (content != null) content.SetActive(false);
+            content = newContent;
+            forecastLabel = forecast;
+            topLabel = top;
+            moodLabel = mood;
+            OnPhaseChanged(CurrentPhase); // 지금 집이면 바로 보이고 채움
+        }
 
         // 집에서 카드를 팔거나 진열하면 TOP3(보유 카드 기준)가 달라지므로 HomePanel이 다시 그리게 함
         protected override void Redraw()

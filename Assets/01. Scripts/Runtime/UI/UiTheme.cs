@@ -64,6 +64,39 @@ namespace CardShop.UI
         /// <summary>혼잣말 말풍선 테두리 · 이름표 (하늘색 점선)</summary>
         public static readonly Color SelfLine = new Color(0.45f, 0.74f, 0.95f);
 
+        // 집 컴퓨터 · 바인더 "눈 편한 색" (11-20 Quest 피드백: 흰 판이 눈부시고 깨져 보임 → 미리보기 「눈 편한 색 적용안」)
+        // 큰 판은 따뜻한 중간 어둠(휘도 0.03~0.08), 글자는 순백 대신 미색, 대비 7~10 : 1, 강조색 채도 약 70%
+        /// <summary>바탕화면 짙은 청록 #2F5260</summary>
+        public static readonly Color OsDesktop = new Color(0.184f, 0.322f, 0.376f);
+        /// <summary>창 몸통 #34304A</summary>
+        public static readonly Color OsWindow = new Color(0.204f, 0.188f, 0.29f);
+        /// <summary>창 테두리 연보라 #8C7FB0 (잉크 가는 선 대신 — 떨림 줄임)</summary>
+        public static readonly Color OsWindowLine = new Color(0.549f, 0.498f, 0.69f);
+        /// <summary>창 안 칸 (상품 칸) #3E3858</summary>
+        public static readonly Color OsCard = new Color(0.243f, 0.22f, 0.345f);
+        /// <summary>칸 테두리 #5A5178</summary>
+        public static readonly Color OsCardLine = new Color(0.353f, 0.318f, 0.47f);
+        /// <summary>앞 창 제목 줄 #6E58A8</summary>
+        public static readonly Color OsTitleBar = new Color(0.431f, 0.345f, 0.659f);
+        /// <summary>작업 표시줄 #221D30</summary>
+        public static readonly Color OsTaskbar = new Color(0.133f, 0.114f, 0.188f);
+        /// <summary>어두운 판 위 글자 미색 #E4DCCF</summary>
+        public static readonly Color SoftText = new Color(0.894f, 0.863f, 0.812f);
+        /// <summary>어두운 판 위 보조 글자 #B9B0CC</summary>
+        public static readonly Color SoftSub = new Color(0.725f, 0.69f, 0.8f);
+        /// <summary>채도 낮춘 금색 #E2BE6A</summary>
+        public static readonly Color SoftGold = new Color(0.886f, 0.745f, 0.416f);
+        /// <summary>채도 낮춘 분홍 #D9709F</summary>
+        public static readonly Color SoftPink = new Color(0.851f, 0.439f, 0.624f);
+        /// <summary>노란 꼬리표 가격표 (작은 밝은 물건이라 그대로 밝게)</summary>
+        public static readonly Color PriceTag = new Color(0.886f, 0.745f, 0.416f);
+        /// <summary>바인더 표지 #222A45 · 속지 #2C3350</summary>
+        public static readonly Color BinderCover = new Color(0.133f, 0.165f, 0.27f);
+        public static readonly Color BinderPage = new Color(0.173f, 0.2f, 0.314f);
+        /// <summary>작은 밝은 판(말풍선) 크림을 90%로 #E6DFCF · 테 짙은 보라 #4A3F5E</summary>
+        public static readonly Color SoftPaper = new Color(0.902f, 0.875f, 0.812f);
+        public static readonly Color SoftInkLine = new Color(0.29f, 0.247f, 0.369f);
+
         /// <summary>3D 글자 뒤 띠 (&lt;mark=…&gt;). 판 바탕보다 조금 어두운 보라, 알파 CC</summary>
         public const string Mark = "#3B2B59CC";
         /// <summary>혼잣말 · 손목 재화처럼 더 진하게 가려야 하는 띠</summary>

@@ -43,6 +43,25 @@ namespace CardShop.UI
         public static Sprite Ring(int thickness) =>
             Get("ring" + thickness, () => Make(128, 128, (x, y, w, h) => RoundedCoverage(x, y, w, h, 64) * (1f - InsetCoverage(x, y, w, h, 64, thickness)), 100f, 0));
 
+        /// <summary>체크 표시 ✓ (글꼴에 ✓가 없어도 깨지지 않게 그림으로, 알림 좋은 소식 아이콘)</summary>
+        public static Sprite Check() => Get("check", () => Make(64, 64, CheckCoverage, 100f, 0));
+
+        /// <summary>✓ 두 획: (14,34)→(27,20)→(50,46), 두께 7픽셀</summary>
+        public static float CheckCoverage(int x, int y, int w, int h)
+        {
+            Vector2 p = new Vector2(x + 0.5f, y + 0.5f);
+            float d = Mathf.Min(SegmentDistance(p, new Vector2(14f, 34f), new Vector2(27f, 20f)),
+                                SegmentDistance(p, new Vector2(27f, 20f), new Vector2(50f, 46f)));
+            return Mathf.Clamp01(4f - d); // 반두께 3.5 + 0.5 부드럽게
+        }
+
+        static float SegmentDistance(Vector2 p, Vector2 a, Vector2 b)
+        {
+            Vector2 ab = b - a;
+            float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / ab.sqrMagnitude);
+            return Vector2.Distance(p, a + ab * t);
+        }
+
         /// <summary>영수증 아래 톱니 한 칸 (16 × 8, 아래로 뾰족). Image.Type.Tiled로 가로로 반복</summary>
         public static Sprite TearEdge() => Get("tear", () => Make(16, 8, TearCoverage, 100f, 0, TextureWrapMode.Repeat));
 

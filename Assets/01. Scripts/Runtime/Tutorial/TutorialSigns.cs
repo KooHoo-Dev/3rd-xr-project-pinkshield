@@ -1,5 +1,6 @@
 using CardShop.Core;
 using CardShop.Presentation;
+using CardShop.UI;
 using UnityEngine;
 
 namespace CardShop.Tutorial
@@ -23,25 +24,30 @@ namespace CardShop.Tutorial
         /// <summary>알바 수칙 포스터 기본 자리: 계산대 뒤 벽 앞. 플레이어(원점)가 뒤돌아 −Z를 보며 읽음 → 앞면(-Z)이 +Z 쪽을 향하게</summary>
         public static Pose RulesDefault => new Pose(new Vector3(-0.9f, 1.55f, ShopLayout.BackZ + ShopLayout.WallHalf + 0.02f), Quaternion.Euler(0f, 180f, 0f));
 
-        const string ControlsText =
-            "<b>조작 안내</b>\n" +
-            "그립 (가운뎃손가락) — 잡기\n" +
-            "트리거 (검지) — 누르기 · 카드 넘기기\n" +
-            "왼쪽 스틱 — 걷기\n" +
-            "오른쪽 스틱 — 돌기\n" +
-            "왼손 메뉴 버튼 — 일시정지 · 안내 다시 보기";
+        // 조작 안내 = 타이틀 칠판과 같은 칠판 판 (11-20): 버튼 이름은 금색 · 메뉴는 분홍 글자로 강조.
+        // (예전 <mark> 색 칸은 TMP가 글자 위에 그려 글자를 덮어 깨져 보였음)
+        static readonly string ControlsText =
+            "<color=#FFD159>조작 안내</color>\n" +
+            Key("그립") + " — 잡기 (가운뎃손가락)\n" +
+            Key("트리거") + " — 누르기 · 카드 넘기기 (검지)\n" +
+            Key("왼쪽 스틱") + " — 걷기\n" +
+            Key("오른쪽 스틱") + " — 돌기\n" +
+            Key("메뉴", "#FF8CBF") + " — 일시정지 · 안내 다시 보기 (왼손)";
+
+        static string Key(string name, string color = "#FFD159") => $"<color={color}>{name}</color>";
 
         static string RulesText(GameContext ctx)
         {
             int bonus = ctx != null ? ctx.Economy.cleanupBonus : 5;
             int penalty = ctx != null ? ctx.Economy.cleanupPenalty : 3;
             int days = ctx != null ? ctx.Campaign.DayCount : 7;
-            return "<b>알바 수칙</b>\n" +
+            return "<b><u>알바 수칙</u></b>\n" +
                    "1. 손님이 오면 계산부터\n" +
                    "   (찍기 → 봉투 → 결제)\n" +
                    $"2. 청소 한 곳 +{bonus}, 못 하면 -{penalty}\n" +
                    "3. 빨리 계산하면 보너스\n" +
-                   $"4. {days}일 평가 B 이상이면 정직원!";
+                   $"4. {days}일 평가 B 이상이면 정직원!\n" +
+                   "<align=right>— 사장</align>";
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -58,14 +64,12 @@ namespace CardShop.Tutorial
         {
             var revealer = FindAnyObjectByType<CardRevealer>();
             var font = revealer != null ? revealer.Font : null;
-            var paper = new Color(1f, 0.97f, 0.88f);
-            var ink = new Color(0.18f, 0.15f, 0.22f);
-
+            // 조작 안내 = 타이틀 칠판 옆에 서는 칠판 판 (나무 틀 + 칠판 + 미색 글자, 11-20). 수칙 포스터는 종이 + 테이프
             controlsBoard = WorldSign.Create(transform, "ControlsBoard", font, PlacementAnchor.Find(ControlsKey, ControlsDefault),
-                ControlsSize, new Color(0.12f, 0.1f, 0.16f, 0.92f), Color.white, 0.26f, ControlsText);
+                ControlsSize, UiTheme.Chalkboard, UiTheme.Text, 0.26f, ControlsText, false, 0f, UiTheme.Wood, 0.04f);
 
             WorldSign.Create(transform, "RulesPoster", font, PlacementAnchor.Find(RulesKey, RulesDefault),
-                RulesSize, paper, ink, 0.24f, RulesText(GameContext.Instance));
+                RulesSize, UiTheme.Paper, UiTheme.Ink, 0.24f, RulesText(GameContext.Instance), true, -2f);
 
             subscribed = GameContext.Instance;
             if (subscribed == null) return;

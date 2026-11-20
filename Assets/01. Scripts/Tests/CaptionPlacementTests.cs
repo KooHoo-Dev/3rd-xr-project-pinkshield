@@ -27,6 +27,13 @@ namespace CardShop.Tests
         }
 
         [Test]
+        public void Front_IsLeftOfCenter() // 11-20: 쥔 물건(가운데 ~ 오른손)을 비켜 왼쪽
+        {
+            Pose p = CaptionPlacement.Front(Vector3.zero, Vector3.forward);
+            Assert.Less(p.position.x, -0.1f);
+        }
+
+        [Test]
         public void Front_IsAtDistance_FacingAwayFromHead()
         {
             Vector3 head = new Vector3(1f, 1.6f, 2f);

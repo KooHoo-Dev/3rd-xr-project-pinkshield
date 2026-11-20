@@ -43,6 +43,12 @@ namespace CardShop.Tutorial
         GameFlow flow;
         System.Action afterDone; // ✓ 보여 주는 동안 들어온 다음 Show / Hide
 
+        /// <summary>자막이 지금 떠 있는가 (떠 있는 동안 알림 쪽지는 쉼 — 안내는 한 곳에서 한 번에 하나, 11-20)</summary>
+        public static bool IsShowing { get; private set; }
+
+        void OnEnable() => IsShowing = true;
+        void OnDisable() => IsShowing = false;
+
         public static TutorialCaption Create(Transform parent, TMP_FontAsset font)
         {
             var go = new GameObject("TutorialCaption", typeof(RectTransform));
@@ -70,6 +76,7 @@ namespace CardShop.Tutorial
             body = message;
             task = taskLine;
             Redraw(false);
+            paper.DrawOnTop(); // 글꼴이 나중에 바뀌면(UiFonts) 글자 재질이 새로 붙어 "맨 위"가 풀리므로 보일 때마다 다시
             shownFor = 0f;
             gameObject.SetActive(true);
             Reposition();
@@ -129,12 +136,14 @@ namespace CardShop.Tutorial
         void Redraw(bool done)
         {
             // 말하는 사람은 이름표가 보여 주므로, 첫 줄은 정지 상태가 있을 때만
-            string state = held ? $"<size=60%><color={Hold}>[시간 멈춤] 따라 해 보세요</color></size>\n"
-                         : resumedUntil >= 0f ? $"<size=60%><color={Done}>▶ 다시 시작!</color></size>\n" : "";
+            // 상태 줄은 조금 작게(75%, 예전 60%는 너무 작고 가늘어 보였음), 굵기는 본문과 같음
+            string state = held ? $"<size=75%><color={Hold}>[시간 멈춤] 따라 해 보세요</color></size>\n"
+                         : resumedUntil >= 0f ? $"<size=75%><color={Done}>▶ 다시 시작!</color></size>\n" : "";
             string s = state + body;
+            // 할 일 줄: 본문과 같은 크기 · 굵기, 색으로만 구분 (11-20: 연노랑 <mark> 칸이 글자를 덮어 흐리고 가늘어 보였음)
             if (!string.IsNullOrEmpty(task))
-                s += done ? $"\n<size=85%><color={Done}>✓ 완료!</color></size>"
-                          : $"\n<size=85%><color={Task}>▶ {task}</color></size>";
+                s += done ? $"\n<color={Done}>✓ 완료!</color>"
+                          : $"\n<color={Task}>▶ {task}</color>";
             paper.Show(speaker == TutorialSpeaker.Boss ? BubbleStyle.Boss : BubbleStyle.Self, s);
         }
 
