@@ -120,6 +120,7 @@ namespace CardShop.UI
                 : bulkOnly ? $"{RarityName(card.rarity)}은 낱장 매입가가 없어요\n'{RarityName(SellAllMax)} 이하 모두 팔기'로 묶어서 팔아요"
                 : "보유한 카드가 없어요";
             if (sold) { Sfx.Play(SoundId.MoneyIn, transform.position); Context.Events.RaiseHappened(GameMoment.InstantSold); }
+            else if (bulkOnly) Context.Events.RaiseHappened(GameMoment.InstantSoldZero); // 튜토리얼 "노멀은 모아서" (13-3 ①)
             Refresh();
         }
 

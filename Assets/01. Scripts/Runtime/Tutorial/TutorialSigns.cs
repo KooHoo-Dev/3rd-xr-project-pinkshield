@@ -47,6 +47,9 @@ namespace CardShop.Tutorial
                    $"2. 청소 한 곳 +{bonus}, 못 하면 -{penalty}\n" +
                    "3. 빨리 계산하면 보너스\n" +
                    $"4. {days}일 평가 B 이상이면 정직원!\n" +
+                   "   <size=80%>(점수 = 돈 + 카드 매입가 + 도감 + 방 꾸미기)</size>\n" +
+                   "5. 좋은 카드는 가게에서 팔기\n" +
+                   "   (바로 팔면 매입가)\n" +
                    "<align=right>— 사장</align>";
         }
 

@@ -51,6 +51,7 @@ namespace CardShop.Tutorial
         InteractionLock locker;
         readonly List<Transform> keep = new List<Transform>();
         readonly TutorialHomeWatch home = new TutorialHomeWatch();
+        readonly TutorialEconomyWatch economy = new TutorialEconomyWatch(); // 경제 · 가구 신호 (튜토리얼_설계 13-4)
 
         public bool IntroDone => !sessionOn || progress == null || progress.Skipped || !progress.HasPendingIn(GamePhaseId.Intro, Day);
         int Day => ctx != null && ctx.Session != null ? ctx.Session.Day : 1;
@@ -116,14 +117,8 @@ namespace CardShop.Tutorial
             ctx.Events.Happened -= OnHappened;
         }
 
-        void FillValues()
-        {
-            values["packPrice"] = MoneyText.Format(ctx.Economy.packPrice);
-            values["boxPrice"] = MoneyText.Format(ctx.Economy.boxPrice);
-            values["cleanupBonus"] = ctx.Economy.cleanupBonus.ToString();
-            values["cleanupPenalty"] = ctx.Economy.cleanupPenalty.ToString();
-            values["closingCleanupSeconds"] = ctx.Campaign.closingCleanupSeconds.ToString("0");
-        }
+        // 자리표시 값은 TutorialLineValues가 채움 (단계가 뜰 때마다 바뀌는 값이 있어 Format 때도 다시 부름)
+        void FillValues() => TutorialLineValues.Fill(values, ctx, binder);
 
         // ------------------------------------------------------------------ 게임 이벤트 → 신호
 
@@ -145,6 +140,7 @@ namespace CardShop.Tutorial
                 counter.ForceNextItemCount = 1; // 튜토리얼 첫 손님은 물건 1개 (9장 Q2)
             if (to == GamePhaseId.Title || to == GamePhaseId.Home) memo.Hide();
             home.Reset();
+            economy.Reset();
         }
 
         // 화면 전환이 끝난 첫 프레임: 페이즈 시작 신호 + 그 페이즈의 준비
@@ -235,6 +231,7 @@ namespace CardShop.Tutorial
 
         void WatchHome()
         {
+            foreach (TutorialSignal e in economy.Tick(ctx, binder, flow.CurrentPhase, Time.unscaledDeltaTime)) progress.Notify(e);
             if (flow.CurrentPhase != GamePhaseId.Home) return;
             TutorialSignal s = home.Tick(binder, ctx, Time.unscaledDeltaTime);
             if (s != TutorialSignal.None) progress.Notify(s);
@@ -271,7 +268,7 @@ namespace CardShop.Tutorial
             locker.Lock(keep); // 단계가 끝나거나 건너뛰면 Unlock
         }
 
-        string Format(string line) => TutorialLineFormatter.Format(line, values);
+        string Format(string line) { FillValues(); return TutorialLineFormatter.Format(line, values); }
 
         // ------------------------------------------------------------------ 일시정지 메뉴
 
