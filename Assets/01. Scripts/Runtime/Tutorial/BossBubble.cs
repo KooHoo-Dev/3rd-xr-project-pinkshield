@@ -7,7 +7,7 @@ using UnityEngine;
 namespace CardShop.Tutorial
 {
     /// <summary>
-    /// 사장님 말풍선 · 알바생 혼잣말 (월드 TMP, 바탕은 WorldToast와 같은 &lt;mark&gt;).
+    /// 사장님 말풍선 · 알바생 혼잣말 (월드 TMP + 종이 말풍선 <see cref="PaperBubble"/>: 사장님 = 노랑 실선, 혼잣말 = 하늘색 점선, 왼쪽 위 이름표).
     /// 대상이 있으면 대상 옆, 눈과 대상 사이를 가리지 않는 쪽(시야 가운데 쪽)에 두고 대상을 부드럽게 따라갑니다.
     /// 대상이 없으면 머리 정면에 한 번 놓고 월드에 고정합니다(머리에 붙이지 않음, 멀미).
     /// 회전은 Yaw만 카메라 쪽으로 돌립니다.
@@ -17,7 +17,6 @@ namespace CardShop.Tutorial
         const float FadeSeconds = 0.2f;
         const float MoveThreshold = 0.05f;   // 목표가 이만큼 넘게 바뀌어야 움직임 (떨림 방지)
         const float SideSwitchDot = 0.17f;   // 약 10도: 대상이 이만큼 넘어가야 좌우를 바꿈
-        const string BossName = "사장님";
 
         [Tooltip("대상 bounds 가장자리에서 말풍선까지 (m)")]
         [SerializeField] float tipGap = 0.25f;
@@ -29,19 +28,17 @@ namespace CardShop.Tutorial
         [SerializeField] float minDistance = 0.6f;
         [Tooltip("대상 없을 때 머리 정면 거리 (m)")]
         [SerializeField] float frontDistance = 1.1f;
-        [Tooltip("대상 없을 때 눈높이보다 내리는 높이 (m)")]
-        [SerializeField] float frontDrop = 0.15f;
+        [Tooltip("대상 없을 때 눈높이보다 내리는 높이 (m). 퇴근 · 아침 혼잣말(DayTransition)과 같은 5cm")]
+        [SerializeField] float frontDrop = 0.05f;
         [Tooltip("따라가는 빠르기 (클수록 빨리)")]
         [SerializeField] float followSharpness = 6f;
         [Tooltip("글자 크기 (TMP 3D 단위, WorldToast는 0.25)")]
         [SerializeField] float fontSize = 0.28f;
         [Tooltip("글자 영역 너비 (m). 이 너비에서 줄바꿈")]
         [SerializeField] float textWidth = 0.75f;
-        [SerializeField] Color bossTextColor = Color.white;
-        [SerializeField] Color bossNameColor = new Color(1f, 0.7f, 0.3f);
-        [SerializeField] Color selfTextColor = new Color(0.82f, 0.86f, 1f);
 
         TextMeshPro text;
+        PaperBubble paper;
         Func<Bounds?> target;
         Vector3 goal;
         float side = 1f;      // +1 = 대상의 오른쪽, -1 = 왼쪽 (보는 사람 기준)
@@ -62,6 +59,9 @@ namespace CardShop.Tutorial
             text.overflowMode = TextOverflowModes.Overflow;
             text.richText = true;
             ((RectTransform)go.transform).sizeDelta = new Vector2(textWidth, 0.12f);
+            // 맨 위에 그리기: 눈앞에 든 팩 · 진열대에 가려 가끔 안 보였음 (11-20 피드백). 자막과 같은 순서 값
+            paper = PaperBubble.Attach(text, new Vector2(0.03f, 0.02f), 0.018f, 100);
+            paper.DrawOnTop();
             go.SetActive(false);
         }
 
@@ -73,16 +73,11 @@ namespace CardShop.Tutorial
         public void Show(TutorialSpeaker speaker, string message, Func<Bounds?> targetBounds)
         {
             target = targetBounds;
-            bool boss = speaker == TutorialSpeaker.Boss;
-            text.color = boss ? bossTextColor : selfTextColor;
-            string body = message ?? string.Empty;
-            text.text = boss
-                ? $"<mark={UiTheme.Mark} padding=\"8,8,4,4\"><size=75%><color=#{ColorUtility.ToHtmlStringRGB(bossNameColor)}>{BossName}</color></size>\n{body}</mark>"
-                : $"<mark={UiTheme.Mark} padding=\"8,8,4,4\">{body}</mark>";
-            text.alpha = 0f;
+            text.gameObject.SetActive(true); // 판을 글자 크기에 맞추려면 켜져 있어야 함
+            paper.Show(speaker == TutorialSpeaker.Boss ? BubbleStyle.Boss : BubbleStyle.Self, message ?? string.Empty);
+            paper.SetAlpha(0f);
             shownFor = 0f;
             showing = true;
-            text.gameObject.SetActive(true);
 
             // 처음 자리는 바로 놓음 (멀리서 날아오지 않게)
             Transform head = Head();
@@ -119,7 +114,7 @@ namespace CardShop.Tutorial
             if (shownFor < FadeSeconds)
             {
                 shownFor += dt;
-                text.alpha = Mathf.Clamp01(shownFor / FadeSeconds);
+                paper.SetAlpha(Mathf.Clamp01(shownFor / FadeSeconds));
             }
 
             Transform head = Head();
