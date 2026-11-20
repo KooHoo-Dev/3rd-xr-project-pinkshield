@@ -14,6 +14,7 @@ namespace CardShop.Cards
         Rug = 5,
         Lamp = 6,
         Figure = 7,
+        AirCon = 8,   // 11-20 플레이 F6: 효과 없는 꾸미기 (Q6)
     }
 
     /// <summary>
@@ -42,8 +43,15 @@ namespace CardShop.Cards
             public Vector3 align = new Vector3(0f, -1f, 0f);
             public float yaw;
             public float scale = 1f;
+            [Tooltip("축별 크기 (scale에 곱함, 모델 로컬 축). 예: 침대를 가로로만 넓힘 (1.25, 1, 1). 0인 축은 1로 봄")]
+            public Vector3 stretch = Vector3.one;
+            [Tooltip("바꿔 놓을 때(replaces) 원래 가구 경계 상자의 align 점에 새 모델의 같은 점을 맞춤 — 크기가 다른 모델로 바꿔도 벽 쪽 모서리가 그대로 (F5 침대)")]
+            public bool matchCorner;
             [Tooltip("따뜻한 점 조명을 함께 켬 (조명 꾸미기)")]
             public bool addLight;
+
+            /// <summary>최종 크기 배율 (scale × stretch, 0인 축은 1)</summary>
+            public Vector3 Scale3 => new Vector3(stretch.x != 0f ? stretch.x : 1f, stretch.y != 0f ? stretch.y : 1f, stretch.z != 0f ? stretch.z : 1f) * scale;
         }
 
         [Serializable]
@@ -115,22 +123,32 @@ namespace CardShop.Cards
             return byLevel[Mathf.Clamp(level - 1, 0, byLevel.Length - 1)];
         }
 
+        /// <summary>코드 기본 목록 (에디터 도구 Reset Tracks To Code가 에셋을 이 값으로 되돌림)</summary>
+        public static Track[] CodeDefaults() => DefaultTracks();
+
         // ------------------------------------------------------------------ 기본값 (설계서 3장 표, 달러)
+
+        static readonly Vector3 BedCorner = new Vector3(1f, -1f, -1f); // 오른쪽 벽 · 앞벽 모서리 (InteriorBuilder의 침대 자리)
 
         static Track[] DefaultTracks() => new[]
         {
             T(UpgradeKind.Showcase, "진열장",
                 L(40, "진열 칸 3 → 6칸"),
                 L(100, "진열 칸 6 → 10칸 + 진열장 조명")),
+            // NoteBook_0x는 노트북 컴퓨터가 아니라 공책(22 × 26cm)이라 바인더 그대로 (11-20 크기 확인)
             T(UpgradeKind.Binder, "바인더",
                 L(60, "판매 등록 칸 4 → 6칸", V("LowPoly:Room/NoteBook_02", new Vector3(-1.72f, 0.8f, 1.72f), 180f)),
                 L(140, "금박 바인더 · 즉시 판매 60 → 70%", V("LowPoly:Room/Book_03", new Vector3(-1.72f, 0.8f, 1.45f), 180f))),
+            // F5: 2단계 = 책상 오른쪽 끝에 보조 모니터 (에셋에 노트북 컴퓨터가 없음), 3단계 = + 스마트홈 기기
             T(UpgradeKind.Computer, "컴퓨터",
-                L(70, "모레 인기 속성까지 보기", V("LowPoly:Light/Lamp_04", new Vector3(1.78f, 0.71f, 1.72f), 180f)),
-                L(150, "카드 시세표 (오늘 · 내일 값)", V("LowPoly:Room/SmartHome", new Vector3(1.5f, 0.71f, 1.75f), 180f))),
+                // 책상(x 0.59 ~ 1.81) 오른쪽 위에 보조 모니터, 스마트홈은 왼쪽(피규어 0.72와 키보드 1.2 사이 뒤쪽)
+                L(70, "모레 인기 속성까지 보기", V("LowPoly:Room/PC_Screen", new Vector3(1.53f, 0.71f, 1.72f), 200f, scale: 0.8f)),
+                L(150, "카드 시세표 (오늘 · 내일 값)", V("LowPoly:Room/SmartHome", new Vector3(1.05f, 0.71f, 1.75f), 180f))),
+            // F5 (Q5): 좁은 침대(처음 Bed2_01, 1.16m) → 넓은 침대 Bed1_02(1.84m) → 킹 Bed1_03 가로 1.25배, 벽 모서리에 맞춰 커짐.
+            // 씬에 Bed_Tier_0 · 1 · 2가 있으면 그쪽이 우선 (SceneTiers, 지금 Shop.unity) — 이 목록은 집 실내를 초기화해 "Bed"가 다시 생겼을 때 쓰임
             T(UpgradeKind.Bed, "침대",
-                L(70, "손님 인내심 +10%", R("LowPoly:Room/Bed2_02", "Bed")),
-                L(130, "손님 인내심 +20% · 무료 팩 매일 +1", R("LowPoly:Room/Bed2_03", "Bed"))),
+                L(70, "손님 인내심 +10%", Bed("LowPoly:Room/Bed1_02", 1f)),
+                L(130, "손님 인내심 +20% · 무료 팩 매일 +1", Bed("LowPoly:Room/Bed1_03", 1.25f))),
             T(UpgradeKind.Poster, "포스터",
                 L(15, "꾸미기", V("LowPoly:Room/Picture_03", new Vector3(0f, 1.55f, -2.88f), 0f, new Vector3(0f, 0f, -1f)))),
             T(UpgradeKind.Rug, "러그",
@@ -139,6 +157,14 @@ namespace CardShop.Cards
                 L(25, "꾸미기", V("LowPoly:Light/Lamp_01", new Vector3(-2.15f, 0f, -0.75f), 90f, light: true))),
             T(UpgradeKind.Figure, "슬라임 피규어",
                 L(30, "꾸미기", V("Assets/03. Prefabs/Interior/Decor/SlimeFigure_Pink.prefab", new Vector3(0.72f, 0.71f, 1.7f), 180f, scale: 3f))),
+            // F6 (Q6): 침대 위 오른쪽 벽, 바닥에서 2.1m. 뒷면을 벽(+X)에 붙임
+            T(UpgradeKind.AirCon, "에어컨",
+                L(35, "꾸미기", V("LowPoly:Room/AirCondition", new Vector3(2.38f, 2.1f, -1.67f), -90f, new Vector3(1f, -1f, 0f)))),
+        };
+
+        static Visual Bed(string path, float widen) => new Visual
+        {
+            modelPath = path, replaces = "Bed", matchCorner = true, align = BedCorner, stretch = new Vector3(widen, 1f, 1f),
         };
 
         static Track T(UpgradeKind kind, string name, params Level[] levels) => new Track { kind = kind, displayName = name, levels = levels };

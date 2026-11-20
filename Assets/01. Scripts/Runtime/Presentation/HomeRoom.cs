@@ -59,13 +59,17 @@ namespace CardShop.Presentation
         /// prefab을 parent 아래 parent 로컬 좌표 target에 놓습니다 (경계 상자의 align 점 기준). 콜라이더는 지웁니다
         /// (장식이 레이 · 손을 가리지 않게).
         /// </summary>
-        public static GameObject Place(Transform parent, GameObject prefab, Vector3 localTarget, Vector3 align, float yaw, float scale, string name)
+        public static GameObject Place(Transform parent, GameObject prefab, Vector3 localTarget, Vector3 align, float yaw, float scale, string name) =>
+            Place(parent, prefab, localTarget, align, yaw, Vector3.one * scale, name);
+
+        /// <summary>축별 크기(모델 로컬 축)로 놓기</summary>
+        public static GameObject Place(Transform parent, GameObject prefab, Vector3 localTarget, Vector3 align, float yaw, Vector3 scale, string name)
         {
             if (prefab == null || parent == null) return null;
             GameObject go = Object.Instantiate(prefab, parent);
             go.name = name;
             go.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
-            go.transform.localScale = Vector3.Scale(prefab.transform.localScale, Vector3.one * scale);
+            go.transform.localScale = Vector3.Scale(prefab.transform.localScale, scale);
             go.transform.localPosition = Vector3.zero;
 
             Bounds b = Bounds(go);
@@ -76,13 +80,28 @@ namespace CardShop.Presentation
         }
 
         /// <summary>original을 숨기고 그 자리 · 방향 · 크기 그대로 prefab을 놓습니다 (같은 묶음 모델끼리 피벗이 같다고 봄).</summary>
-        public static GameObject Replace(Transform original, GameObject prefab, string name)
+        public static GameObject Replace(Transform original, GameObject prefab, string name) =>
+            Replace(original, prefab, name, Vector3.one, null);
+
+        /// <summary>
+        /// original을 숨기고 그 자리에 prefab을 놓습니다. 크기 = 원래 크기 × scale(로컬 축).
+        /// corner가 있으면 원래 가구 경계 상자의 그 점(각 축 -1 · 0 · 1)에 새 모델의 같은 점을 맞춤 — 크기 · 피벗이 다른 모델로 바꿔도 벽 쪽 모서리가 그대로.
+        /// original이 켜져 있어야 경계 상자를 읽을 수 있습니다.
+        /// </summary>
+        public static GameObject Replace(Transform original, GameObject prefab, string name, Vector3 scale, Vector3? corner)
         {
             if (prefab == null || original == null) return null;
+            Bounds before = corner.HasValue ? Bounds(original.gameObject) : default;
             GameObject go = Object.Instantiate(prefab, original.parent);
             go.name = name;
             go.transform.SetLocalPositionAndRotation(original.localPosition, original.localRotation);
-            go.transform.localScale = original.localScale;
+            go.transform.localScale = Vector3.Scale(original.localScale, scale);
+            if (corner.HasValue)
+            {
+                Bounds after = Bounds(go);
+                Vector3 c = corner.Value;
+                go.transform.position += (before.center + Vector3.Scale(before.extents, c)) - (after.center + Vector3.Scale(after.extents, c));
+            }
             RemoveColliders(go);
             original.gameObject.SetActive(false);
             return go;
@@ -90,7 +109,15 @@ namespace CardShop.Presentation
 
         public static void RemoveColliders(GameObject go)
         {
-            foreach (Collider c in go.GetComponentsInChildren<Collider>()) Object.Destroy(c);
+            foreach (Collider c in go.GetComponentsInChildren<Collider>()) Kill(c);
+        }
+
+        /// <summary>실행 중이면 Destroy, 에디터 미리보기(편집 모드)면 DestroyImmediate</summary>
+        public static void Kill(Object o)
+        {
+            if (o == null) return;
+            if (Application.isPlaying) Object.Destroy(o);
+            else Object.DestroyImmediate(o);
         }
 
         /// <summary>빛 받는 단색 머티리얼 (base를 복제해 색만 바꿈 — 셰이더를 이름으로 찾지 않아 빌드에서 빠질 걱정 없음)</summary>

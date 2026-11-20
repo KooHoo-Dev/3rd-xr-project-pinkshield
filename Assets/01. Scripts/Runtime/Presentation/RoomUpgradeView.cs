@@ -100,53 +100,14 @@ namespace CardShop.Presentation
             if (applied.TryGetValue(track.kind, out int now) && now == level) return;
             applied[track.kind] = level;
 
-            // 처음 방으로 되돌린 뒤 1 ~ level 단계의 모델을 차례로 놓음 (나중 단계가 같은 가구를 바꾸면 앞 단계 모델은 지움)
+            // 처음 방으로 되돌린 뒤 1 ~ level 단계의 모델을 놓음 (놓는 규칙 · 자리표는 UpgradeFurniture, F5 · F7)
             if (spawned.TryGetValue(track.kind, out List<GameObject> old)) foreach (GameObject go in old) if (go != null) Destroy(go);
             if (hidden.TryGetValue(track.kind, out List<Transform> originals)) foreach (Transform t in originals) if (t != null) t.gameObject.SetActive(true);
-            var made = spawned[track.kind] = new List<GameObject>();
             var covered = hidden[track.kind] = new List<Transform>();
-            var replacedBy = new Dictionary<string, GameObject>();
-
-            for (int lv = 2; lv <= level && lv - 2 < track.levels.Length; lv++)
-            {
-                UpgradeCatalog.Level entry = track.levels[lv - 2];
-                if (entry?.visuals == null) continue;
-                for (int v = 0; v < entry.visuals.Length; v++)
-                {
-                    UpgradeCatalog.Visual vis = entry.visuals[v];
-                    if (vis == null || vis.model == null) continue;
-                    string name = $"Upgrade_{track.kind}_{lv}_{v}";
-                    GameObject go;
-                    if (!string.IsNullOrEmpty(vis.replaces))
-                    {
-                        if (replacedBy.TryGetValue(vis.replaces, out GameObject prev)) { made.Remove(prev); Destroy(prev); }
-                        Transform original = HomeRoom.FindDeep(interior, vis.replaces);
-                        if (original == null) continue;
-                        if (!covered.Contains(original)) covered.Add(original);
-                        original.gameObject.SetActive(true); // 자리 · 크기를 읽기 위해 (Replace가 다시 숨김)
-                        go = HomeRoom.Replace(original, vis.model, name);
-                        replacedBy[vis.replaces] = go;
-                    }
-                    else go = HomeRoom.Place(interior, vis.model, vis.position, vis.align, vis.yaw, vis.scale, name);
-                    if (go == null) continue;
-                    if (vis.addLight) AddLamp(go);
-                    made.Add(go);
-                }
-            }
-        }
-
-        static void AddLamp(GameObject lamp)
-        {
-            Bounds b = HomeRoom.Bounds(lamp);
-            var go = new GameObject("LampLight");
-            go.transform.SetParent(lamp.transform, true);
-            go.transform.position = new Vector3(b.center.x, b.max.y - 0.1f, b.center.z);
-            var light = go.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.color = new Color(1f, 0.8f, 0.55f);
-            light.intensity = 1.2f;
-            light.range = 2.5f;
-            light.shadows = LightShadows.None;
+            // 씬에 "분야_Tier_n"을 직접 놓았으면 그것만 켜고 카탈로그 모델은 안 씀 (지금 침대: Bed_Tier_0 · 1 · 2)
+            spawned[track.kind] = SceneTiers.Apply(interior, track.kind, level)
+                ? new List<GameObject>()
+                : UpgradeFurniture.Build(interior, track, level, covered, UpgradeFurniture.FromScene);
         }
 
         // ------------------------------------------------------------------ 택배 상자
