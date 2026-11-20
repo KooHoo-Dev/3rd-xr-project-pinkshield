@@ -48,9 +48,14 @@ namespace CardShop.UI
             var asset = Resources.Load<TextAsset>(CreditsResource);
             string text = asset != null ? asset.text : "Credits.txt가 없습니다.";
 
-            Color opaque = UiTheme.Panel;
-            opaque.a = 1f; // 뒤의 게임 이름이 비치지 않게
-            Image bg = WorldUiKit.AddImage(parent, "CreditsPanel", Vector2.zero, Vector2.one, opaque);
+            // 입간판 칠판 위에 한 장 더 덮는 칠판 (UI_개편_설계 C안 타이틀). 불투명이라 뒤의 게임 이름이 비치지 않음
+            Image bg = WorldUiKit.AddImage(parent, "CreditsPanel", Vector2.zero, Vector2.one, UiTheme.Chalkboard);
+            var rt = (RectTransform)bg.transform;
+            rt.offsetMin = new Vector2(22f, 22f); // 나무 틀은 보이게
+            rt.offsetMax = new Vector2(-22f, -22f);
+            bg.sprite = UiSprites.Rounded();
+            bg.type = Image.Type.Sliced;
+            bg.pixelsPerUnitMultiplier = UiSprites.Radius / 10f;
             bg.raycastTarget = true; // 뒤의 버튼이 눌리지 않게
             WorldUiKit.AddText(bg.transform, "Heading", "크레딧", new Vector2(0.04f, 0.86f), new Vector2(0.96f, 0.97f), 40f, UiTheme.Gold, font)
                 .fontStyle = FontStyles.Bold;

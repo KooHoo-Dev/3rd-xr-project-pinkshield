@@ -17,6 +17,7 @@ namespace CardShop.Presentation
     public sealed class PackResultPanel : MonoBehaviour
     {
         TextMeshPro text;
+        TextPlate plate;
         Coroutine popRoutine;
 
         public bool IsShown => gameObject.activeSelf;
@@ -35,6 +36,8 @@ namespace CardShop.Presentation
             var rt = (RectTransform)go.transform;
             rt.pivot = new Vector2(0.5f, 0f);
             rt.sizeDelta = new Vector2(0.32f, 0.2f);
+            // 보상은 "카드" 재질 (UI_개편_설계 C안): 진보라 판 + 금박 테두리. 예전 검은 띠(<mark>) 대신
+            panel.plate = TextPlate.Attach(panel.text, UiTheme.CardBack, new Vector2(0.022f, 0.016f), 0.014f, UiTheme.Gold, 0.003f);
             go.SetActive(false);
             return panel;
         }
@@ -50,9 +53,11 @@ namespace CardShop.Presentation
         public void ShowText(string markup, Vector3 position, Quaternion rotation, float fontSize, float popSeconds)
         {
             text.fontSize = fontSize;
-            text.text = $"<mark={UiTheme.Mark}>{markup}</mark>";
+            text.text = markup;
             transform.SetPositionAndRotation(position, rotation);
             gameObject.SetActive(true);
+            transform.localScale = Vector3.one; // 판 크기는 원래 크기 기준으로 잼 (팝 중간에 다시 불려도)
+            if (plate != null) plate.Fit();
             if (popRoutine != null) StopCoroutine(popRoutine);
             popRoutine = StartCoroutine(Pop(popSeconds));
         }
@@ -72,10 +77,12 @@ namespace CardShop.Presentation
                 float s = Mathf.Lerp(0.6f, 1f, e) + Mathf.Sin(t * Mathf.PI) * 0.08f;
                 transform.localScale = Vector3.one * s;
                 text.alpha = e;
+                if (plate != null) plate.SetAlpha(e);
                 yield return null;
             }
             transform.localScale = Vector3.one;
             text.alpha = 1f;
+            if (plate != null) plate.SetAlpha(1f);
             popRoutine = null;
         }
 
@@ -86,7 +93,7 @@ namespace CardShop.Presentation
 
             var sb = new StringBuilder();
             // 상자 결과판의 "5점 줄"과 같은 기호 (한 장당 하나, 등급 색)
-            sb.Append("<b>이번 팩 결과</b>  ").Append(RevealQueue.Dots(pack, r => RevealText.RarityHex(styles, r)));
+            sb.Append("<b><color=#FFD159>이번 팩 결과</color></b>  ").Append(RevealQueue.Dots(pack, r => RevealText.RarityHex(styles, r)));
             if (newCount > 0) sb.Append($"  <color=#7CF29A>새 카드 {newCount}장</color>");
             sb.Append('\n');
             for (int i = 0; i < pack.Cards.Length; i++)

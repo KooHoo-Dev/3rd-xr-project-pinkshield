@@ -58,6 +58,7 @@ namespace CardShop.UI
             label.color = color;
             label.raycastTarget = false;
             if (font != null) label.font = font;
+            UiFonts.Apply(label); // 글꼴 하나 · 모두 굵게 (11-20 결정)
             return label;
         }
 
@@ -84,20 +85,9 @@ namespace CardShop.UI
             label.color = UiTheme.Text;
             if (font != null) label.font = font;
 
-            // 레이가 닿으면 색이 확 바뀌게 (시연 피드백 C3: 기본 하이라이트는 거의 흰색이라 안 보였음)
+            // 레이가 닿으면 색이 확 바뀌게 (시연 피드백 C3) + 둥근 모서리 · 아래 두께 (UI_개편_설계 C안 버튼 규칙)
             var button = go.GetComponent<Button>();
-            button.targetGraphic.color = Color.white;
-            button.transition = Selectable.Transition.ColorTint;
-            button.colors = new ColorBlock
-            {
-                normalColor = UiTheme.ButtonNormal,
-                highlightedColor = UiTheme.ButtonHover,
-                pressedColor = UiTheme.ButtonPressed,
-                selectedColor = UiTheme.ButtonNormal,
-                disabledColor = UiTheme.ButtonDisabled,
-                colorMultiplier = 1f,
-                fadeDuration = 0.05f,
-            };
+            UiSkin.StyleButton(button, UiButtonKind.Normal);
             go.AddComponent<UiHoverFeedback>();
             return button;
         }
@@ -105,18 +95,20 @@ namespace CardShop.UI
         static TMP_FontAsset korean;
 
         /// <summary>
-        /// 한글 글꼴. 런타임에 만드는 화면 · 글자는 모두 이것을 씁니다 (에셋 경로로 불러올 수 없어 씬에 이미 있는 글꼴을 빌림).
+        /// 한글 글꼴 = 게임 글꼴 하나 (<see cref="UiFonts.Main"/>: Bold 에셋이 있으면 그것). 런타임에 만드는 화면 · 글자는 모두 이것을 씁니다.
+        /// </summary>
+        public static TMP_FontAsset KoreanFont => UiFonts.Main;
+
+        /// <summary>
+        /// 씬에 이미 있는 한글 글꼴 (Bold 에셋이 없을 때 쓰는 Regular). 에셋 경로로 불러올 수 없어 씬의 글자에서 빌립니다.
         /// 처음 한 번만 씬을 훑고 기억합니다. 못 찾으면 TMP 기본 글꼴(기억하지 않음, 다음에 다시 찾음).
         /// </summary>
-        public static TMP_FontAsset KoreanFont
+        public static TMP_FontAsset FindSceneKoreanFont()
         {
-            get
-            {
-                if (korean != null) return korean;
-                foreach (TMP_Text t in Object.FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                    if (t.font != null && t.font.name.Contains("KR")) return korean = t.font;
-                return TMP_Settings.defaultFontAsset;
-            }
+            if (korean != null) return korean;
+            foreach (TMP_Text t in Object.FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (t.font != null && t.font.name.Contains("KR")) return korean = t.font;
+            return TMP_Settings.defaultFontAsset;
         }
 
         // 예전 이름 (shortcut: 맵 수정 작업 중인 ResignLetter가 아직 씀 → 그 작업이 끝나면 KoreanFont로 바꾸고 지움)

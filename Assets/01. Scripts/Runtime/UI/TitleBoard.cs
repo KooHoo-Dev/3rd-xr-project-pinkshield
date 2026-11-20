@@ -14,6 +14,9 @@ namespace CardShop.UI
         [Tooltip("비우면 누를 때 씬에서 찾음 (플레이어 리그에 붙어 있음)")]
         [SerializeField] CardShop.Interaction.PlayerHeightCalibrator heightCalibrator;
 
+        /// <summary>시작 버튼 글자: 알바생 시점의 말 (예전 "영업 시작")</summary>
+        public const string StartLabel = "출근하기";
+
         protected override GamePhaseId Phase => GamePhaseId.Title;
 
         /// <summary>버튼 모양을 복제할 원본 (튜토리얼 켬/끔 버튼)</summary>
@@ -22,6 +25,14 @@ namespace CardShop.UI
         // [크레딧] 버튼은 씬을 다시 빌드하지 않도록 실행 중에 붙임 (음악 출처 표기)
         void Awake()
         {
+            // 가게 앞 칠판 입간판 (UI_개편_설계 C안 2번 판). 버튼을 복제하는 아래 컴포넌트보다 먼저 칠해야 복제본도 같은 모양
+            if (content != null) UiSkin.ApplyPanel(content.transform, UiSurface.Chalkboard);
+            if (AdvanceButton != null)
+            {
+                UiSkin.StyleButton(AdvanceButton, UiButtonKind.Primary);
+                var label = AdvanceButton.GetComponentInChildren<TMPro.TMP_Text>(true);
+                if (label != null) label.text = StartLabel;
+            }
             gameObject.AddComponent<AudioVolumeButtons>().Configure(this); // 크레딧 판보다 먼저 붙여 크레딧이 덮게 (11-20 H3)
             gameObject.AddComponent<CreditsButton>().Configure(this);
         }
