@@ -115,6 +115,7 @@ namespace CardShop.Presentation
             spawned[track.kind] = SceneTiers.Apply(interior, track.kind, level)
                 ? new List<GameObject>()
                 : UpgradeFurniture.Build(interior, track, level, covered, UpgradeFurniture.FromScene);
+            DecorReaction.Attach(track.kind, spawned[track.kind], interior, font); // 꾸미기 생활 반응 (DEC-040 U3)
         }
 
         // ------------------------------------------------------------------ 택배 상자

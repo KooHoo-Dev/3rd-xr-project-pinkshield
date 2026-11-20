@@ -46,6 +46,12 @@ namespace CardShop.Cards
         public float secondaryBuyBoost = 1.15f;
         [Range(0, 1)] public float maxBuyChance = 0.95f;
 
+        [Header("중고 장터 (컴퓨터 3단계, DEC-040 U2)")]
+        [Tooltip("밤사이 팔릴 확률 = 등급 구매 확률 × 이 값")]
+        [Range(0, 1)] public float onlineStallBuyFactor = 0.5f;
+        [Tooltip("장터 수수료 (가게 10%보다 비쌈)")]
+        [Range(0, 1)] public float onlineStallCommission = 0.2f;
+
         [Header("인기 속성 (경제시스템_설계 6 · 7장: 1순위 · 2순위, 강도 등급)")]
         public bool popularElementEnabled = true;
         [Tooltip("공식 기간(7일)의 인기 주기 (일)")]

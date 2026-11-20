@@ -103,6 +103,8 @@ namespace CardShop.Presentation
             spot.range = 1.2f;
             spot.shadows = LightShadows.None;
             lightGo.SetActive(false);
+
+            gameObject.AddComponent<ShowcaseSetGlow>().Setup(src != null ? src.sharedMaterial : null); // 진열장 세트 빛판 (DEC-040 U1)
         }
 
         // 모니터(커뮤니티 화면 글자) 위, 벽 쪽. 화면이 보는 쪽(-Z)이 방 쪽
@@ -121,6 +123,11 @@ namespace CardShop.Presentation
             RuntimeShapes.Create(PrimitiveType.Cube, name, transform, local, size, mat);
 
         static float RowY(int row) => (Rows - 1) / 2f * RowGap - row * RowGap;
+        /// <summary>칸 가운데 (틀 로컬). ShowcaseSetGlow가 세트 칸 뒤에 빛판을 놓을 때 씀</summary>
+        public static Vector3 SlotLocalPosition(int index) => SlotLocal(index);
+        public const float SlotWidth = Spacing - 0.012f;
+        public static float SlotHeight => CardView.Height * CardScale + 0.01f;
+
         static Vector3 SlotLocal(int index) => new Vector3((index % PerRow - (PerRow - 1) / 2f) * Spacing, RowY(Mathf.Min(index / PerRow, Rows - 1)), 0.05f);
 
         /// <summary>칸 번호 → 카드 자리. 위 줄부터 왼쪽 → 오른쪽, 앞면이 방을 보고 살짝 뒤로 기댐.</summary>

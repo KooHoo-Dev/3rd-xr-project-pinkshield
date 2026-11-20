@@ -192,8 +192,10 @@ namespace CardShop.Logic
         {
             net = 0;
             s.Ledger.customersServed++;
+            int slot = card != null ? s.SalesDisplay.IndexOf(card.id) : -1;
             if (card == null || !s.SalesDisplay.Remove(card.id)) return false;
             net = prices.SellPrice(card, market);
+            if (slot >= economy.salesDisplaySlots) { s.Ledger.extraSlotSales++; s.Ledger.extraSlotNet += net; } // 바인더로 늘린 칸 (가구 덕분에)
             s.Ledger.sales.Add(new DayLedger.Sale
             {
                 cardId = card.id,

@@ -247,10 +247,24 @@ namespace CardShop.Core.Phases
 
             if (DayRules.IsLastDay(Context.Session.Day, Context.Campaign.DayCount, endless))
             {
+                Context.OnlineStall.Take(Context.Session); // 마지막 날: 장터 카드도 보유로
                 Flow.GoTo(GamePhaseId.Final);
                 return;
             }
+
+            // 중고 장터 밤사이 판정 (컴퓨터 3단계, DEC-040 U2): 내일 시세로 팔림, 돈은 바로 지갑에
+            CardShop.Cards.CardData stallSold = null;
+            int stallNet = 0;
+            if (Context.Upgrades.HasOnlineStall(Context.Session.Upgrades))
+                Context.OnlineStall.ResolveNight(Context.Session, Context.Market.For(Context.Session.Day + 1), out stallSold, out stallNet);
+
             Context.Session.AdvanceDay();
+            if (stallSold != null)
+            {
+                Context.Session.Ledger.onlineSaleCard = stallSold.displayName; // 오늘 정산 "가구 덕분에" 줄
+                Context.Session.Ledger.onlineSaleNet = stallNet;
+                Context.Events.RaiseNotice($"띵동! 어젯밤 중고 장터에서 「{stallSold.displayName}」이(가) 팔렸어요 {MoneyText.Signed(stallNet)}");
+            }
             Context.Events.RaiseDayStarted(Context.Session.Day);
             Flow.GoTo(GamePhaseId.Business);
         }

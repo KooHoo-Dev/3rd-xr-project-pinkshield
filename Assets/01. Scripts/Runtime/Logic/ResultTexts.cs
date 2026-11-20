@@ -49,6 +49,8 @@ namespace CardShop.Logic
             sb.Append($"판매 {l.sales.Count}장").Append(Col).Append(MoneyText.Signed(rules.SalesTotal(l))).Append('\n');
             if (l.thievesCaught > 0) sb.Append($"<size=80%>도둑 {l.thievesCaught}명 잡음!</size>\n");
             if (l.freePackStolen) sb.Append("<size=80%>도둑이 오늘 무료 팩을 가져감</size>\n");
+            string credits = UpgradeCredits.Line(l); // 가구가 해 준 일 (DEC-040)
+            if (credits != null) sb.Append($"<size=80%>{credits}</size>\n"); // 영수증 종이 위라 글자색은 그대로
             sb.Append(Rule).Append('\n'); // 영수증 점선 (UI_개편_설계 4번 판)
             sb.Append($"<b>합계</b>{Col}<b>{MoneyText.Signed(total)}</b>\n");
             sb.Append($"<size=80%>내 자산</size>{Col}<size=80%>{MoneyText.Format(money)}</size>");

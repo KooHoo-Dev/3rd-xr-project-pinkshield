@@ -46,7 +46,11 @@ namespace CardShop.UI
                 Vector3 local = interior.parent.InverseTransformPoint(interior.TransformPoint(MarketPosition));
                 MarketScreen.Create(interior.parent, local, MarketYaw, catalog, font);
             }
-            else SalesShowcasePage.Create(computer, binder, showcase, font); // 판매 · 진열 판을 모니터 세 번째 쪽으로 (DEC-042)
+            else
+            {
+                SalesShowcasePage.Create(computer, binder, showcase, font); // 판매 · 진열 판을 모니터 세 번째 쪽으로 (DEC-042)
+                OnlineStallPage.Create(computer, binder, font);              // 네 번째 쪽: 중고 장터 (컴퓨터 3단계, DEC-040 U2)
+            }
             RoomUpgradeView.Create(interior, catalog, font, binder);
 
             FinalBoard final = Object.FindAnyObjectByType<FinalBoard>(FindObjectsInactive.Include);

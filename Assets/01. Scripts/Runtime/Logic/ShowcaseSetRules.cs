@@ -41,6 +41,24 @@ namespace CardShop.Logic
 
         public static int SetCount(IEnumerable<CardData> showcase) => Sets(showcase).Count;
 
+        /// <summary>진열장 칸마다 세트에 들어간 카드인가 (같은 속성 앞에서부터 세트 수 × 3장). 세트 조명 · 반짝임용</summary>
+        public static bool[] SetSlots(IList<CardData> showcase)
+        {
+            var inSet = new bool[showcase != null ? showcase.Count : 0];
+            if (showcase == null) return inSet;
+            var quota = new Dictionary<CardElement, int>();
+            foreach (CardElement e in Sets(showcase))
+                quota[e] = (quota.TryGetValue(e, out int q) ? q : 0) + SetSize;
+            for (int i = 0; i < showcase.Count; i++)
+            {
+                CardData c = showcase[i];
+                if (!Counts(c) || !quota.TryGetValue(c.element, out int left) || left <= 0) continue;
+                inSet[i] = true;
+                quota[c.element] = left - 1;
+            }
+            return inSet;
+        }
+
         /// <summary>세트에 셀 수 있는 카드인가 (슬라임 · 수퍼레어 이상)</summary>
         public static bool Counts(CardData c) =>
             c != null && c.kind == CardKind.Slime && c.element != CardElement.None && c.rarity >= MinRarity;
