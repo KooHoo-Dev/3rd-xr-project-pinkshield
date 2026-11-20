@@ -23,6 +23,7 @@ namespace CardShop.Tutorial
         const float DoneSeconds = 0.6f;       // ✓를 보여 주는 시간
         const float ResumeSeconds = 1.5f;     // "▶ 다시 시작!"을 보여 주는 시간
         const float FontSize = 0.32f;         // 11-19 2차: 0.42는 시야를 너무 덮어 줄임
+        const float NameTagFontSize = 0.256f; // 이름표 글자: 말풍선 글자와 따로 (11-20: 글자의 80%)
         const float Width = 0.75f;
         const int SortBase = 100;             // 다른 3D 글자 판(알림 쪽지 등)보다 위에
         // 종이 위에서 읽히는 진한 색 (UiSkin.PaperColorFor와 같은 계열)
@@ -55,7 +56,7 @@ namespace CardShop.Tutorial
             c.text.richText = true;
             ((RectTransform)go.transform).sizeDelta = new Vector2(Width, 0.2f);
             // 종이 말풍선 + 이름표 (UI_개편_설계 9번 판). 맨 위에 그리기: 글자 · 판 · 이름표 모두 깊이 검사를 끄고 투명 물체보다 나중에
-            c.paper = PaperBubble.Attach(c.text, new Vector2(0.035f, 0.022f), 0.02f, SortBase);
+            c.paper = PaperBubble.Attach(c.text, new Vector2(0.035f, 0.022f), 0.02f, NameTagFontSize, SortBase);
             c.paper.DrawOnTop();
             go.SetActive(false);
             return c;

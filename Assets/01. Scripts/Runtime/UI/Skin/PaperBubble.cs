@@ -18,13 +18,14 @@ namespace CardShop.UI
         /// <param name="text">말풍선 글자 (이 오브젝트에 붙음)</param>
         /// <param name="padding">글자 둘레 여백 (m)</param>
         /// <param name="cornerM">모서리 반지름 (m)</param>
+        /// <param name="nameTagFontSize">이름표 글자 크기 (TMP 3D 단위). 말풍선 글자와 따로 정함 — 이름표 판은 이 글자에 맞춰짐</param>
         /// <param name="sortBase">그리는 순서 시작 값. 판 0 · 테두리 1 · 글자 2 · 이름표 3~5를 더함</param>
-        public static PaperBubble Attach(TextMeshPro text, Vector2 padding, float cornerM, int sortBase = 0)
+        public static PaperBubble Attach(TextMeshPro text, Vector2 padding, float cornerM, float nameTagFontSize, int sortBase = 0)
         {
             var bubble = text.gameObject.AddComponent<PaperBubble>();
             bubble.text = text;
             bubble.plate = TextPlate.Attach(text, UiTheme.Paper, padding, cornerM, UiTheme.BossLine, FrameM, false, sortBase);
-            bubble.nameTag = NameTag.Create(text.transform, text.fontSize * 0.7f, sortBase + 3);
+            bubble.nameTag = NameTag.Create(text.transform, nameTagFontSize, sortBase + 3);
             return bubble;
         }
 
