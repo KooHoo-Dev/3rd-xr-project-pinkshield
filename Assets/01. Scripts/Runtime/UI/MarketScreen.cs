@@ -149,11 +149,15 @@ namespace CardShop.UI
         // 확인 시간이 지나면 "한 번 더" 안내를 지움
         void Update()
         {
+            // 초인종이 울리면(기다리는 택배 수가 바뀌면) 리본을 "배송 중" → "택배 도착!"으로
+            if (RoomUpgradeView.WaitingCount != drawnWaiting) { drawnWaiting = RoomUpgradeView.WaitingCount; Refresh(); }
             if (armed < 0 || Time.unscaledTime <= armedUntil) return;
             armed = -1;
             message = "";
             Refresh();
         }
+
+        int drawnWaiting;
 
         void OnBuyClicked(int index)
         {
@@ -213,6 +217,7 @@ namespace CardShop.UI
                 UpgradeCatalog.Track track = rules.Catalog.Get(kind);
                 int level = s.Upgrades.LevelOf(kind), max = rules.MaxLevel(kind);
                 UpgradeStatus status = s.Upgrades.StatusOf(kind);
+                if (status == UpgradeStatus.Arrived && RoomUpgradeView.OnTheWay(kind)) status = UpgradeStatus.Ordered; // 초인종 전엔 "배송 중"
                 UpgradeCatalog.Level next = rules.NextLevel(s.Upgrades, kind);
                 bool decor = UpgradeRules.IsDecor(kind); // 꾸미기는 단계 없이 "있음 / 없음"
                 string trackName = track != null ? track.displayName : kind.ToString();

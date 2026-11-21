@@ -47,6 +47,12 @@ namespace CardShop.Presentation
         public const float DoorbellDelay = 4f;
         readonly Dictionary<UpgradeKind, float> doorbellAt = new Dictionary<UpgradeKind, float>();
         bool primed; // 집에 들어온 뒤 첫 그리기는 기다리지 않고 바로 놓음
+        static RoomUpgradeView current;
+
+        /// <summary>샀지만 아직 초인종이 안 울림 (상점 리본이 "택배 도착!"을 먼저 말하지 않게)</summary>
+        public static bool OnTheWay(UpgradeKind kind) => current != null && current.doorbellAt.ContainsKey(kind);
+        /// <summary>초인종을 기다리는 택배 수 (바뀌면 상점 화면을 다시 그림)</summary>
+        public static int WaitingCount => current != null ? current.doorbellAt.Count : 0;
         readonly Dictionary<Image, Color> panelColors = new Dictionary<Image, Color>();
         bool gold;
 
@@ -66,6 +72,7 @@ namespace CardShop.Presentation
 
         void OnEnable()
         {
+            current = this;
             ctx = GameContext.Instance;
             if (ctx == null || catalog == null) return;
             ctx.Events.SessionStarted += Bind;
@@ -76,6 +83,7 @@ namespace CardShop.Presentation
         {
             if (ctx != null) ctx.Events.SessionStarted -= Bind;
             Bind(null);
+            if (current == this) current = null;
         }
 
         void Bind(GameSession session)
