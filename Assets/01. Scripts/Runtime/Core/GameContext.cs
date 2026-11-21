@@ -40,7 +40,7 @@ namespace CardShop.Core
         public PackRoller PackRoller { get; private set; }
         public PackOpeningService PackOpening { get; private set; }
         public SalesRules Sales { get; private set; }
-        /// <summary>컴퓨터 3단계 중고 장터 (DEC-040 U2)</summary>
+        /// <summary>컴퓨터 3단계 슬라임마켓 (DEC-040 U2)</summary>
         public OnlineStallRules OnlineStall { get; private set; }
         public ScoreRules ScoreRules { get; private set; }
         /// <summary>방 업그레이드 판단 (Resources/UpgradeCatalog — 씬에 연결하지 않아도 됨, 집_업그레이드_설계)</summary>

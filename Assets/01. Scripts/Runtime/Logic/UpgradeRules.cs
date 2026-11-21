@@ -94,7 +94,7 @@ namespace CardShop.Logic
 
         public bool HasPriceList(UpgradeState st) => st.LevelOf(UpgradeKind.Computer) >= catalog.priceListLevel;
 
-        /// <summary>중고 장터 (컴퓨터 3단계, 시세표와 같은 단계, DEC-040 U2)</summary>
+        /// <summary>슬라임마켓 (컴퓨터 3단계, 시세표와 같은 단계, DEC-040 U2)</summary>
         public bool HasOnlineStall(UpgradeState st) => HasPriceList(st);
 
         /// <summary>손님 인내 시간 배율 (1.1 = +10%)</summary>

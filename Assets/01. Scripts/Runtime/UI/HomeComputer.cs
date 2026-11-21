@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace CardShop.UI
 {
     /// <summary>
-    /// 집 컴퓨터 모니터 = "SlimeOS" 하늘색 바탕화면 + 쪽마다 창 하나 [커뮤니티 · 슬라임마켓 · 판매 · 진열]
+    /// 집 컴퓨터 모니터 = "SlimeOS" 하늘색 바탕화면 + 쪽마다 창 하나 [커뮤니티 · 슬라임 홈쇼핑 · 판매 · 진열]
     /// (집_컴퓨터_화면_설계 J1, 집_책상_하나로_설계 DEC-042, UI_개편_설계 8번 레트로 OS 창).
     /// 아래 작업 표시줄 탭 · 모니터 양옆 [◀] [▶] 버튼 · 레이로 화면을 잡고 좌우로 끌기(ScreenSwipeArea → PagerRules)로 넘깁니다.
     /// 넘길 때 0.25초 옆으로 미끄러지고 딸깍 + 약한 진동. 집에 오면 늘 커뮤니티 쪽부터.
@@ -88,7 +88,7 @@ namespace CardShop.UI
             AddSwipe(communityWindow);
             AddPage(new CanvasPage(communityWindow), "커뮤니티");
 
-            // 2쪽: 슬라임마켓 창
+            // 2쪽: 슬라임 홈쇼핑 창
             float yaw = rot.eulerAngles.y - 180f; // MarketScreen.Create는 yaw + 180으로 앞면(-Z)을 돌림
             MarketScreen market = MarketScreen.Create(community.parent, WindowCenter(0.01f), yaw, catalog, font);
             var marketRt = (RectTransform)market.transform;
@@ -96,7 +96,7 @@ namespace CardShop.UI
             if (marketRt.childCount > 0) SlimeOsWindow.Apply(marketRt.GetChild(0), null, font);
             market.UseLightCards(); // 밝은 창에 맞는 상품 칸 (크림 + 잉크 테)
             AddSwipe(marketRt);
-            AddPage(new CanvasPage(marketRt), "슬라임마켓");
+            AddPage(new CanvasPage(marketRt), "홈쇼핑");
 
             // 모니터 양옆 버튼: 이전 · 다음 쪽 (이름은 갈 쪽)
             prevButton = SideButton(-ButtonSide, font, () => GoTo(page - 1), out prevLabel);
@@ -146,7 +146,7 @@ namespace CardShop.UI
             if (next != page) GoTo(next);
         }
 
-        /// <summary>쪽으로 넘김 (0 = 커뮤니티, 1 = 슬라임마켓, 그 뒤는 AddPage 순서)</summary>
+        /// <summary>쪽으로 넘김 (0 = 커뮤니티, 1 = 슬라임 홈쇼핑, 그 뒤는 AddPage 순서)</summary>
         public void GoTo(int target)
         {
             target = PagerRules.Clamp(target, pages.Count);

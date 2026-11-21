@@ -150,9 +150,9 @@ namespace CardShop.Tutorial
             // 13-2: 즉시 판매 = 매입가(헐값)임을 숫자로 (DEC-041). 노멀 묶음 판매는 home-bulk-zero가 안전망
             Self("home-buyback", "바인더에서 고르면 모니터가 판매 쪽으로!\n바로 팔면 매입가라 헐값이야.", 5f, SalesPanel, fromDay: 2),
             Then(Self("home-community", "커뮤니티에 인기 1순위 · 2순위가 떠.\n2순위는 1순위의 절반쯤 올라.", 5f, Community, fromDay: 2), "home-buyback"),
-            // 모니터 두 번째 쪽 = 슬라임마켓 (11-20 J1 Q7), 세 번째 = 판매 · 진열 (DEC-042)
+            // 모니터 두 번째 쪽 = 슬라임 홈쇼핑 (11-20 J1 Q7), 세 번째 = 판매 · 진열 (DEC-042)
             // 13-6 T5: 2일차 집 안내가 몰려 3일차로 옮김. 가구는 그날 밤 택배 (DEC-040 U5)
-            Self("home-market", "모니터를 옆으로 밀면 슬라임마켓.\n가구를 사면 오늘 밤 바로 와!", 5f, Community, fromDay: 3),
+            Self("home-market", "모니터를 옆으로 밀면 슬라임 홈쇼핑.\n가구를 사면 오늘 밤 바로 와!", 5f, Community, fromDay: 3),
             new TutorialStep
             {
                 key = "home-sales", phase = GamePhaseId.Home, fromDay = 2, after = "home-community", startOn = TutorialSignal.DisplayableCardOwned,

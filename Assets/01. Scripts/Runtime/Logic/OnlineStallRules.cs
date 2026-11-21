@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CardShop.Logic
 {
     /// <summary>
-    /// 중고 장터 (컴퓨터 3단계, 경제시스템_설계 14-3, DEC-040 U2): 카드 1장을 올려 두면 밤사이 팔릴 수 있습니다.
+    /// 슬라임마켓 (컴퓨터 3단계, 경제시스템_설계 14-3, DEC-040 U2): 카드 1장을 올려 두면 밤사이 팔릴 수 있습니다.
     /// - 올리면 보유 목록에서 빠짐(도감 유지), 내리면 돌아옴. 판매 등록할 수 있는 등급(수퍼레어 이상)만.
     /// - 밤(DayEnd)에 판정: 등급 구매 확률 × onlineStallBuyFactor. 값 = 내일 시세 손님 값 × (1 − onlineStallCommission), 바로 지갑으로.
     /// 순수 C# (OnlineStallRulesTests).

@@ -69,7 +69,7 @@ namespace CardShop.Logic
                 cardValue += rarity.BuybackPrice(card.rarity);
                 r.ShowcaseCards.Add(card);
             }
-            // 중고 장터에 올려 둔 카드도 내 카드 (DEC-040 U2)
+            // 슬라임마켓에 올려 둔 카드도 내 카드 (DEC-040 U2)
             CardData stall = s.OnlineStall != null ? cards.Get(s.OnlineStall) : null;
             if (stall != null) cardValue += rarity.BuybackPrice(stall.rarity);
             r.CardValue = UnityEngine.Mathf.FloorToInt(cardValue + 1e-4f);

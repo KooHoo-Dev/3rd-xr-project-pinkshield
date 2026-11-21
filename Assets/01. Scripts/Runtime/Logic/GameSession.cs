@@ -16,7 +16,7 @@ namespace CardShop.Logic
         public List<string> SalesDisplay { get; } = new List<string>();
         /// <summary>방 진열장에 세운 카드 (E1). 보유 목록에서 빠져 있어 팔 수 없고, 최종 점수에는 카드 가치로 들어갑니다 (ShowcaseRules).</summary>
         public List<string> Showcase { get; } = new List<string>();
-        /// <summary>컴퓨터 3단계 중고 장터에 올린 카드 (없으면 null). 보유 목록에서 빠져 있음 (OnlineStallRules, DEC-040 U2)</summary>
+        /// <summary>컴퓨터 3단계 슬라임마켓에 올린 카드 (없으면 null). 보유 목록에서 빠져 있음 (OnlineStallRules, DEC-040 U2)</summary>
         public string OnlineStall { get; set; }
         /// <summary>방 업그레이드 단계 · 택배 · 쓴 돈 (E2)</summary>
         public UpgradeState Upgrades { get; } = new UpgradeState();
@@ -134,7 +134,7 @@ namespace CardShop.Logic
         public int extraSlotSales;      // 바인더로 늘린 판매 칸에서 팔린 장수
         public int extraSlotNet;        // 그 수령액
         public int patienceSaved;       // 침대 덕분에 기다려 준 손님 (기본 인내 시간을 넘겨 계산)
-        public string onlineSaleCard;   // 어젯밤 중고 장터에서 팔린 카드 이름 (없으면 null)
+        public string onlineSaleCard;   // 어젯밤 슬라임마켓에서 팔린 카드 이름 (없으면 null)
         public int onlineSaleNet;       // 그 수령액 (밤에 바로 지갑에 들어옴)
     }
 

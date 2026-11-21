@@ -71,7 +71,7 @@ namespace CardShop.Tutorial
         DecorInstalled = 90,         // 집: 꾸미기 설치
         PosterInstalled = 91,        // 집: 포스터 설치
         CozyRoomCompleted = 92,      // 집: 꾸미기 5종 완성
-        OnlineStallInstalled = 93,   // 집: 컴퓨터 3단계 (중고 장터)
+        OnlineStallInstalled = 93,   // 집: 컴퓨터 3단계 (슬라임마켓)
         UpgradeCreditShown = 94,     // 정산: "가구 덕분에" 줄이 있음
         EndlessFirstDay = 95,        // 영업: 무한 모드 연장 첫날
         MarketFallingToday = 96,     // 영업: 오늘 하락 속성이 있음

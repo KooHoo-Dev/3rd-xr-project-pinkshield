@@ -5,7 +5,7 @@ namespace CardShop.Tutorial
 {
     /// <summary>
     /// 경제 · 가구 튜토리얼 단계 (튜토리얼_설계 13-3, 추천안 T1~T9: 모두 말 안내, 정지 없음).
-    /// 그 일이 처음 일어나는 순간에 짧게 — 매입가 vs 가게 판매 · 인기 강도 · 택배 · 진열장 세트 · 꾸미기 · 중고 장터 · 무한 모드.
+    /// 그 일이 처음 일어나는 순간에 짧게 — 매입가 vs 가게 판매 · 인기 강도 · 택배 · 진열장 세트 · 꾸미기 · 슬라임마켓 · 무한 모드.
     /// TutorialDefaults.Steps()가 끝에 이어 붙입니다 (TutorialDefaults 300줄 점검선, AI-005). 신호는 TutorialEconomyWatch · GameMoment.
     /// 새 대상 키(가격표 · 택배 상자 등)는 아직 없어 기존 대상(판매 판 · 모니터 · 정산 판)을 가리키거나 눈앞에 띄웁니다.
     /// </summary>
@@ -60,7 +60,7 @@ namespace CardShop.Tutorial
             Self("showcase-set", TutorialSignal.ShowcaseSetCompleted, "{setElement} 세트 완성! 홈이 빛난다.\n세트는 {maxSets}개까지 모을 수 있어.", null),
             Self("decor-first", TutorialSignal.DecorInstalled, "꾸미기 {decorCount}/5. 다섯 개를 다 모으면\n매일 무료 팩이 하나 더래!", null),
             Self("decor-cozy", TutorialSignal.CozyRoomCompleted, "아늑한 방 완성! 내일부터\n무료 팩이 하나 더 나온다.", null),
-            Self("stall-ready", TutorialSignal.OnlineStallInstalled, "모니터 중고 장터에 카드 한 장 두면\n자는 동안 팔릴지도 몰라.", TutorialDefaults.Community),
+            Self("stall-ready", TutorialSignal.OnlineStallInstalled, "모니터 슬라임마켓에 카드 한 장 두면\n자는 동안 팔릴지도 몰라.", TutorialDefaults.Community),
             Boss("settle-credit", GamePhaseId.Settlement, TutorialSignal.UpgradeCreditShown,
                 "집에 가구 들였다며? 그 덕에 번 건\n여기 따로 적어 뒀어.", TutorialDefaults.SettlementBoard),
 

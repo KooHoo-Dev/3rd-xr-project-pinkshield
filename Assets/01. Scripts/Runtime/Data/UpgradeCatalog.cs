@@ -143,7 +143,7 @@ namespace CardShop.Cards
             T(UpgradeKind.Computer, "컴퓨터",
                 // 책상(x 0.59 ~ 1.81) 오른쪽 위에 보조 모니터, 스마트홈은 왼쪽(피규어 0.72와 키보드 1.2 사이 뒤쪽)
                 L(70, "모레 인기 속성 · 내일 인기 강도까지 보기", V("LowPoly:Room/PC_Screen", new Vector3(1.53f, 0.71f, 1.72f), 200f, scale: 0.8f)),
-                L(130, "카드 시세표 + 중고 장터 1칸 (밤사이 판매)", V("LowPoly:Room/SmartHome", new Vector3(1.05f, 0.71f, 1.75f), 180f))),
+                L(130, "카드 시세표 + 슬라임마켓 1칸 (밤사이 판매)", V("LowPoly:Room/SmartHome", new Vector3(1.05f, 0.71f, 1.75f), 180f))),
             // F5 (Q5): 좁은 침대(처음 Bed2_01, 1.16m) → 넓은 침대 Bed1_02(1.84m) → 킹 Bed1_03 가로 1.25배, 벽 모서리에 맞춰 커짐.
             // 씬에 Bed_Tier_0 · 1 · 2가 있으면 그쪽이 우선 (SceneTiers, 지금 Shop.unity) — 이 목록은 집 실내를 초기화해 "Bed"가 다시 생겼을 때 쓰임
             T(UpgradeKind.Bed, "침대",

@@ -11,12 +11,12 @@ namespace CardShop.UI
     /// 씬이 열리면 스스로 실행됩니다(TutorialDirector.Install과 같은 방식). 이미 붙어 있으면 아무것도 하지 않습니다.
     /// - 진열장 패널 (ShowcasePanel) — 판매 판과 함께 모니터 [판매 · 진열] 쪽으로 옮겨짐 (SalesShowcasePage, DEC-042)
     /// - 컴퓨터 모니터 위 벽: 카드 보관함 (CardCase, 손으로 꽂기)
-    /// - 컴퓨터 모니터: [커뮤니티 · 슬라임마켓 · 판매 · 진열] (HomeComputer). 모니터가 없는 씬이면 마켓은 오른쪽 벽
+    /// - 컴퓨터 모니터: [커뮤니티 · 슬라임 홈쇼핑 · 판매 · 진열] (HomeComputer). 모니터가 없는 씬이면 마켓은 오른쪽 벽
     /// - 방 가구 · 택배 상자: RoomUpgradeView
     /// </summary>
     public static class HomeUpgradeInstaller
     {
-        // 슬라임마켓 화면: 오른쪽 벽(컴퓨터 책상 옆), 방 안(-X)을 봄. 집 실내 로컬 좌표
+        // 슬라임 홈쇼핑 화면: 오른쪽 벽(컴퓨터 책상 옆), 방 안(-X)을 봄. 집 실내 로컬 좌표
         static readonly Vector3 MarketPosition = new Vector3(ShopLayout.HomeMaxX - ShopLayout.HomeWallHalf - 0.02f, 1.45f, 0.45f);
         const float MarketYaw = -90f;
 
@@ -28,7 +28,7 @@ namespace CardShop.UI
             BinderView binder = Object.FindAnyObjectByType<BinderView>(FindObjectsInactive.Include);
             if (interior == null || binder == null)
             {
-                Debug.LogWarning("[HomeUpgradeInstaller] 집 실내(HomeInterior) 또는 바인더가 없어 진열장 · 슬라임마켓을 붙이지 못했습니다.");
+                Debug.LogWarning("[HomeUpgradeInstaller] 집 실내(HomeInterior) 또는 바인더가 없어 진열장 · 슬라임 홈쇼핑을 붙이지 못했습니다.");
                 return;
             }
 
@@ -39,7 +39,7 @@ namespace CardShop.UI
             ShowcasePanel showcase = ShowcasePanel.Create(binder, font, GameContext.Instance.Upgrades.MaxShowcaseSlots());
             CardCase.Create(interior, catalog, binder); // 모니터 위 벽 카드 보관함 (11-20 J5 · J6, 예전 책장 앞 진열대 대신)
             // 화면은 집 페이즈 이벤트를 받아야 하므로 늘 켜져 있는 Home 루트 아래 (집 실내는 집에서만 켜짐 — ZoneVisibility)
-            // 슬라임마켓은 컴퓨터 모니터의 두 번째 쪽으로 (11-20 J1). 모니터(커뮤니티 화면)가 없는 씬이면 예전처럼 오른쪽 벽
+            // 슬라임 홈쇼핑은 컴퓨터 모니터의 두 번째 쪽으로 (11-20 J1). 모니터(커뮤니티 화면)가 없는 씬이면 예전처럼 오른쪽 벽
             HomeComputer computer = HomeComputer.Create(catalog, font);
             if (computer == null)
             {
@@ -49,7 +49,7 @@ namespace CardShop.UI
             else
             {
                 SalesShowcasePage.Create(computer, binder, showcase, font); // 판매 · 진열 판을 모니터 세 번째 쪽으로 (DEC-042)
-                OnlineStallPage.Create(computer, binder, font);              // 네 번째 쪽: 중고 장터 (컴퓨터 3단계, DEC-040 U2)
+                OnlineStallPage.Create(computer, binder, font);              // 네 번째 쪽: 슬라임마켓 (컴퓨터 3단계, DEC-040 U2)
             }
             RoomUpgradeView.Create(interior, catalog, font, binder);
 

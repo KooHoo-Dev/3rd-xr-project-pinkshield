@@ -81,7 +81,7 @@ namespace CardShop.Tutorial
                 for (int i = 0; i < e.Value && i < ShowcaseSetRules.SetSize; i++) all.Add(ctx.Cards.Get(e.Key));
             if (ShowcaseSetRules.SetCount(all) > 0) found.Add(TutorialSignal.ShowcaseSetPossible);
 
-            // 꾸미기 · 포스터 · 아늑한 방 · 중고 장터 설치 (상자를 열어 단계가 오른 때)
+            // 꾸미기 · 포스터 · 아늑한 방 · 슬라임마켓 설치 (상자를 열어 단계가 오른 때)
             int decor = 0;
             foreach (UpgradeKind k in DecorKinds) if (up.LevelOf(k) > 1) decor++;
             if (lastDecor >= 0 && decor > lastDecor) found.Add(TutorialSignal.DecorInstalled);

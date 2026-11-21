@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace CardShop.Tests
 {
-    /// <summary>중고 장터 (DEC-040 U2) · "가구 덕분에" 정산 줄 (UpgradeCredits).</summary>
+    /// <summary>슬라임마켓 (DEC-040 U2) · "가구 덕분에" 정산 줄 (UpgradeCredits).</summary>
     public class OnlineStallRulesTests
     {
         Fixture f;
@@ -111,7 +111,7 @@ namespace CardShop.Tests
             StringAssert.StartsWith("가구 덕분에:", line);
             StringAssert.Contains("늘린 판매 칸에서 1장", line);
             StringAssert.Contains("기다려 준 손님 2명", line);
-            StringAssert.Contains("중고 장터 「촛불 슬라임」", line);
+            StringAssert.Contains("슬라임마켓 「촛불 슬라임」", line);
         }
 
         [Test]

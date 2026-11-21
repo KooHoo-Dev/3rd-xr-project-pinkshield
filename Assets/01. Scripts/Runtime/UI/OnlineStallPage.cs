@@ -9,13 +9,13 @@ using UnityEngine.UI;
 namespace CardShop.UI
 {
     /// <summary>
-    /// 모니터 쪽 [중고 장터] (컴퓨터 3단계, 경제시스템_설계 14-3, DEC-040 U2).
+    /// 모니터 쪽 [슬라임마켓] (컴퓨터 3단계, 경제시스템_설계 14-3, DEC-040 U2).
     /// 바인더에서 고른 카드(수퍼레어 이상)를 1장 올려 두면 밤사이 팔릴 수 있습니다 (판정 · 값은 OnlineStallRules, 밤은 DayEndPhase).
     /// 컴퓨터 3단계 전에는 "잠김" 안내만 보입니다. 화면은 SlimeOS 창 하나 (HomeComputer.CreateWindowCanvas).
     /// </summary>
     public sealed class OnlineStallPage : HomePanel
     {
-        const string PageName = "중고 장터";
+        const string PageName = "슬라임마켓";
 
         BinderView binder;
         TMP_Text status, detail;
@@ -26,7 +26,7 @@ namespace CardShop.UI
             if (computer == null) return null;
             RectTransform rt = computer.CreateWindowCanvas("OnlineStallPage", 0.01f, out GameObject content);
             rt.gameObject.SetActive(false); // 설정을 다 넣은 뒤 켬 (OnEnable 순서)
-            SlimeOsWindow.Apply(content.transform, PageName + "  <size=75%>밤사이 팔릴지도?</size>", font);
+            SlimeOsWindow.Apply(content.transform, PageName + "  <size=75%>카드 온라인 판매 · 밤사이 팔릴지도?</size>", font);
 
             var page = rt.gameObject.AddComponent<OnlineStallPage>();
             page.content = content;
@@ -75,9 +75,9 @@ namespace CardShop.UI
             if (ctx.OnlineStall.Put(ctx.Session, card.id))
             {
                 Sfx.Play(SoundId.UiClick, transform.position);
-                ctx.Events.RaiseNotice($"「{card.displayName}」을(를) 중고 장터에 올렸어요. 밤사이 팔리면 아침에 알려 드려요");
+                ctx.Events.RaiseNotice($"「{card.displayName}」을(를) 슬라임마켓에 올렸어요. 밤사이 팔리면 아침에 알려 드려요");
             }
-            else ctx.Events.RaiseNotice("중고 장터에는 수퍼레어 이상, 가지고 있는 카드만 올릴 수 있어요");
+            else ctx.Events.RaiseNotice("슬라임마켓에는 수퍼레어 이상, 가지고 있는 카드만 올릴 수 있어요");
             MarkDirty();
         }
 
@@ -105,7 +105,7 @@ namespace CardShop.UI
             if (!unlocked)
             {
                 status.text = "잠김";
-                detail.text = "슬라임마켓에서 컴퓨터 3단계(카드 시세표)를 사면 열려요.\n카드 1장을 올려 두면 자는 동안 누군가 사 갈지도 몰라요.";
+                detail.text = "슬라임 홈쇼핑에서 컴퓨터 3단계(카드 시세표)를 사면 열려요.\n카드 1장을 올려 두면 자는 동안 누군가 사 갈지도 몰라요.";
                 return;
             }
 

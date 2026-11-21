@@ -252,7 +252,7 @@ namespace CardShop.Core.Phases
                 return;
             }
 
-            // 중고 장터 밤사이 판정 (컴퓨터 3단계, DEC-040 U2): 내일 시세로 팔림, 돈은 바로 지갑에
+            // 슬라임마켓 밤사이 판정 (컴퓨터 3단계, DEC-040 U2): 내일 시세로 팔림, 돈은 바로 지갑에
             CardShop.Cards.CardData stallSold = null;
             int stallNet = 0;
             if (Context.Upgrades.HasOnlineStall(Context.Session.Upgrades))
@@ -263,7 +263,7 @@ namespace CardShop.Core.Phases
             {
                 Context.Session.Ledger.onlineSaleCard = stallSold.displayName; // 오늘 정산 "가구 덕분에" 줄
                 Context.Session.Ledger.onlineSaleNet = stallNet;
-                Context.Events.RaiseNotice($"띵동! 어젯밤 중고 장터에서 「{stallSold.displayName}」이(가) 팔렸어요 {MoneyText.Signed(stallNet)}");
+                Context.Events.RaiseNotice($"띵동! 어젯밤 슬라임마켓에서 「{stallSold.displayName}」이(가) 팔렸어요 {MoneyText.Signed(stallNet)}");
             }
             Context.Events.RaiseDayStarted(Context.Session.Day);
             Flow.GoTo(GamePhaseId.Business);

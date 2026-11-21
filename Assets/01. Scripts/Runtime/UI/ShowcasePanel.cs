@@ -125,7 +125,7 @@ namespace CardShop.UI
                     message = $"{card.displayName}을(를) 모니터 위 보관함에 세웠어요!";
                     if (box == null) Sfx.Play(SoundId.PileLand, transform.position);
                     break;
-                case ShowcaseResult.Full: message = "진열장이 가득 찼어요 (슬라임마켓에서 늘릴 수 있어요)"; break;
+                case ShowcaseResult.Full: message = "진열장이 가득 찼어요 (슬라임 홈쇼핑에서 늘릴 수 있어요)"; break;
                 default: message = "진열할 카드가 없어요 (판매 등록 중인 카드는 빼고)"; break;
             }
             Refresh();
