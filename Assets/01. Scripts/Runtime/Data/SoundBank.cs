@@ -73,6 +73,14 @@ namespace CardShop.Cards
         CustomerImpatientMale = 74,   // 남자 한숨 · "come on" (줄 재촉)
         CustomerVoiceBoy = 75,        // 젊은 남자 가벼운 반응 (비면 어른 남자 칸)
         CustomerWowBoy = 76,          // 젊은 남자 와우 (비면 어른 남자 칸)
+        // 잡기 · 떨어짐 (11-21 피드백 S3 · S5, GrabSound · ImpactSound · 청소 자리가 냄)
+        PackPick = 77,                // 카드팩을 쥠 (비닐 바스락)
+        BoxPick = 78,                 // 상자를 쥠 (종이 상자 툭)
+        TrashPick = 79,               // 쓰레기를 쥠 (캔 · 종이)
+        ItemPick = 80,                // 그 밖의 손 물건 (스캐너 · 대걸레 · 봉투)
+        TrashFall = 81,               // 쓰레기가 바닥에 떨어짐 (생길 때 · 세게 부딪힐 때)
+        LiquidSpill = 82,             // 음료를 쏟음 (얼룩이 생길 때)
+        PackFall = 83,                // 꽂이 팩이 바닥에 우수수 (손님이 흐트러뜨릴 때)
     }
 
     /// <summary>

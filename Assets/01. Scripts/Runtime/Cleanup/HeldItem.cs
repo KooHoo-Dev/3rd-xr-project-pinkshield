@@ -45,6 +45,8 @@ namespace CardShop.Cleanup
         public event Action<HeldItem> Grabbed;
         /// <summary>손에서 놓음. 받는 쪽이 이 안에서 PlaceAt을 부르면 떨어지지 않습니다.</summary>
         public event Action<HeldItem> Released;
+        /// <summary>놓은 뒤 받침면에 내려앉음. 값 = 떨어진 높이(m) — 떨어짐 소리용 (GrabSound, 11-21 S5)</summary>
+        public event Action<float> Landed;
 
         void Awake()
         {
@@ -119,6 +121,7 @@ namespace CardShop.Cleanup
             }
             transform.SetPositionAndRotation(landing.position, landing.rotation);
             dropRoutine = null;
+            Landed?.Invoke(fromPos.y - landing.position.y);
         }
 
         void StopDrop()
