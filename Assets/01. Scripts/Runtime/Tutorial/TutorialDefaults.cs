@@ -91,7 +91,7 @@ namespace CardShop.Tutorial
 
             // 청소 (처음 생길 때 정지, DEC-028)
             On(Hold("trash-1", TutorialSignal.TrashBinned, "누가 쓰레기를 버렸네…\n집어서 쓰레기통 위에서 놓아.",
-                "멀면 레이저로 잡고 왼손 트리거를 꾹 → 당겨져!", Trash, TrashBin), TutorialSignal.TrashSpawned),
+                "멀면 레이저로 잡고 트리거를 꾹 → 당겨져!", Trash, TrashBin), TutorialSignal.TrashSpawned),
             Say("trash-done", GamePhaseId.Business, "깨끗! 치운 만큼 알바비 +{cleanupBonus}야.", 3.5f, startOn: TutorialSignal.TrashBinned),
             Say("closing", GamePhaseId.Business, "문 닫았어! 남은 손님 계산하고\n{closingCleanupSeconds}초 안에 청소 마무리!", 5f,
                 day: 1, startOn: TutorialSignal.BusinessClosing),
