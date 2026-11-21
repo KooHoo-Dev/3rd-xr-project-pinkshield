@@ -14,7 +14,7 @@ namespace CardShop.EditorTools
     /// </summary>
     internal static class PhaseBoardBuilder
     {
-        public const string GameName = "퇴근하고 한 팩";
+        public const string GameName = "슬라임 카드샵";
         public const string Credit = "제작: PinkshieldStudio";
 
         static Color Gold => UiTheme.Gold;
