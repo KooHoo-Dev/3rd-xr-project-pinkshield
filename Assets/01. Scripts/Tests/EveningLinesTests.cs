@@ -89,8 +89,8 @@ namespace CardShop.Tests
         public void For_IsTwoLines_WithNumbersFilledIn()
         {
             var custom = EveningLines.Parse("WorkBusy|손님 {customers}명\nPackNew|새 카드 {new}장\n# 주석\n잘못된줄\nNope|무시");
-            string s = EveningLines.For(2, new DayLedger { customersServed = 6, packsOpened = 2, bestRarity = 0, newCards = 7 }, custom);
-            Assert.AreEqual("손님 6명\n새 카드 7장", s);
+            string s = EveningLines.For(2, new DayLedger { customersServed = EveningLines.BusyCustomers, packsOpened = 2, bestRarity = 0, newCards = 7 }, custom); // 바쁜 날 기준(BusyCustomers)이 바뀌어도 맞게
+            Assert.AreEqual($"손님 {EveningLines.BusyCustomers}명\n새 카드 7장", s);
         }
 
         [Test]

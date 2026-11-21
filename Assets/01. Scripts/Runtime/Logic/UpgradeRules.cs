@@ -56,7 +56,7 @@ namespace CardShop.Logic
             return s.Wallet.Money >= next.price ? BuyResult.Ok : BuyResult.NotEnoughMoney;
         }
 
-        /// <summary>사기: 지갑에서 빼고 주문으로 기록합니다(다음 날 아침 택배).</summary>
+        /// <summary>사기: 지갑에서 빼고 주문으로 기록합니다(그날 밤 택배, DEC-040 U5).</summary>
         public BuyResult TryBuy(GameSession s, UpgradeKind kind, out int price)
         {
             price = 0;

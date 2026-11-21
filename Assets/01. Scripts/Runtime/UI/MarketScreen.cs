@@ -10,7 +10,7 @@ namespace CardShop.UI
 {
     /// <summary>
     /// 슬라임마켓: 방 업그레이드 상점 화면 (집_업그레이드_설계 3장 E2). 컴퓨터 모니터의 두 번째 쪽(HomeComputer, 11-20 J1), 분야마다 상품 카드 1장
-    /// (이름 · 단계 점 · 다음 효과 · 가격 띠 버튼 · 상태 리본, 11-20 F8). 사면 다음 날 아침 택배 상자로 오고(DEC-031 Q3), 쓴 돈은 최종 점수의 가구 값(Q2).
+    /// (이름 · 단계 점 · 다음 효과 · 가격 띠 버튼 · 상태 리본, 11-20 F8). 사면 그날 밤 택배 상자로 오고(DEC-040 U5), 쓴 돈은 최종 점수의 가구 값(Q2).
     /// 실수로 사지 않게 한 번 누르면 "한 번 더 누르면 사요", ConfirmSeconds 안에 한 번 더 누르면 삽니다(판매 패널 모두 팔기와 같은 방식).
     /// 규칙은 순수 C# UpgradeRules. 씬을 다시 빌드하지 않도록 HomeUpgradeInstaller가 런타임에 만듭니다.
     /// </summary>
@@ -55,7 +55,7 @@ namespace CardShop.UI
 
             Transform c = content.transform;
             WorldUiKit.AddPanel(c, 12f);
-            WorldUiKit.AddText(c, "Title", "슬라임마켓  <size=70%>방 꾸미기 · 산 물건은 다음 날 택배로 와요</size>",
+            WorldUiKit.AddText(c, "Title", "슬라임마켓  <size=70%>방 꾸미기 · 사면 오늘 밤 택배로 와요</size>",
                 new Vector2(0.03f, 0.9f), new Vector2(0.97f, 0.975f), 34f, UiTheme.Gold, font);
 
             // 상품 카드 격자 (11-20 F8: 글자 줄 목록이 허접해 보임 → 쇼핑앱처럼 4열 카드 + 가격 띠 버튼 + 상태 리본)
@@ -182,7 +182,7 @@ namespace CardShop.UI
                 armed = -1;
                 if (rules.TryBuy(s, kind, out int price) == BuyResult.Ok)
                 {
-                    message = $"{name} 주문 완료 {MoneyText.Signed(-price)} · 내일 아침 택배로 와요";
+                    message = $"{name} 주문 완료 {MoneyText.Signed(-price)} · 곧 택배가 와요 (효과는 내일부터)"; // 그날 밤 택배 (DEC-040 U5)
                     Sfx.Play(SoundId.PosPay, transform.position);
                 }
             }
@@ -223,11 +223,11 @@ namespace CardShop.UI
                 rowLabels[i].text = $"<b>{trackName}</b>{dots}\n<size=80%><color={effectColor}>{effect}</color></size>";
                 bool poor = next != null && s.Wallet.Money < next.price;
                 ribbons[i].text = lightCards
-                    ? (status == UpgradeStatus.Ordered ? "<color=#7FD6B0>배송 중 · 내일 아침</color>" :
+                    ? (status == UpgradeStatus.Ordered ? "<color=#7FD6B0>배송 중</color>" :
                        status == UpgradeStatus.Arrived ? "<color=#F29BC4>택배 도착! 방 상자를 열어요</color>" :
                        next == null ? "<color=#B9B0CC>완료</color>" :
                        poor ? "<color=#9F96B5>돈이 모자라요</color>" : "")
-                    : (status == UpgradeStatus.Ordered ? "<color=#9FDCFF>배송 중 · 내일 아침</color>" :
+                    : (status == UpgradeStatus.Ordered ? "<color=#9FDCFF>배송 중</color>" :
                        status == UpgradeStatus.Arrived ? "<color=#FFB3D9>택배 도착! 방 상자를 열어요</color>" :
                        next == null ? "<color=#9CE59C>완료</color>" :
                        poor ? "<color=#B9B3C8>돈이 모자라요</color>" : "");
