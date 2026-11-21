@@ -33,7 +33,7 @@ namespace CardShop.Presentation
         public static bool Has(SoundId id)
         {
             SoundBank.Entry e = Bank != null ? Bank.Get(id) : null;
-            return e != null && e.clips != null && e.clips.Length > 0;
+            return e != null && e.clips != null && e.clips.Length > 0 && FirstClip(e) != null; // 지운 파일 자리만 남은 칸은 빈 칸
         }
 
         public static void Play(SoundId id, Vector3 position) => PlayAt(id, position, 1f);
@@ -77,6 +77,7 @@ namespace CardShop.Presentation
             lastPlayed[slot] = Time.unscaledTime;
 
             AudioClip clip = e.clips[pick >= 0 ? pick % e.clips.Length : Random.Range(0, e.clips.Length)];
+            if (clip == null) clip = FirstClip(e); // 지운 파일 자리(빈 칸)가 섞여 있어도 남은 클립으로 (11-21 2차 S0)
             if (clip == null) return null;
             // PlayClipAtPoint는 음높이를 못 바꿔서 짧게 쓰고 버리는 AudioSource를 만듦
             var go = new GameObject("Sfx_" + id);
@@ -102,6 +103,7 @@ namespace CardShop.Presentation
             SoundBank.Entry e = Bank != null ? Bank.Get(id) : null;
             if (e == null || e.clips == null || e.clips.Length == 0 || owner == null) return null;
             AudioClip clip = e.clips[Random.Range(0, e.clips.Length)];
+            if (clip == null) clip = FirstClip(e);
             if (clip == null) return null;
             var src = owner.AddComponent<AudioSource>();
             src.clip = clip;
@@ -112,6 +114,12 @@ namespace CardShop.Presentation
             src.rolloffMode = AudioRolloffMode.Linear;
             src.maxDistance = 25f;
             return src;
+        }
+
+        static AudioClip FirstClip(SoundBank.Entry e)
+        {
+            foreach (AudioClip c in e.clips) if (c != null) return c;
+            return null;
         }
 
         /// <summary>CreateLoop 소리의 칸 크기 × 효과음 크기 (부르는 쪽이 0~1을 곱함)</summary>

@@ -59,6 +59,17 @@ namespace CardShop.Tests
         }
 
         [Test]
+        public void OwnedFirst_KeepsOrderInsideEachGroup()
+        {
+            // 가진 카드: W0 · F2 · F0 (11-21 2차 V4)
+            var owned = new HashSet<string> { "W0", "F2", "F0" };
+            CollectionAssert.AreEqual(new[] { "F0", "W0", "F2", "F1", "W1", "F3" },
+                BinderSort.Ids(cards, BinderTab.All, BinderSortOrder.Dex, owned.Contains));
+            CollectionAssert.AreEqual(new[] { "F2", "W0", "F0", "F1", "W1", "F3" },
+                BinderSort.Ids(cards, BinderTab.All, BinderSortOrder.Rarity, owned.Contains));
+        }
+
+        [Test]
         public void NullCards_AreSkipped()
         {
             var withNull = new List<CardData>(cards) { null };

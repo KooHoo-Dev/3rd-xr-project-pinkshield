@@ -23,8 +23,8 @@ namespace CardShop.Tutorial
         public const float OutOfViewAngle = 50f;
         /// <summary>시야 밖이 이만큼 이어지면 다시 놓음 (초). 잠깐 둘러보는 것으로는 움직이지 않게</summary>
         public const float OutOfViewSeconds = 1.0f;
-        /// <summary>놓은 자리에서 머리가 이만큼 넘게 (수평으로) 걸어가면 다시 놓음 (m)</summary>
-        public const float WalkAwayDistance = 1.5f;
+        /// <summary>놓은 자리에서 머리가 이만큼 넘게 (수평으로) 떨어지면 다시 놓음 (m). 11-21 2차 H4: 1.5 → 4 (가게 안에서 걷는 것으론 안 움직이고, 집 ↔ 가게 이동 · 순간이동만)</summary>
+        public const float WalkAwayDistance = 4f;
 
         /// <summary>위를 볼 때 따라 올라가는 한계 (도, 수평 위)</summary>
         public const float MaxPitchUp = 40f;

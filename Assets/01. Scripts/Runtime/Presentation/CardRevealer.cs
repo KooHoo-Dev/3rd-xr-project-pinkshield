@@ -209,7 +209,7 @@ namespace CardShop.Presentation
             stage = PackStage.Flipping;
             float hold = TriggerInput.HoldSeconds;
             context?.Events.RaiseNotice(isBox
-                ? $"오른손 트리거로 한 장씩 넘기세요 ({queue.Count}칸) · {hold:0.#}초 꾹: 건너뛰기"
+                ? $"오른손 트리거로 한 팩씩 넘기세요 ({packs.Count}팩) · {hold:0.#}초 꾹: 건너뛰기"
                 : $"오른손 트리거로 한 장씩 넘기세요 · {hold:0.#}초 꾹: 건너뛰기");
             Pose gaugePose = TriggerInput.GaugePose(stack);
             bool skipped = false;
@@ -234,6 +234,7 @@ namespace CardShop.Presentation
                 yield return TriggerInput.WaitForAdvance(hand, pause, !godPack, gaugePose);
                 Pile.Send(CardStack.TakeFront(), isBox, 0f);
                 qi++;
+                if (isBox && TriggerInput.Last == RevealInput.Result.Next) qi = BoxOpening.SendRestOfPack(packs, queue, qi, item.Pack, CardStack, Pile);
 
                 if (TriggerInput.Last == RevealInput.Result.Skip && !skipped)
                 {
@@ -278,7 +279,8 @@ namespace CardShop.Presentation
             Pile.SettleBox(); // 상자 더미는 단일 팩처럼 카운터에 남김: 위 카드는 잡아 볼 수 있고, 이어서 여는 팩은 그 위에, 퇴근 때 보관함으로
 
             XRBaseInputInteractor hand = HandFinder.Find(InteractorHandedness.Right);
-            yield return BoxBoard.Show(packs, (v, card) => Fx.Announce(v, card, false, hand)); // 하이라이트 카드도 단일 팩과 같은 등급 연출
+            yield return BoxBoard.Show(packs, (v, card) => Fx.Announce(v, card, false, hand), // 하이라이트 카드도 단일 팩과 같은 등급 연출
+                () => hand != null && hand.activateInput.ReadWasPerformedThisFrame()); // 트리거 = 결과판 끝까지 바로 (11-21 2차 H3)
             int total = packs.Sum(p => p.Cards.Length);
             int newCount = packs.Sum(p => p.IsNew.Count(n => n));
             context?.Events.RaiseNotice($"상자 개봉: {packs.Count}팩 {total}장, 새 카드 {newCount}장");

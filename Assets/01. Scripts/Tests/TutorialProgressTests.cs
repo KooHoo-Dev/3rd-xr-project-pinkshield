@@ -300,5 +300,23 @@ namespace CardShop.Tests
             p.Notify(TutorialSignal.PhaseEntered);
             Assert.AreEqual("A", p.Active?.key);
         }
+
+        [Test]
+        public void DoneOnlyAfterStart_StillShows_WhenDoneSignalCameEarlier()
+        {
+            // 도둑 안내: 얼룩을 닦느라 대걸레를 먼저 잡은 날에도 나와야 함 (11-21 2차 B3)
+            var thief = S("thief", phase: GamePhaseId.Business, startOn: TutorialSignal.ThiefAppeared, doneOn: TutorialSignal.BroomGrabbed, seconds: 2f);
+            thief.doneOnlyAfterStart = true;
+            var p = Make(out Log log, thief, S("plain", phase: GamePhaseId.Business, startOn: TutorialSignal.ThiefCaught, doneOn: TutorialSignal.BroomGrabbed));
+            p.SetContext(GamePhaseId.Business, 3);
+            p.Notify(TutorialSignal.BroomGrabbed);
+            p.Notify(TutorialSignal.ThiefAppeared);
+            Assert.AreEqual("thief", p.Active?.key, "먼저 잡았어도 보여 줌");
+            p.Notify(TutorialSignal.BroomGrabbed);
+            p.Tick(2f);
+            Assert.Contains("thief", log.ended);
+            p.Notify(TutorialSignal.ThiefCaught);
+            Assert.IsNull(p.Active, "표시 없는 단계는 예전처럼 건너뜀");
+        }
     }
 }

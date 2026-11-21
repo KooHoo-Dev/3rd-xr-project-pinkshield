@@ -197,6 +197,22 @@ namespace CardShop.Cleanup
             return k;
         }
 
+        const float MinTrashLength = 0.18f; // 키운 뒤 긴 변이 이보다 짧으면 이 길이까지 더 키움 (m)
+
+        // 원본(꺼진 견본)의 메시 크기로 긴 변을 잼. 견본이 꺼져 있어 Renderer.bounds를 못 쓰므로 메시 범위 × 배율
+        float SmallTrashBoost(TrashSpot template)
+        {
+            float longest = 0f;
+            foreach (MeshFilter mf in template.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (mf.sharedMesh == null) continue;
+                Vector3 size = Vector3.Scale(mf.sharedMesh.bounds.size, mf.transform.lossyScale);
+                longest = Mathf.Max(longest, size.x, size.y, size.z);
+            }
+            float scaled = longest * trashScale;
+            return scaled > 0.001f && scaled < MinTrashLength ? MinTrashLength / scaled : 1f;
+        }
+
         CleanupSpot SpawnTrash(Vector3 around)
         {
             TrashSpot template = trashTemplates[context.Random.Range(0, trashTemplates.Length)];
@@ -205,7 +221,9 @@ namespace CardShop.Cleanup
             Vector3 pos = new Vector3(around.x, template.transform.position.y * trashScale, around.z);
             Quaternion rot = Quaternion.Euler(0f, (float)context.Random.NextDouble() * 360f, 0f) * template.transform.rotation;
             TrashSpot trash = Instantiate(template, pos, rot, transform);
-            trash.transform.localScale = template.transform.localScale * trashScale; // 잡는 콜라이더도 같이 커짐
+            float scale = trashScale * SmallTrashBoost(template); // 작은 컵 같은 것은 더 키움 (11-21 2차 F3)
+            trash.transform.localScale = template.transform.localScale * scale; // 잡는 콜라이더도 같이 커짐
+            trash.transform.position = new Vector3(pos.x, template.transform.position.y * scale, pos.z);
             trash.gameObject.SetActive(true);
             trash.Init(bin);
             context.Events.RaiseNotice("바닥에 쓰레기가 떨어졌어요. 주워서 카운터 오른쪽 쓰레기통에!");

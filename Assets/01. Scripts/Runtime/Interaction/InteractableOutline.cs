@@ -103,6 +103,9 @@ namespace CardShop.Interaction
             button = GetComponent<PokeButton>() != null;
             if (TryGetComponent(out CardShop.Cleanup.TrashSpot trash)) isCleanup = () => trash != null && !trash.IsDone;
             else if (TryGetComponent(out CardShop.Cleanup.RackPack pack)) isCleanup = () => pack != null && !pack.InRack;
+            // 11-21 2차: 납작한 쓰레기도 보이게 바닥 고리(F2), 버튼은 정면에서도 보이게 둘레 빛 판(F4)
+            if (isCleanup != null) gameObject.AddComponent<CleanupGlowRing>().Init(isCleanup);
+            if (button && GetComponent<ButtonGlowPlate>() == null) gameObject.AddComponent<ButtonGlowPlate>();
             Build();
             held = interactable.isSelected;
             Paint();
@@ -120,6 +123,7 @@ namespace CardShop.Interaction
             foreach (MeshRenderer r in GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (r.GetComponent<TMP_Text>() != null || r.name == "OutlineShell") continue;
+                if (r.name == "CornerFlap") continue; // 접힌 팩 단서 조각: 따로 테가 생기면 단서가 너무 티 남 (11-21 2차 V2)
                 // 안쪽에 따로 잡히는 물건이 있으면 그 물건이 자기 테를 가짐
                 XRBaseInteractable owner = r.GetComponentInParent<XRBaseInteractable>(true);
                 if (owner != null && owner != interactable) continue;

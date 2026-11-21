@@ -220,8 +220,24 @@ namespace CardShop.Presentation
             return any;
         }
 
-        static void Visual(Transform parent, Vector3 size, Vector3 localPos, Quaternion localRot, Color color)
+        // 11-21 2차 B1: 기본 도형의 기본 재질은 Quest 빌드에서 셰이더가 빠져 분홍으로 보임 → 씬에 있는 재질(계산대)을 빌려 색만 덮어씀.
+        // 빌릴 재질이 없으면 받침 · 가격표 판은 만들지 않음 (카드 · 글자만)
+        Material shapeMaterial;
+        bool shapeMaterialSearched;
+
+        Material ShapeMaterial()
         {
+            if (shapeMaterialSearched) return shapeMaterial;
+            shapeMaterialSearched = true;
+            foreach (MeshRenderer r in GetComponentsInChildren<MeshRenderer>(true))
+                if (r.sharedMaterial != null && r.sharedMaterial.shader != null && r.sharedMaterial.shader.isSupported) { shapeMaterial = r.sharedMaterial; break; }
+            return shapeMaterial;
+        }
+
+        void Visual(Transform parent, Vector3 size, Vector3 localPos, Quaternion localRot, Color color)
+        {
+            Material mat = ShapeMaterial();
+            if (mat == null) return;
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Destroy(go.GetComponent<Collider>());
             go.transform.SetParent(parent, false);
@@ -229,6 +245,7 @@ namespace CardShop.Presentation
             go.transform.localRotation = localRot;
             go.transform.localScale = size;
             var r = go.GetComponent<Renderer>();
+            r.sharedMaterial = mat;
             var block = new MaterialPropertyBlock();
             block.SetColor("_BaseColor", color);
             block.SetColor("_Color", color);

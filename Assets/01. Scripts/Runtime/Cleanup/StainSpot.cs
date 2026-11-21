@@ -27,9 +27,10 @@ namespace CardShop.Cleanup
         static readonly string[] SlipLines = { "으, 미끄러워!", "어머, 바닥이 왜 이래", "끈적끈적…" };
         static readonly Color[] Colors =
         {
-            new Color(0.36f, 0.22f, 0.12f, 0.85f), // 커피
-            new Color(0.32f, 0.27f, 0.2f, 0.85f),  // 흙탕
-            new Color(0.55f, 0.18f, 0.32f, 0.8f),  // 탄산음료
+            // 11-21 2차 F1: 커피 · 흙탕 · 탄산음료(어두운 갈색 · 회색)는 나무 바닥에서 잘 안 보임 → 쏟은 "슬라임 음료" 색
+            new Color(1f, 0.35f, 0.7f, 0.85f),   // 분홍 슬라임
+            new Color(0.45f, 0.95f, 0.3f, 0.85f), // 연두 슬라임
+            new Color(0.3f, 0.8f, 1f, 0.85f),     // 하늘 슬라임
         };
         static Sprite blob;
 

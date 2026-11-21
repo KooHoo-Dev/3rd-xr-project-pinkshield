@@ -124,6 +124,20 @@ namespace CardShop.Presentation
                 ? new List<GameObject>()
                 : UpgradeFurniture.Build(interior, track, level, covered, UpgradeFurniture.FromScene);
             DecorReaction.Attach(track.kind, spawned[track.kind], interior, font); // 꾸미기 생활 반응 (DEC-040 U3)
+            if (popKind == track.kind) { popKind = null; PopNew(track.kind, level); }
+        }
+
+        UpgradeKind? popKind; // 방금 택배 상자를 연 분야: 그 가구가 놓일 때 한 번 PopIn (11-21 2차 V5)
+
+        void PopNew(UpgradeKind kind, int level)
+        {
+            if (spawned.TryGetValue(kind, out List<GameObject> list) && list.Count > 0)
+            {
+                foreach (GameObject go in list) if (go != null) PopIn.Play(go.transform);
+                return;
+            }
+            Dictionary<int, Transform> tiers = SceneTiers.Find(interior, kind); // 씬 단계 가구: 지금 켜진 것
+            foreach (Transform t in tiers.Values) if (t != null && t.gameObject.activeInHierarchy) PopIn.Play(t);
         }
 
         // ------------------------------------------------------------------ 택배 상자
@@ -181,7 +195,8 @@ namespace CardShop.Presentation
         void OnBoxOpened(DeliveryBox box)
         {
             boxes.Remove(box.Kind);
-            if (bound == null || !bound.Open(box.Kind)) return;
+            popKind = box.Kind;
+            if (bound == null || !bound.Open(box.Kind)) { popKind = null; return; }
             int level = bound.LevelOf(box.Kind);
             string what = UpgradeRules.IsDecor(box.Kind) ? $"{TrackName(box.Kind)} 도착! 방에 놓았어요" : $"{TrackName(box.Kind)} Lv{level} 완성!";
             if (toast == null) toast = WorldToast.Create(transform, font);

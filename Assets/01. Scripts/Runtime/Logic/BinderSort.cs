@@ -24,7 +24,8 @@ namespace CardShop.Logic
         public static string Label(BinderSortOrder order) => order == BinderSortOrder.Rarity ? "레어도순" : "도감순";
 
         /// <summary>탭에 보일 카드 ID를 정렬해서. 비어 있는(null) 카드는 뺍니다.</summary>
-        public static List<string> Ids(IEnumerable<CardData> cardsInOrder, BinderTab tab, BinderSortOrder order)
+        /// <param name="owned">있으면 가진 카드를 앞으로, 안 가진 카드(빈 칸)는 뒤로 — 각 무리 안의 순서는 그대로 (11-21 2차 V4)</param>
+        public static List<string> Ids(IEnumerable<CardData> cardsInOrder, BinderTab tab, BinderSortOrder order, System.Func<string, bool> owned = null)
         {
             var picked = new List<(CardData card, int dex)>();
             if (cardsInOrder != null)
@@ -45,7 +46,8 @@ namespace CardShop.Logic
                 });
 
             var ids = new List<string>(picked.Count);
-            foreach ((CardData card, int _) in picked) ids.Add(card.id);
+            foreach ((CardData card, int _) in picked) if (owned == null || owned(card.id)) ids.Add(card.id);
+            if (owned != null) foreach ((CardData card, int _) in picked) if (!owned(card.id)) ids.Add(card.id);
             return ids;
         }
     }

@@ -16,17 +16,29 @@ namespace CardShop.Logic
 
         /// <param name="cardsInOrder">카드 DB 순서 그대로</param>
         /// <param name="slotsPerPage">한 쪽 칸 수</param>
-        public BinderCursor(IReadOnlyList<CardData> cardsInOrder, int slotsPerPage)
+        /// <param name="owned">있으면 가진 카드를 앞으로 (11-21 2차 V4). 가진 카드가 바뀌면 <see cref="ReorderOwned"/></param>
+        public BinderCursor(IReadOnlyList<CardData> cardsInOrder, int slotsPerPage, System.Func<string, bool> owned = null)
         {
             cards = cardsInOrder;
             perPage = slotsPerPage;
+            this.owned = owned;
+        }
+
+        readonly System.Func<string, bool> owned;
+
+        /// <summary>가진 카드가 바뀌었을 수 있음: 다음에 칸 배치를 다시 계산 (가진 카드 앞으로 쓸 때만)</summary>
+        public void ReorderOwned()
+        {
+            if (owned == null) return;
+            layout = null;
+            Page = Layout.ClampPage(Page);
         }
 
         public BinderTab Tab { get; private set; } = BinderTab.All;
         public BinderSortOrder Sort { get; private set; } = BinderSortOrder.Dex;
         public int Page { get; private set; }
 
-        public BinderLayout Layout => layout ??= new BinderLayout(BinderSort.Ids(cards, Tab, Sort), perPage);
+        public BinderLayout Layout => layout ??= new BinderLayout(BinderSort.Ids(cards, Tab, Sort, owned), perPage);
         public BinderLayout FullLayout => fullLayout ??= new BinderLayout(BinderTabs.FilterIds(cards, BinderTab.All), perPage);
         public int PageCount => Layout.PageCount;
 

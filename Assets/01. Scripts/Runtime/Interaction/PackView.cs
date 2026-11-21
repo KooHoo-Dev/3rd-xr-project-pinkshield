@@ -58,6 +58,22 @@ namespace CardShop.Interaction
         void OnEnable() => grab.selectExited.AddListener(OnSelectExited);
         void OnDisable() => grab.selectExited.RemoveListener(OnSelectExited);
 
+        // 11-21 2차 V2: 모서리 조각이 옛 연보라(PackSeal)라 새 MALLANG 팩(어두운 남색 + 금테) 위에서 밝은 삼각형으로 튀었음
+        // → 앞면 바탕과 비슷한 남색. 단서는 "모서리가 접혀 있다"는 모양만으로 은근하게 (외곽선에서도 뺌, InteractableOutline)
+        static readonly Color FlapColor = new Color(0.17f, 0.15f, 0.3f);
+
+        void TintFlap()
+        {
+            var block = new MaterialPropertyBlock();
+            foreach (Renderer r in foldHinge.GetComponentsInChildren<Renderer>(true))
+            {
+                r.GetPropertyBlock(block);
+                block.SetColor("_BaseColor", FlapColor);
+                block.SetColor("_Color", FlapColor);
+                r.SetPropertyBlock(block);
+            }
+        }
+
         public void Init(PackClue clue, bool isGift, ShelfController shelf, bool isFree = false)
         {
             Clue = clue;
@@ -69,6 +85,7 @@ namespace CardShop.Interaction
                 bool folded = (clue & PackClue.FoldedTop) != 0;
                 foldHinge.gameObject.SetActive(folded); // 접히지 않은 팩에는 모서리 조각 자체가 없음
                 foldHinge.localRotation = folded ? hingeBase * Quaternion.Euler(-foldAngle, 0f, 0f) : hingeBase;
+                if (folded) TintFlap();
             }
         }
 

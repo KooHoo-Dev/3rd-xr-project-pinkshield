@@ -116,6 +116,7 @@ namespace CardShop.Tutorial
                 key = "thief-hold", phase = GamePhaseId.Business, startOn = TutorialSignal.ThiefAppeared, doneOn = TutorialSignal.BroomGrabbed,
                 kind = TutorialStepKind.Hold, seconds = 2f, timeout = SafetySeconds, line = "저 복면, 도둑이야!\n대걸레를 잡고 한 대 쳐!",
                 idleHint = "카운터 옆 대걸레를 그립으로 잡아!", targets = new[] { Thief, Broom },
+                doneOnlyAfterStart = true, // 얼룩을 닦느라 먼저 대걸레를 잡은 날에도 나오게 (11-21 2차 B3)
             },
             Say("thief-caught", GamePhaseId.Business, "역시 우리 알바!", 3f, startOn: TutorialSignal.ThiefCaught),
             Say("thief-escaped", GamePhaseId.Business, "오늘 무료 팩은 날아갔네…\n다음엔 꼭 잡자!", 4f, startOn: TutorialSignal.ThiefEscaped),

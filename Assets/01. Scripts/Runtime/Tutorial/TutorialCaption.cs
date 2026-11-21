@@ -99,12 +99,11 @@ namespace CardShop.Tutorial
             doneUntil = Time.unscaledTime + DoneSeconds;
         }
 
-        /// <summary>가만히 있을 때: 지금 보는 정면으로 다시 놓고 커지며 진동 (자막을 놓쳐서 멈춰 있을 수 있음. 글은 그대로)</summary>
+        /// <summary>가만히 있을 때: 제자리에서 다시 커지며 진동 (자막을 놓쳐서 멈춰 있을 수 있음. 글은 그대로)</summary>
         public void Nudge()
         {
             if (!gameObject.activeSelf) return;
-            Reposition();
-            shownFor = 0f;
+            shownFor = 0f; // 자리는 그대로, 다시 커지며 진동만 (11-21 2차 H4)
             Buzz();
         }
 
@@ -166,10 +165,9 @@ namespace CardShop.Tutorial
 
             Transform head = Head();
             if (head == null) return;
-            // 고정해 두다가, 시야 밖이 잠시 이어지거나 멀리 걸어가면(페이즈 이동 포함) 정면에 다시 놓고 다시 커지며 등장
-            bool outOfView = CaptionPlacement.IsOutOfView(head.position, head.forward, transform.position);
-            outOfViewFor = outOfView ? outOfViewFor + dt : 0f;
-            if (outOfViewFor >= CaptionPlacement.OutOfViewSeconds || CaptionPlacement.WalkedAway(placedFrom, head.position))
+            // 나온 자리에 고정 (11-21 2차 H4 "카메라를 따라 자꾸 움직여 불편" → 시야 밖이어도 옮기지 않음).
+            // 페이즈 이동 · 순간이동처럼 아주 멀리 떨어졌을 때만 정면에 다시 놓음. 놓친 안내는 일시정지 메뉴 [안내 다시 보기]
+            if (CaptionPlacement.WalkedAway(placedFrom, head.position))
             {
                 Reposition();
                 shownFor = 0f;

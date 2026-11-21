@@ -23,7 +23,7 @@ namespace CardShop.Presentation
         public sealed class Settings
         {
             [Tooltip("결과판에 팩 한 줄이 추가되는 간격 (초)")]
-            public float RowInterval = 0.25f;
+            public float RowInterval = 0.12f; // 11-21 2차 H3: 0.25 → 0.12 (오래 기다림)
             [Tooltip("카운터 위에 놓는 하이라이트 카드 수")]
             public int HighlightCount = 5;
             [Tooltip("하이라이트 카드 사이 간격 (m)")]
@@ -56,9 +56,12 @@ namespace CardShop.Presentation
 
         /// <summary>팩 줄을 하나씩 채우고(코루틴) 합계 · 하이라이트 카드를 놓습니다.</summary>
         /// <param name="cardShown">하이라이트 카드 한 장이 놓일 때 (등급 연출: 폭죽 · 흔들림 · 진동은 단일 팩과 같은 RevealFx)</param>
-        public IEnumerator Show(IReadOnlyList<PackResult> packs, Action<CardRevealView, CardData> cardShown = null)
+        /// <param name="hurry">이 프레임에 서두르라는 입력이 있는가 (트리거). 한 번 오면 남은 줄 · 카드를 기다림 없이 (11-21 2차 H3)</param>
+        public IEnumerator Show(IReadOnlyList<PackResult> packs, Action<CardRevealView, CardData> cardShown = null, Func<bool> hurry = null)
         {
             Settings s = settings;
+            hurried = false;
+            this.hurry = hurry;
             CardRarityStyles st = styles();
             TextMeshPro text = Board();
             text.gameObject.SetActive(true);
@@ -68,7 +71,7 @@ namespace CardShop.Presentation
             {
                 rows.Append(RevealText.BoxRow(packs[i], i + 1, st));
                 SetText(text, RevealText.BoxProgress(rows.ToString(), i + 1, packs.Count), i + 1, packs.Count);
-                yield return new WaitForSeconds(s.RowInterval);
+                yield return Wait(s.RowInterval);
             }
             SetText(text, RevealText.BoxSummary(packs, rows.ToString(), st), packs.Count, packs.Count);
 
@@ -80,7 +83,20 @@ namespace CardShop.Presentation
                 CardData card = p.Cards[best[i].card];
                 CardRevealView v = pool.Show(card, p.IsNew[best[i].card], SlotPosition(i, best.Count, s.Spacing), anchor.rotation, s.CardScale);
                 cardShown?.Invoke(v, card);
-                if (i > 0) yield return new WaitForSeconds(s.HighlightInterval);
+                if (i > 0) yield return Wait(s.HighlightInterval);
+            }
+        }
+
+        Func<bool> hurry;
+        bool hurried;
+
+        // 기다리되, 트리거가 한 번 눌리면 그 뒤로는 기다리지 않음
+        IEnumerator Wait(float seconds)
+        {
+            for (float t = 0f; t < seconds && !hurried; t += Time.deltaTime)
+            {
+                if (hurry != null && hurry()) hurried = true;
+                else yield return null;
             }
         }
 

@@ -171,7 +171,7 @@ namespace CardShop.Tutorial
         {
             ready.Remove(i);
             TutorialStep s = steps[i];
-            if (s.doneOn != TutorialSignal.None && HasSeen(s.doneOn))
+            if (s.doneOn != TutorialSignal.None && !s.doneOnlyAfterStart && HasSeen(s.doneOn))
             {
                 // 플레이어가 먼저 해 버림: 보여 주지 않고 끝으로 침
                 done[i] = true;

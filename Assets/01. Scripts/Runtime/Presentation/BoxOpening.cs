@@ -82,6 +82,26 @@ namespace CardShop.Presentation
             HideCounter();
         }
 
+        const float RestOfPackStagger = 0.06f;
+
+        /// <summary>
+        /// 상자: 트리거 한 번에 그 팩의 남은 카드를 한꺼번에 더미로 (11-21 2차 H3 "한 장씩 50번은 지침" → 팩 단위).
+        /// 끝까지 보여 줄 카드(수퍼레어 이상 · 갓팩, DEC-008 · DEC-029)를 만나면 멈춰서 그 카드는 한 장씩. 다음에 볼 대기열 위치를 돌려줌.
+        /// </summary>
+        public static int SendRestOfPack(List<PackResult> packs, List<RevealItem> queue, int qi, int pack, RevealStack stack, CounterPileView pile)
+        {
+            float delay = 0f;
+            while (qi < queue.Count && queue[qi].Pack == pack && !RevealQueue.Keeps(packs, queue[qi], true))
+            {
+                if (stack.IsEmpty) stack.Fill(packs, queue, qi, popIn: false);
+                if (stack.IsEmpty) break;
+                delay += RestOfPackStagger;
+                pile.Send(stack.TakeFront(), true, delay);
+                qi++;
+            }
+            return qi;
+        }
+
         BoxOpenEffect Effect()
         {
             if (effect != null) return effect;

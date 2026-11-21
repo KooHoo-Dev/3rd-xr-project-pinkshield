@@ -66,7 +66,8 @@ namespace CardShop.Tests
         {
             Vector3 from = Vector3.zero;
             Assert.IsFalse(CaptionPlacement.WalkedAway(from, new Vector3(0f, 3f, 1f)));
-            Assert.IsTrue(CaptionPlacement.WalkedAway(from, new Vector3(1.2f, 0f, 1.2f)));
+            Assert.IsTrue(CaptionPlacement.WalkedAway(from, new Vector3(3f, 0f, 3f)));
+            Assert.IsFalse(CaptionPlacement.WalkedAway(from, new Vector3(1.2f, 0f, 1.2f)), "가게 안에서 걷는 정도로는 안 옮김 (H4)");
         }
     }
 }

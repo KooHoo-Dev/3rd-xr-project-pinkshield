@@ -66,7 +66,8 @@ namespace CardShop.Presentation
             get
             {
                 if (cursor == null && context != null && context.Cards != null && slots != null && slots.Length > 0)
-                    cursor = new BinderCursor(context.Cards.cards, slots.Length);
+                    cursor = new BinderCursor(context.Cards.cards, slots.Length,
+                        id => context.Session != null && context.Session.Collection.CountOf(id) > 0); // 가진 카드 앞으로 (11-21 2차 V4)
                 return cursor;
             }
         }
@@ -231,6 +232,7 @@ namespace CardShop.Presentation
         {
             dirty = false;
             BinderCursor c = Cursor;
+            c?.ReorderOwned();
             for (int i = 0; i < slots.Length; i++)
             {
                 string id = c?.IdAt(i);

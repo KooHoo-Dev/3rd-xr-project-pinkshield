@@ -53,6 +53,10 @@ namespace CardShop.Tutorial
         [Tooltip("가만히 있으면(IdleHint) 띄울 손 힌트. 비우면 없음")]
         public string idleHint;
 
+        [Tooltip("켜면: doneOn 신호를 이 단계가 시작되기 전에(같은 날) 이미 받았어도 건너뛰지 않음. " +
+                 "도둑 안내처럼 끝 신호(대걸레 잡기)가 다른 일(얼룩 닦기)로도 먼저 생기는 단계용 (11-21 2차 B3)")]
+        public bool doneOnlyAfterStart;
+
         public bool InDay(int day) => day >= fromDay && (toDay <= 0 || day <= toDay);
     }
 }

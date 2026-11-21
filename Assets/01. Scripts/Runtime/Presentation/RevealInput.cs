@@ -20,7 +20,7 @@ namespace CardShop.Presentation
         public sealed class Settings
         {
             [Tooltip("오른손 트리거를 이 시간 이상 누르고 있으면 건너뛰기 (초). 실기기에서 조정")]
-            public float HoldSeconds = 1.5f;
+            public float HoldSeconds = 1f; // 11-21 2차 H2: 1.5 → 1초 (기다리다 지침)
             [Tooltip("이보다 짧은 눌림(넘기기 탭)에는 게이지를 보이지 않음 (초)")]
             public float GaugeGrace = 0.25f;
             [Tooltip("꾹 누르는 동안 진동 세기: 처음 → 끝")]

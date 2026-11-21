@@ -95,16 +95,30 @@ namespace CardShop.Presentation
                     break;
                 case Mode.AirCon:
                     on = !on;
-                    Sfx.Play(SoundId.UiClick, transform.position);
+                    Sfx.Play(SoundId.AirConSwitch, transform.position);
+                    Fan(on);
                     Toast(on ? "에어컨 켬 · 시원하다~" : "에어컨 끔");
                     break;
                 case Mode.Figure:
                     StopAllCoroutines();
                     StartCoroutine(Squish());
-                    Sfx.Play(SoundId.CustomerWowMale, transform.position);
+                    Sfx.Play(SoundId.FigureSquish, transform.position); // 11-21 2차: 남자 와우를 빌려 쓰던 것
                     break;
             }
             Interaction.Haptics.BothHands(0.25f, 0.05f);
+        }
+
+        const float FanVolume = 0.5f;
+        AudioSource fan;
+
+        // 에어컨이 켜져 있는 동안 바람 소리 반복 (AirConFan 칸이 비면 조용)
+        void Fan(bool running)
+        {
+            if (fan == null) fan = Sfx.CreateLoop(SoundId.AirConFan, gameObject);
+            if (fan == null) return;
+            fan.volume = Sfx.LoopVolume(SoundId.AirConFan) * FanVolume;
+            if (running && !fan.isPlaying) fan.Play();
+            else if (!running) fan.Stop();
         }
 
         IEnumerator Squish()

@@ -105,21 +105,12 @@ namespace CardShop.Presentation
             if (grab.interactionManager != null) grab.interactionManager.CancelInteractableSelection((IXRSelectInteractable)grab);
             grab.enabled = false;
             Sfx.Play(SoundId.PackTear, transform.position);
-            StartCoroutine(OpenRoutine());
-        }
-
-        IEnumerator OpenRoutine()
-        {
-            Vector3 from = transform.localScale;
-            for (float t = 0f; t < 1f; t += Time.deltaTime / OpenSeconds)
+            // 살짝 부풀었다가 작아져 사라짐 (11-21 2차 V5: DOTween, PopIn)
+            PopIn.PopOut(transform, OpenSeconds, () =>
             {
-                // 살짝 부풀었다가 작아짐
-                float s = t < 0.3f ? Mathf.Lerp(1f, 1.2f, t / 0.3f) : Mathf.Lerp(1.2f, 0f, (t - 0.3f) / 0.7f);
-                transform.localScale = from * s;
-                yield return null;
-            }
-            Opened?.Invoke(this);
-            Destroy(gameObject);
+                Opened?.Invoke(this);
+                Destroy(gameObject);
+            });
         }
     }
 }

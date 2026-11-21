@@ -25,6 +25,8 @@ namespace CardShop.Tutorial
         public void Refresh()
         {
             hands.Clear();
+            // 이미 쥐고 있는 물건도 다음 Scan에서 "새로 잡음"으로 셈 — 도둑 안내가 뜰 때 대걸레를 이미 들고 있으면 바로 끝나게 (11-21 2차 B3)
+            heldGift = heldBroom = heldScanner = false;
             foreach (XRBaseInputInteractor i in UnityEngine.Object.FindObjectsByType<XRBaseInputInteractor>(FindObjectsSortMode.None))
                 hands.Add(i);
         }

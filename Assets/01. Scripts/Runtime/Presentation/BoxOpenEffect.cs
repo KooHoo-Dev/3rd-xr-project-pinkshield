@@ -209,6 +209,36 @@ namespace CardShop.Presentation
             while (packs.Count < count) packs.Add(BuildPack(packs.Count));
         }
 
+        static Sprite frontArt, backArt;
+        static bool artSearched;
+
+        // 가게 선반의 팩 프리팹 재질(PackFront · PackBackArt)에서 그림을 빌림 — 그림 파일 경로를 코드에 두지 않음
+        static void FindArt()
+        {
+            if (artSearched) return;
+            artSearched = true;
+            var shelf = FindAnyObjectByType<CardShop.Interaction.ShelfController>(FindObjectsInactive.Include);
+            if (shelf == null || shelf.PackPrefab == null) return;
+            foreach (Renderer r in shelf.PackPrefab.GetComponentsInChildren<Renderer>(true))
+                foreach (Material m in r.sharedMaterials)
+                {
+                    if (m == null || m.mainTexture is not Texture2D tex) continue;
+                    if (frontArt == null && m.name.StartsWith("PackFront")) frontArt = ArtSprite(tex);
+                    else if (backArt == null && m.name.StartsWith("PackBackArt")) backArt = ArtSprite(tex);
+                }
+        }
+
+        // 가로 1 단위짜리 스프라이트 (세로 = 그림 비율). 판 크기는 ArtQuad가 배율로 맞춤
+        static Sprite ArtSprite(Texture2D tex) =>
+            Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), tex.width);
+
+        static void ArtQuad(Transform root, string name, Sprite art, Vector3 localPos, Vector2 size, bool back)
+        {
+            float aspect = art.rect.height / art.rect.width;
+            SpriteRenderer sr = RevealSprites.Quad(root, name, art, localPos, new Vector2(size.x, size.y / aspect), Color.white, 0);
+            sr.flipX = back; // 뒤에서 볼 때 글자가 거울처럼 뒤집히지 않게
+        }
+
         // 단일 팩 프리팹(PackPrefabBuilder.Label)과 같은 앞면 글자
         void Label(Transform root)
         {
@@ -233,10 +263,14 @@ namespace CardShop.Presentation
             var root = new GameObject($"BoxPack{index}").transform;
             root.SetParent(transform, false);
             float bodyH = H - 2f * SealH;
-            RevealSprites.Quad(root, "Front", RevealSprites.Center, new Vector3(0f, 0f, -0.0004f), new Vector2(W, bodyH), FrontColor, 0);
-            RevealSprites.Quad(root, "Back", RevealSprites.Center, new Vector3(0f, 0f, 0.0004f), new Vector2(W, bodyH), BackColor, 0);
+            // 11-21 2차 B2: 팩 프리팹과 같은 MALLANG 앞 · 뒷면 그림. 그림을 못 구하면 예전 색 판 + "SLIME PACK" 글자
+            FindArt();
+            if (frontArt != null) ArtQuad(root, "Front", frontArt, new Vector3(0f, 0f, -0.0004f), new Vector2(W, bodyH), false);
+            else RevealSprites.Quad(root, "Front", RevealSprites.Center, new Vector3(0f, 0f, -0.0004f), new Vector2(W, bodyH), FrontColor, 0);
+            if (backArt != null) ArtQuad(root, "Back", backArt, new Vector3(0f, 0f, 0.0004f), new Vector2(W, bodyH), true);
+            else RevealSprites.Quad(root, "Back", RevealSprites.Center, new Vector3(0f, 0f, 0.0004f), new Vector2(W, bodyH), BackColor, 0);
             RevealSprites.Quad(root, "SealBottom", RevealSprites.Center, new Vector3(0f, -(H * 0.5f - SealH * 0.5f), 0f), new Vector2(W, SealH), SealColor, 0);
-            Label(root);
+            if (frontArt == null) Label(root);
 
             var strip = new GameObject("TornStrip").transform;
             strip.SetParent(root, false);

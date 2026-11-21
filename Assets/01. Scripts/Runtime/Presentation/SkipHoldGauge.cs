@@ -24,7 +24,10 @@ namespace CardShop.Presentation
 
         SpriteRenderer[] dots;
 
-        public static SkipHoldGauge Create(Transform parent, TMP_FontAsset font)
+        public static SkipHoldGauge Create(Transform parent, TMP_FontAsset font) => Create(parent, font, "꾹 누르면 건너뛰기");
+
+        /// <param name="text">판 아래 문구 (퇴근 버튼은 "꾹 누르면 퇴근", 11-21 2차 H1)</param>
+        public static SkipHoldGauge Create(Transform parent, TMP_FontAsset font, string text)
         {
             var go = new GameObject("SkipHoldGauge");
             go.transform.SetParent(parent, false);
@@ -50,7 +53,7 @@ namespace CardShop.Presentation
             labelGo.transform.SetParent(go.transform, false);
             var label = labelGo.AddComponent<TextMeshPro>();
             if (font != null) label.font = font;
-            label.text = "꾹 누르면 건너뛰기"; // 11-20: "갓팩은 보여 줘요" 뺌 (사용자 요청)
+            label.text = text; // 11-20: "갓팩은 보여 줘요" 뺌 (사용자 요청)
             label.fontSize = 0.09f; // 1 ≈ 10cm → 글자 약 9mm
             label.alignment = TextAlignmentOptions.Top;
             label.color = Color.white;
