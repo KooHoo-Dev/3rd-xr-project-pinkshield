@@ -1,0 +1,65 @@
+■ 무속성 · 유니크-레전더리  —  새 대화에서 이 순서대로
+
+1) 새 대화를 열고, 아래 [세션 설정]을 붙여 넣고, 기준그림 폴더의 그림을 함께 첨부해 보냅니다.
+   첨부: F_L_char.png, N_N1_char.png
+   (기준 그림과 속성이 달라서, 세션 설정 끝에 아래 문장을 붙여 두었습니다)
+2) 그다음부터 [카드별 주제 줄]을 한 장씩 보냅니다. 화풍이 흔들리면 기준 그림을 다시 첨부합니다.
+3) 마음에 드는 그림은 결과 폴더에 적힌 파일 이름으로 저장합니다. (누끼 · 배경 정리는 나중에 한꺼번에)
+
+============================================================
+[세션 설정]
+============================================================
+I'm making original trading card art for a VR game about cute little jelly monsters (slimes).
+Follow these rules for every image in this chat unless I say otherwise.
+The attached images are anchors: copy their art style, body shape, face, jelly material and lighting for the tier I am working on.
+Priority: always cute first, a little monster second.
+Each request ends with its tier (Normal, Rare, Super rare, Unique or Legendary).
+
+1. BODY (Normal to Unique)
+- One soft rounded dome-shaped jelly body like a mochi or gumdrop: about 1.2 times wider than tall, a big round top, nearly straight sides that curl slightly inward at the bottom edge, a flat bottom
+- These are little monsters, not objects with faces: each one has ONE creature feature that grows from its own body (horns, a row of jelly spikes, scales, a shell, crystals, small wings, frills). It is joined to the body with no seam
+- Never: ears, hair, arms, legs, a tail, a neck, humanoid features, a single sharp point rising from the center of the top (no teardrop shape), a single horn in the exact center of the top, a crown
+- Effects (fire, water, wind, rocks, lightning) wrap around the body and never reshape it; nothing below the body may look like legs or a stem
+- The slime sits on the ground unless I say it floats or jumps
+
+2. COLOR
+- One main body color plus ONE accent color that I name, used on the tip of the creature feature, the inner core or small details only
+
+3. FACE (every tier except Legendary)
+- Two round glossy eyes set wide apart, a little below the middle of the body, one flat very dark color (dark reddish-brown on warm slimes, dark navy on cool slimes), no iris, no gradient, no sparkles inside
+- Each eye has exactly two white highlights: a large one upper-left and a small one lower-right
+- Short faint brows, a small thin-lined mouth (default: a tiny "w" smile), a soft pink blush under each eye toward the outside
+- Each request may change ONE personality feature (a tiny fang, two tiny fangs, a tongue, a wide open mouth, smug or sharp eyes, a pout, a wink, a crouching pose). Everything else on the face stays like the anchor. Even angry or fierce faces stay cute: only the brow angle and mouth shape change, never scary
+- Never scary or gross: no mouth full of teeth, no bloodshot or tiny pupil eyes, no tentacles, no melting or dripping slime goo
+
+4. STYLE BY TIER
+Normal, Rare, Super rare: 3D toy
+- 3D rendered like a glossy collectible vinyl toy, matching the anchor: smooth clean surfaces, soft lighting, a brighter inner core, a soft specular highlight top-left
+- No outlines, no brush strokes, no painted or 2D illustration look
+- Normal simple; Rare and Super rare more features and effects
+Unique, Legendary: rich illustration
+- A rich polished fantasy illustration matching the style anchor: glossy jelly with painterly detail, ornate decorations made of element materials (not a crown shape), a glowing core and many tiny light specks inside the body
+- Unique keeps the dome body and the anchor face, but feels like a full-art premium trading card: a dynamic action moment, not a standing mascot. Seen from a slightly low three-quarter angle so it looks powerful, the body leaning toward the viewer while keeping its soft dome shape, its creature feature thrust forward with slight foreshortening. It is actively using its power: a big burst of its element erupts from it and sweeps around the body in a curved arc that frames it, never covering the face, with crisp clean edges. Many four-pointed star sparkles and bright light dots are scattered around it. Vivid saturated colors with strong contrast, crisp cel-shaded fantasy illustration with sharp highlights and clean shadow shapes, a bright core lighting the body from inside. The expression shows the personality of its title and may combine two personality features
+- Legendary: the same rich illustration style at an epic, mythic scale, like a giant ancient monster. The body may grow beyond the dome shape, but keep at least two of: glossy jelly, an inner glow, a slime face. The eyes may be mythic (glowing, slit pupils, no mouth, no blush). A glow behind the body is allowed
+- Every tier: semi-translucent mostly opaque jelly, key light from the top-left, a clear bright rim light from the back-right outlining the whole silhouette, the body color slightly deeper toward the bottom
+
+5. IMAGE
+- One character centered, full body, generous margin, square 1:1 (Unique and Legendary: the character and its effects may fill most of the frame, keeping a small margin)
+- Plain solid flat background in the color I name, no gradient, no floor, no scenery, no contact shadow
+- Effects have crisp clean edges, no smoke, mist or glow haze on the background (Legendary glow is the only exception)
+- No text, no letters, no numbers, no border, no frame
+
+EGG images ("Egg:"): an object with no face, same style and image rules.
+BACKGROUND images ("Background:"): soft painterly 2D painting, gentle gradients, low detail, slightly blurred, light from the top-left, mid-tone values, no creatures, no text.
+FIELD images ("Field:"): a clear detailed painterly landscape as the main subject, light from the top-left, a calmer simpler lower third, no creatures nearby, no text.
+
+Avoid: existing game or anime characters, teardrop slimes, crowns, a single center horn, ears, limbs, everyday objects worn as costumes (hats, ribbons, helmets, propellers), anything scary or gross.
+
+About the attached style images: use this only as a reference for style, detail level and scale, not for color or element.
+
+============================================================
+[카드별 주제 줄]
+============================================================
+
+--- N-U 슬라임 대모  →  저장: N_U_char.png   [새로 (지금 그림 없음)]
+Character: large cozy beige slime with the same round soft dome-shaped jelly body as always, glowing warmly from within, a small knitted shawl over its top, sitting over a nest holding a few slime eggs beneath it. Action: leaning down lovingly toward the nest as one egg cracks open and a tiny baby slime peeks out, a warm swirl of golden light, tiny glowing hearts and sparkles rising from the nest and curling around its body in a gentle arc. Accent color warm gold, gently closed happy eyes and a kind smile. Unique tier. Background: plain solid white.
