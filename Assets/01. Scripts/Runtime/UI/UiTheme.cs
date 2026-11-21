@@ -97,6 +97,13 @@ namespace CardShop.UI
         public static readonly Color SoftPaper = new Color(0.902f, 0.875f, 0.812f);
         public static readonly Color SoftInkLine = new Color(0.29f, 0.247f, 0.369f);
 
+        /// <summary>팩 결과판 아래 요약 띠 · 판 바깥 잉크 테 #2B2140</summary>
+        public static readonly Color ResultStrip = new Color(0.169f, 0.129f, 0.251f, 0.96f);
+        /// <summary>채도 낮춘 초록 (새 카드 수 · NEW 표, 밝은 #7CF29A 대신) #7FCFA8</summary>
+        public static readonly Color SoftGreen = new Color(0.498f, 0.812f, 0.659f);
+        /// <summary>NEW 표 바탕 (작은 물건이라 진한 초록) #2F8F6E</summary>
+        public static readonly Color NewBadge = new Color(0.184f, 0.561f, 0.431f);
+
         /// <summary>3D 글자 뒤 띠 (&lt;mark=…&gt;). 판 바탕보다 조금 어두운 보라, 알파 CC</summary>
         public const string Mark = "#3B2B59CC";
         /// <summary>혼잣말 · 손목 재화처럼 더 진하게 가려야 하는 띠</summary>

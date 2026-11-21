@@ -33,13 +33,7 @@ namespace CardShop.Cards
         static readonly Color InfoDark = new Color(0.35f, 0.33f, 0.38f);
         static readonly Color InfoLight = new Color(1f, 0.91f, 0.72f);
 
-        // 등급 마크 (카드 캔버스 v2): 노말 은색 1 · 레어 파랑 2 · 수퍼레어 보라 3 · 유니크 금색 1+반짝임 · 레전더리 무지개 1+반짝임
-        static readonly int[] MarkCounts = { 1, 2, 3, 1, 1 };
-        static readonly Color[] MarkColors =
-        {
-            new Color(0.66f, 0.68f, 0.72f), new Color(0.35f, 0.65f, 0.94f), new Color(0.65f, 0.48f, 0.94f),
-            new Color(0.94f, 0.71f, 0.16f), Color.white,
-        };
+        // 등급 마크 (카드 캔버스 v2): 값은 RarityMarks 한 곳 (팩 결과판 칩과 같이 씀)
 
         static readonly int MarkCount = Shader.PropertyToID("_MarkCount");
         static readonly int MarkColor = Shader.PropertyToID("_MarkColor");
@@ -130,11 +124,11 @@ namespace CardShop.Cards
             mpb.SetFloat(Scroll, s.scrollPattern);
             mpb.SetFloat(Rim, s.rim);
             mpb.SetFloat(Glow, s.glow);
-            int r = Mathf.Clamp((int)(data != null ? data.rarity : CardRarity.Normal), 0, MarkCounts.Length - 1);
-            mpb.SetFloat(MarkCount, MarkCounts[r]);
-            mpb.SetColor(MarkColor, MarkColors[r]);
-            mpb.SetFloat(MarkRainbow, r == (int)CardRarity.Legendary ? 1f : 0f);
-            mpb.SetFloat(MarkSparkle, r >= (int)CardRarity.Unique ? 1f : 0f);
+            CardRarity r = data != null ? data.rarity : CardRarity.Normal;
+            mpb.SetFloat(MarkCount, RarityMarks.Count(r));
+            mpb.SetColor(MarkColor, RarityMarks.Tint(r));
+            mpb.SetFloat(MarkRainbow, RarityMarks.Rainbow(r) ? 1f : 0f);
+            mpb.SetFloat(MarkSparkle, RarityMarks.Sparkle(r) ? 1f : 0f);
             mpb.SetTexture(IconTex, elementIcons != null ? elementIcons : Texture2D.blackTexture);
             mpb.SetFloat(HasIcon, elementIcons != null && data != null ? 1f : 0f);
             mpb.SetFloat(IconIndex, data != null ? IconSlot(data) : 0f);

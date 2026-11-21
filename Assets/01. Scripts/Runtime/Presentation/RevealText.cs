@@ -33,6 +33,17 @@ namespace CardShop.Presentation
             return styles == null ? null : ColorUtility.ToHtmlStringRGB(styles.Get(r).accentColor);
         }
 
+        /// <summary>팩 결과판 아래 요약 띠 왼쪽: "새 카드 2장 · 도감 23 / 60" (새 카드가 없으면 도감만). 색 RRGGBB</summary>
+        public static string ResultSummary(int newCount, int discovered, int total, string newHex, string goldHex)
+        {
+            string dex = $"도감 <color=#{goldHex}>{discovered} / {total}</color>";
+            return newCount > 0 ? $"새 카드 <color=#{newHex}>{newCount}장</color>  ·  {dex}" : dex;
+        }
+
+        /// <summary>매입가 합 (노말 0.2처럼 소수가 있어 1 미만이면 소수 한 자리, 아니면 내림 정수)</summary>
+        public static string ResultValue(float buyback, string goldHex) =>
+            $"매입가 <color=#{goldHex}>${(buyback < 1f ? buyback.ToString("0.0") : Mathf.FloorToInt(buyback + 1e-4f).ToString())}</color>";
+
         public static string SpecialLabel(SpecialPackType t) => t switch
         {
             SpecialPackType.GodPack => "갓팩",
