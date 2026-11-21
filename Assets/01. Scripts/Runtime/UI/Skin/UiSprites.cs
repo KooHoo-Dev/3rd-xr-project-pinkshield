@@ -79,6 +79,21 @@ namespace CardShop.UI
             return Mathf.Exp(-u * u * 4f);
         }, 100f, 0));
 
+        /// <summary>가운데가 진하고 둘레로 부드럽게 사라지는 둥근 빛 (개봉 후광 · 주변 어둡게 · 버튼 광택). 블룸 대신 알파로</summary>
+        public static Sprite SoftDot() => Get("softDot", () => Make(64, 64, (x, y, w, h) =>
+        {
+            float dx = (x + 0.5f) / w * 2f - 1f, dy = (y + 0.5f) / h * 2f - 1f;
+            float t = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy));
+            return t * t;
+        }, 100f, 0));
+
+        /// <summary>빛줄기 한 줄 (16 × 64): 가운데 세로선이 진하고, 아래(뿌리)에서 위로 갈수록 사라짐</summary>
+        public static Sprite Ray() => Get("ray", () => Make(16, 64, (x, y, w, h) =>
+        {
+            float u = (x + 0.5f) / w * 2f - 1f, v = (y + 0.5f) / h;
+            return Mathf.Exp(-u * u * 5f) * (1f - v) * Mathf.Clamp01(v * 6f);
+        }, 100f, 0));
+
         // ---- 슬라임 카드 문양 (11-22 "카드 문양 기준"): 앞면 등급 마크 · 뒷면 돔 무늬와 같은 모양
 
         /// <summary>슬라임 돔 (등급 마크, 64 × 48, 아래 가운데 기준 반타원). SpriteRenderer 색으로 등급 색을 입힘</summary>

@@ -25,6 +25,8 @@ namespace CardShop.Presentation
         Transform visual;
         TextMeshPro newBadge;
         Coroutine flyRoutine;
+        Vector3 visualScale = Vector3.one;
+        Vector3 shakeOffset, liftOffset; // 부르르 · 둥실을 함께 쓰려고 따로 더함
 
         public CardData Card => view.Data;
         public bool IsNew { get; private set; }
@@ -41,6 +43,7 @@ namespace CardShop.Presentation
             grab = GetComponent<XRGrabInteractable>();
             body = GetComponent<Rigidbody>();
             visual = transform.Find("Visual");
+            if (visual != null) visualScale = visual.localScale;
             if (visual == null) Debug.LogWarning("[CardRevealView] 카드 프리팹에 Visual 자식이 없습니다. Build Card Prefab 을 다시 실행하세요.", this);
             grab.selectEntered.AddListener(_ => { PlayPickSound(); GrabStarted?.Invoke(this); });
             grab.selectExited.AddListener(_ => GrabEnded?.Invoke(this));
@@ -68,6 +71,8 @@ namespace CardShop.Presentation
             Teleport(position, rotation);
             if (visual != null) visual.localPosition = Vector3.zero; // 흔들림 도중에 풀로 돌아간 경우
             if (visual != null) visual.localRotation = Quaternion.identity;
+            if (visual != null) visual.localScale = visualScale; // 펀치 도중에 풀로 돌아간 경우
+            shakeOffset = liftOffset = Vector3.zero;
             grab.enabled = true;
         }
 
@@ -84,11 +89,60 @@ namespace CardShop.Presentation
                 float fade = 1f - t;
                 float x = Mathf.Sin(t * 95f) * amplitude * fade;
                 float y = Mathf.Sin(t * 123f + 1.7f) * amplitude * 0.6f * fade;
-                visual.localPosition = new Vector3(x, y, 0f);
+                shakeOffset = new Vector3(x, y, 0f);
+                ApplyOffset();
                 yield return null;
             }
-            visual.localPosition = Vector3.zero;
+            shakeOffset = Vector3.zero;
+            ApplyOffset();
         }
+
+        /// <summary>
+        /// 말랑 펀치 (폴리싱 설계 P2 ①): 카드가 통 커졌다(가로가 조금 더) 살짝 줄었다 제자리로. count번 0.32초 간격.
+        /// Visual 배율만 바꿔 물리 · 잡기와 무관합니다.
+        /// </summary>
+        public void Punch(float scale, int count)
+        {
+            if (visual != null && count > 0) StartCoroutine(PunchRoutine(scale, count));
+        }
+
+        IEnumerator PunchRoutine(float scale, int count)
+        {
+            const float Seconds = 0.28f, Gap = 0.04f;
+            for (int k = 0; k < count; k++)
+            {
+                for (float t = 0f; t < 1f; t += Time.deltaTime / Seconds)
+                {
+                    // 0 → 커짐(0.3) → 조금 작게(0.65) → 1
+                    float up = t < 0.3f ? Mathf.SmoothStep(0f, 1f, t / 0.3f) : t < 0.65f ? Mathf.Lerp(1f, -0.25f, (t - 0.3f) / 0.35f) : Mathf.Lerp(-0.25f, 0f, (t - 0.65f) / 0.35f);
+                    float grow = (scale - 1f) * up;
+                    visual.localScale = Vector3.Scale(visualScale, new Vector3(1f + grow, 1f + grow * 0.7f, 1f));
+                    yield return null;
+                }
+                visual.localScale = visualScale;
+                if (k < count - 1) yield return new WaitForSeconds(Gap);
+            }
+        }
+
+        /// <summary>둥실 (레전더리): seconds 동안 height만큼 떠올랐다가 제자리로.</summary>
+        public void Lift(float height, float seconds)
+        {
+            if (visual != null) StartCoroutine(LiftRoutine(height, Mathf.Max(0.1f, seconds)));
+        }
+
+        IEnumerator LiftRoutine(float height, float seconds)
+        {
+            for (float t = 0f; t < 1f; t += Time.deltaTime / seconds)
+            {
+                liftOffset = Vector3.up * (height * Mathf.Sin(Mathf.PI * Mathf.SmoothStep(0f, 1f, t)));
+                ApplyOffset();
+                yield return null;
+            }
+            liftOffset = Vector3.zero;
+            ApplyOffset();
+        }
+
+        void ApplyOffset() => visual.localPosition = shakeOffset + liftOffset;
 
         // 처음 얻은 카드에 "NEW" 스티커 (개봉연출 설계 5장 #8). Visual 아래라 카드와 함께 뒤집힙니다.
         void SetNewBadge(bool on)

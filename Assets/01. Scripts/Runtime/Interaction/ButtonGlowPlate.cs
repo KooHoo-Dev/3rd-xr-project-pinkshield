@@ -37,7 +37,8 @@ namespace CardShop.Interaction
             go.transform.localScale = new Vector3(a, b, 1f);
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = CardShop.Presentation.RevealSprites.Center; // 1×1 흰 판
-            sr.color = PlateColor;
+            // 젤리 버튼이면 흰색 대신 버튼 색의 옅은 빛 (VR 눈 편한 색: 흰 판 금지, 폴리싱 P1)
+            sr.color = TryGetComponent(out PokeButtonLook look) ? new Color(look.BodyColor.r, look.BodyColor.g, look.BodyColor.b, 0.35f) : PlateColor;
             sr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             sr.receiveShadows = false;
         }

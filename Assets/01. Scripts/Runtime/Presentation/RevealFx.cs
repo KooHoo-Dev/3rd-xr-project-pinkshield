@@ -7,8 +7,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 namespace CardShop.Presentation
 {
     /// <summary>
-    /// 카드 공개 순간의 등급 연출 (개봉연출 설계 5장, DEC-004): 소리 · 진동 · 폭죽 · 카드 흔들림.
-    /// 수퍼레어~유니크는 같은 연출, 레전더리만 더 크게(큰 폭죽 + 카드 흔들림 + 진동). 카메라 셰이크는 VR 멀미 우려로 쓰지 않습니다.
+    /// 카드 공개 순간의 등급 연출 (개봉연출 설계 5장, DEC-004 → 폴리싱 설계 P2 계단식, 11-22): 소리 · 진동 · 슬라임 방울 폭죽 · 빛(<see cref="RevealAura"/>) · 카드 펀치 · 흔들림.
+    /// 레어부터 한 등급마다 요소가 하나씩 늘어납니다(<see cref="RevealTier"/>). 카메라 셰이크는 VR 멀미 우려로 쓰지 않습니다.
     /// 등급별 멈춤 · 진동 · 소리 값은 <see cref="RarityRevealProfile"/>에 있습니다.
     /// CardRevealer(개봉 진행)가 부르고, 이 클래스는 CardRevealer를 모릅니다.
     /// </summary>
@@ -38,7 +38,8 @@ namespace CardShop.Presentation
         readonly MonoBehaviour host; // 진동 여러 번(코루틴) · 폭죽 부모
         readonly Func<CardRarityStyles> styles;
         readonly Settings settings;
-        RevealBurst burst;
+        readonly RevealBurst[] bursts = new RevealBurst[3]; // 겹 폭죽 (레전더리 3겹)
+        RevealAura aura;
         RarityRevealProfile defaultProfile;
 
         /// <param name="styles">등급 색 (카드 프리팹의 것을 빌려 씀, 없으면 흰색)</param>
@@ -50,12 +51,17 @@ namespace CardShop.Presentation
         }
 
         /// <summary>폭죽 오브젝트를 미리 만들어 둠 (퇴근 후 데우기).</summary>
-        public void Prewarm() => Burst();
+        public void Prewarm()
+        {
+            for (int i = 0; i < bursts.Length; i++) Burst(i);
+            Aura();
+        }
 
         /// <summary>진행 중인 폭죽을 멈춤 (전체 정리).</summary>
         public void Stop()
         {
-            if (burst != null) burst.Stop();
+            foreach (RevealBurst b in bursts) if (b != null) b.Stop();
+            if (aura != null) aura.Stop();
         }
 
         /// <summary>
@@ -65,35 +71,45 @@ namespace CardShop.Presentation
         public float Announce(CardRevealView view, CardData card, bool legendaryPack, XRBaseInputInteractor hand)
         {
             Settings s = settings;
-            CardRarity tier = card.rarity == CardRarity.Unique ? CardRarity.SuperRare : card.rarity; // 연출 등급 통일
-            RarityRevealProfile.Entry fx = Profile(s).Get(tier);
-            // 소리만은 원래 등급 칸 (유니크 전용 소리, 11-21). 칸이 비면 연출 등급 소리
-            RarityRevealProfile.Entry voice = Profile(s).Get(card.rarity);
-            if (voice.sound == null) voice = fx;
-            if (voice.sound != null) AudioSource.PlayClipAtPoint(voice.sound, view.transform.position, voice.volume);
+            // 11-22: 유니크도 자기 칸 (수퍼레어와 통일하던 것을 계단식으로 나눔)
+            RarityRevealProfile.Entry fx = Profile(s).Get(card.rarity);
+            if (fx.sound != null) AudioSource.PlayClipAtPoint(fx.sound, view.transform.position, fx.volume);
             int count = fx.hapticCount + (legendaryPack ? 1 : 0);
             if (hand != null) host.StartCoroutine(Haptic(hand, fx.hapticAmplitude, fx.hapticSeconds, count));
 
-            // 카드 앞면을 가리지 않게 카드 1cm 뒤에서 퍼짐
-            Vector3 behind = view.transform.position + view.transform.forward * 0.01f;
-            if (card.rarity == CardRarity.Legendary)
-            {
-                Burst().Play(behind, view.transform.rotation, legendaryPack ? SpecialGold : RarityColor(CardRarity.Legendary),
-                    legendaryPack ? 0.34f : 0.3f, legendaryPack ? 1.5f : 1.3f);
-                view.Shake(s.LegendaryShakeAmount, s.LegendaryShakeSeconds);
-            }
-            else if (card.rarity >= CardRarity.SuperRare)
-            {
-                Burst().Play(behind, view.transform.rotation, SpecialGold, 0.11f, 0.7f);
-            }
+            Stop(); // 앞 카드 연출이 남아 있으면 바로 끔 (넘기면 즉시 꺼짐)
+            RevealTier tier = RevealTier.For(card.rarity);
+            if (tier != null) Celebrate(view, tier, legendaryPack);
             return fx.pause + (legendaryPack ? s.LegendaryPackExtraPause : 0f);
+        }
+
+        void Celebrate(CardRevealView view, RevealTier tier, bool legendaryPack)
+        {
+            Transform t = view.transform;
+            float scale = t.lossyScale.x;
+            Aura().Play(tier, new Pose(t.position, t.rotation), scale);
+
+            // 슬라임 방울: 카드 앞면을 가리지 않게 카드 1cm 뒤에서 퍼짐 (일부는 앞으로 튀어나옴). 레전더리 확정 팩은 금빛을 섞고 조금 크게
+            Vector3 behind = t.position + t.forward * 0.01f;
+            Color[] palette = legendaryPack ? new[] { SpecialGold, tier.ColorAt(0), SpecialGold, tier.ColorAt(3) } : tier.Colors;
+            float radius = tier.Radius * scale * (legendaryPack ? 1.15f : 1f);
+            for (int i = 0; i < tier.Blobs.Length && i < bursts.Length; i++)
+                Burst(i).Play(behind, t.rotation, palette, radius * (1f - 0.25f * i), tier.Seconds * 0.85f, tier.Blobs[i], i * 0.17f);
+
+            view.Punch(tier.PunchScale, tier.Punches);
+            if (tier.Lift) view.Lift(0.012f, tier.Seconds);
+            if (tier.ShakeSeconds > 0f)
+            {
+                bool legendary = view.Card != null && view.Card.rarity == CardRarity.Legendary;
+                view.Shake(settings.LegendaryShakeAmount * (legendary ? 1f : 0.5f), legendary ? settings.LegendaryShakeSeconds : tier.ShakeSeconds);
+            }
         }
 
         /// <summary>갓팩 예고: 카드 묶음 앞에서 큰 금빛 폭죽 + 진동 3번 + (있으면) 효과음. 첫 카드까지 기다릴 시간(초)을 돌려줍니다.</summary>
         public float GodIntro(Pose stack, XRBaseInputInteractor hand)
         {
             Vector3 center = stack.position + stack.rotation * Vector3.forward * 0.01f;
-            Burst().Play(center, stack.rotation, SpecialGold, 0.3f, 1.4f);
+            Burst(0).Play(center, stack.rotation, SpecialGold, 0.3f, 1.4f);
             if (settings.GodPackSound != null) AudioSource.PlayClipAtPoint(settings.GodPackSound, center, 1f);
             const float pulse = 0.12f, gap = 0.06f;
             if (hand != null) host.StartCoroutine(GodHaptic(hand, pulse, gap, settings.GodRumbleSeconds));
@@ -116,7 +132,8 @@ namespace CardShop.Presentation
             return st.Get(rarity).accentColor;
         }
 
-        RevealBurst Burst() => burst != null ? burst : burst = RevealBurst.Create(host.transform);
+        RevealBurst Burst(int i) => bursts[i] != null ? bursts[i] : bursts[i] = RevealBurst.Create(host.transform);
+        RevealAura Aura() => aura != null ? aura : aura = RevealAura.Create(host.transform);
 
         // 두근두근(짧게 3번) → 부르르(길고 세게)
         static IEnumerator GodHaptic(XRBaseInputInteractor hand, float pulse, float gap, float rumble)

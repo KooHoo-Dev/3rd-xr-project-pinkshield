@@ -26,6 +26,8 @@ namespace CardShop.Interaction
         [SerializeField] float holdSeconds;
 
         public UnityEvent pressed = new UnityEvent();
+        /// <summary>손이 닿음(true) · 뗌(false). 쿨다운 · 꾹 누르기와 상관없이 매번 (겉모습용, PokeButtonLook)</summary>
+        public event System.Action<bool> PressChanged;
 
         XRSimpleInteractable interactable;
         float lastPress = -10f;
@@ -40,6 +42,8 @@ namespace CardShop.Interaction
             if (pressVisual != null) restPos = pressVisual.localPosition;
             // 씬을 다시 만들지 않아도 되게: 퇴근 버튼(빌더가 TryClockOut을 연결)은 스스로 꾹 누르기
             if (holdSeconds <= 0f && Calls("TryClockOut")) { holdSeconds = ClockOutHoldSeconds; holdLabel = "꾹 누르면 퇴근"; }
+            // 가게 버튼은 슬라임 젤리 버튼 겉모습 (폴리싱 P1). 집의 불 끄고 자기 스위치(Sleep)는 그대로
+            if (!Calls("Sleep") && GetComponent<PokeButtonLook>() == null) gameObject.AddComponent<PokeButtonLook>();
         }
 
         bool Calls(string method)
@@ -65,6 +69,7 @@ namespace CardShop.Interaction
         void OnPress(SelectEnterEventArgs _)
         {
             if (pressVisual != null) pressVisual.localPosition = restPos + Vector3.down * pressDepth;
+            PressChanged?.Invoke(true);
             if (Time.unscaledTime - lastPress < cooldown) return;
             if (holdSeconds > 0f) { holdStart = Time.unscaledTime; return; } // 실행은 Update에서 시간이 차면
             Fire();
@@ -73,6 +78,7 @@ namespace CardShop.Interaction
         void OnRelease(SelectExitEventArgs _)
         {
             if (pressVisual != null) pressVisual.localPosition = restPos;
+            PressChanged?.Invoke(false);
             CancelHold(); // 다 차기 전에 떼면 취소
         }
 
