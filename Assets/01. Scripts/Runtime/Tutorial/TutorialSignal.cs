@@ -76,5 +76,7 @@ namespace CardShop.Tutorial
         EndlessFirstDay = 95,        // 영업: 무한 모드 연장 첫날
         MarketFallingToday = 96,     // 영업: 오늘 하락 속성이 있음
         RecordSurgeToday = 97,       // 영업: 오늘 강도 = 역대급
+        LampInstalled = 98,          // 집: 조명 설치 (누르면 켜고 끔, T6)
+        AirConInstalled = 99,        // 집: 에어컨 설치 (누르면 켜고 끔, T6)
     }
 }

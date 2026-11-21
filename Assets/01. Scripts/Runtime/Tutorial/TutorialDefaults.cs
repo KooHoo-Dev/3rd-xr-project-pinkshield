@@ -36,6 +36,12 @@ namespace CardShop.Tutorial
         public const string BedButton = "bed-button";
         public const string SalesPanel = "sales-panel";
         public const string Community = "community-screen";
+        // 경제 · 가구 튜토리얼 (13장): 집에 그때그때 생기는 물건 (TutorialTargets.MarkDynamic)
+        public const string DeliveryBox = "delivery-box";
+        public const string Showcase = "showcase";
+        public const string DecorPoster = "poster";
+        public const string DecorLamp = "lamp";
+        public const string DecorAirCon = "aircon";
 
         /// <summary>첫 계산 정지 단계 key (끝나기 전이면 첫 손님 물건을 1개로 고정, 9장 Q2)</summary>
         public const string PayHoldKey = "pay-hold";

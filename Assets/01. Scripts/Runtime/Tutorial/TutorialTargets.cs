@@ -1,3 +1,4 @@
+using CardShop.Cards;
 using CardShop.Cleanup;
 using CardShop.Customers;
 using CardShop.Decor;
@@ -58,6 +59,19 @@ namespace CardShop.Tutorial
                 HighlightTarget.SetMarked(item.gameObject, TutorialDefaults.ItemToBag, item.IsScanned && !item.IsBagged);
             }
             if (thief != null && thief.ActiveThief != null) HighlightTarget.Mark(thief.ActiveThief.gameObject, TutorialDefaults.Thief);
+
+            // 집: 택배 상자 · 진열장 · 꾸미기 (방 업그레이드가 실행 중에 만듦)
+            foreach (DeliveryBox b in Object.FindObjectsByType<DeliveryBox>(FindObjectsSortMode.None))
+                HighlightTarget.Mark(b.gameObject, TutorialDefaults.DeliveryBox);
+            foreach (CardCase c in Object.FindObjectsByType<CardCase>(FindObjectsSortMode.None))
+                HighlightTarget.Mark(c.gameObject, TutorialDefaults.Showcase);
+            foreach (DecorReaction d in Object.FindObjectsByType<DecorReaction>(FindObjectsSortMode.None))
+            {
+                string key = d.Kind == UpgradeKind.Poster ? TutorialDefaults.DecorPoster
+                    : d.Kind == UpgradeKind.Lamp ? TutorialDefaults.DecorLamp
+                    : d.Kind == UpgradeKind.AirCon ? TutorialDefaults.DecorAirCon : null;
+                if (key != null) HighlightTarget.Mark(d.gameObject, key);
+            }
         }
 
         static void Mark<T>(string key) where T : Component

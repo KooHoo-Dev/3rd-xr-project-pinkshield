@@ -153,6 +153,8 @@ namespace CardShop.Presentation
                     catalog.deliveryBoxPrefab, AnyMaterial(), font);
                 box.Opened += OnBoxOpened;
                 boxes[kind] = box;
+                // 튜토리얼 첫 택배 안내: 상자가 생긴 뒤에 알려야 상자를 가리킬 수 있음
+                if (primed) ctx?.Events.RaiseHappened(GameMoment.DeliveryArrived);
             }
             primed = true;
             foreach (UpgradeKind k in new List<UpgradeKind>(doorbellAt.Keys))
@@ -173,7 +175,6 @@ namespace CardShop.Presentation
             Sfx.Play(SoundId.HomeDoor, door.position);
             if (toast == null) toast = WorldToast.Create(transform, font);
             toast.Show($"띵동! {TrackName(kind)} 택배 왔어요", door.position + Vector3.up * 0.9f);
-            ctx?.Events.RaiseHappened(GameMoment.DeliveryArrived); // 튜토리얼 첫 택배 안내
             return true;
         }
 

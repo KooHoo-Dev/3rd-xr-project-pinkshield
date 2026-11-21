@@ -15,7 +15,7 @@ namespace CardShop.Tutorial
         readonly List<TutorialSignal> found = new List<TutorialSignal>();
         float untilCheck;
         int lastDecor = -1;
-        bool hadPoster, hadStall;
+        bool hadPoster, hadLamp, hadAirCon, hadStall;
         bool sawSurge; // 이번 판에 급등 이상 날을 겪었나 (집 대비책 안내를 생략하려고)
 
         /// <summary>새 판 (세트 · 꾸미기 기준값을 다시 잡음)</summary>
@@ -23,7 +23,7 @@ namespace CardShop.Tutorial
         {
             untilCheck = 0f;
             lastDecor = -1;
-            hadPoster = hadStall = sawSurge = false;
+            hadPoster = hadLamp = hadAirCon = hadStall = sawSurge = false;
         }
 
         /// <summary>이번에 보낼 신호들 (1초에 한 번만 채움, 그 사이엔 빈 목록)</summary>
@@ -86,13 +86,18 @@ namespace CardShop.Tutorial
             foreach (UpgradeKind k in DecorKinds) if (up.LevelOf(k) > 1) decor++;
             if (lastDecor >= 0 && decor > lastDecor) found.Add(TutorialSignal.DecorInstalled);
             lastDecor = decor;
-            bool poster = up.LevelOf(UpgradeKind.Poster) > 1;
-            if (poster && !hadPoster) found.Add(TutorialSignal.PosterInstalled);
-            hadPoster = poster;
+            Installed(up.LevelOf(UpgradeKind.Poster) > 1, ref hadPoster, TutorialSignal.PosterInstalled);
+            Installed(up.LevelOf(UpgradeKind.Lamp) > 1, ref hadLamp, TutorialSignal.LampInstalled);
+            Installed(up.LevelOf(UpgradeKind.AirCon) > 1, ref hadAirCon, TutorialSignal.AirConInstalled);
             if (ctx.Upgrades.AllDecorOwned(up)) found.Add(TutorialSignal.CozyRoomCompleted);
-            bool stall = ctx.Upgrades.HasOnlineStall(up);
-            if (stall && !hadStall) found.Add(TutorialSignal.OnlineStallInstalled);
-            hadStall = stall;
+            Installed(ctx.Upgrades.HasOnlineStall(up), ref hadStall, TutorialSignal.OnlineStallInstalled);
+        }
+
+        // 없다가 생긴 순간에만 신호
+        void Installed(bool now, ref bool had, TutorialSignal signal)
+        {
+            if (now && !had) found.Add(signal);
+            had = now;
         }
 
         /// <summary>강도표에서 "급등"의 번호 (0 소폭 · 1 상승 · 2 급등 · 3 폭등)</summary>

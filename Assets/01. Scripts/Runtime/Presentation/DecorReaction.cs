@@ -26,6 +26,8 @@ namespace CardShop.Presentation
         const float SquishSeconds = 0.35f;
 
         Mode mode;
+        /// <summary>어느 꾸미기인지 (튜토리얼이 가리킬 때)</summary>
+        public UpgradeKind Kind { get; private set; }
         Transform interior;
         TMP_FontAsset font;
         TMP_Text posterText;
@@ -51,6 +53,7 @@ namespace CardShop.Presentation
                 if (go == null || go.GetComponent<DecorReaction>() != null) continue;
                 var r = go.AddComponent<DecorReaction>();
                 r.mode = mode;
+                r.Kind = kind;
                 r.interior = interior;
                 r.font = font;
                 r.Build();

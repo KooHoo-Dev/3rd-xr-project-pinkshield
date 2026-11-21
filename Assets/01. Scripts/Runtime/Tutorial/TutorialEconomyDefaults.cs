@@ -7,7 +7,8 @@ namespace CardShop.Tutorial
     /// 경제 · 가구 튜토리얼 단계 (튜토리얼_설계 13-3, 추천안 T1~T9: 모두 말 안내, 정지 없음).
     /// 그 일이 처음 일어나는 순간에 짧게 — 매입가 vs 가게 판매 · 인기 강도 · 택배 · 진열장 세트 · 꾸미기 · 슬라임마켓 · 무한 모드.
     /// TutorialDefaults.Steps()가 끝에 이어 붙입니다 (TutorialDefaults 300줄 점검선, AI-005). 신호는 TutorialEconomyWatch · GameMoment.
-    /// 새 대상 키(가격표 · 택배 상자 등)는 아직 없어 기존 대상(판매 판 · 모니터 · 정산 판)을 가리키거나 눈앞에 띄웁니다.
+    /// 집 물건(택배 상자 · 진열장 · 포스터 · 조명 · 에어컨)은 TutorialTargets.MarkDynamic이 단계가 시작될 때 이름표를 붙여 직접 가리킵니다.
+    /// 가게 가격표는 실물이 없어 가리키지 않습니다 (DEC-043).
     /// </summary>
     public static class TutorialEconomyDefaults
     {
@@ -42,10 +43,13 @@ namespace CardShop.Tutorial
                 doneOn = TutorialSignal.MarketSurgeToday, speaker = TutorialSpeaker.Self, seconds = 5f, timeout = 6f, // 급등 날을 겪었으면 생략 (대비책, T7)
                 line = "커뮤니티 강도 말 봤어? 소폭부터\n폭등까지, 셀수록 값이 더 뛰어.", targets = new[] { TutorialDefaults.Community },
             },
-            Self("decor-poster", TutorialSignal.PosterInstalled, "포스터에 내일 인기 1·2순위가\n붙어 있네. 벽만 봐도 알겠다!", null),
+            Self("decor-poster", TutorialSignal.PosterInstalled, "포스터에 내일 인기 1·2순위가\n붙어 있네. 벽만 봐도 알겠다!", TutorialDefaults.DecorPoster),
+            // T6: 조명 · 에어컨은 설치 때 한 줄 (피규어는 찾는 재미로 숨김)
+            Self("decor-lamp", TutorialSignal.LampInstalled, "새 조명은 손으로 누르면\n켜고 끌 수 있네.", TutorialDefaults.DecorLamp),
+            Self("decor-aircon", TutorialSignal.AirConInstalled, "에어컨도 눌러서 켜고 끌 수 있어.\n아, 시원하다~", TutorialDefaults.DecorAirCon),
 
             // ---------------------------------------------------------------- ③ 가구 (F8~F12)
-            Self("home-delivery", TutorialSignal.DeliveryArrived, "띵동! 상자를 손으로 뜯으면\n설치 끝. 효과는 내일 영업부터.", null),
+            Self("home-delivery", TutorialSignal.DeliveryArrived, "띵동! 상자를 손으로 뜯으면\n설치 끝. 효과는 내일 영업부터.", TutorialDefaults.DeliveryBox),
             new TutorialStep
             {
                 key = "home-lastnight", phase = GamePhaseId.Home, fromDay = 6, toDay = 6, speaker = TutorialSpeaker.Self, seconds = 5f,
@@ -55,9 +59,9 @@ namespace CardShop.Tutorial
             {
                 key = "showcase-ready", phase = GamePhaseId.Home, startOn = TutorialSignal.ShowcaseSetPossible,
                 doneOn = TutorialSignal.ShowcaseSetCompleted, speaker = TutorialSpeaker.Self, seconds = 5f, timeout = 6f, // 이미 세트가 있으면 생략
-                line = "같은 속성 수퍼레어 이상 3장이면\n진열장에 세워서 세트! +{setBonus}점.", targets = new[] { TutorialDefaults.Binder },
+                line = "같은 속성 수퍼레어 이상 3장이면\n진열장에 세워서 세트! +{setBonus}점.", targets = new[] { TutorialDefaults.Binder, TutorialDefaults.Showcase },
             },
-            Self("showcase-set", TutorialSignal.ShowcaseSetCompleted, "{setElement} 세트 완성! 홈이 빛난다.\n세트는 {maxSets}개까지 모을 수 있어.", null),
+            Self("showcase-set", TutorialSignal.ShowcaseSetCompleted, "{setElement} 세트 완성! 홈이 빛난다.\n세트는 {maxSets}개까지 모을 수 있어.", TutorialDefaults.Showcase),
             Self("decor-first", TutorialSignal.DecorInstalled, "꾸미기 {decorCount}/5. 다섯 개를 다 모으면\n매일 무료 팩이 하나 더래!", null),
             Self("decor-cozy", TutorialSignal.CozyRoomCompleted, "아늑한 방 완성! 내일부터\n무료 팩이 하나 더 나온다.", null),
             Self("stall-ready", TutorialSignal.OnlineStallInstalled, "모니터 슬라임마켓에 카드 한 장 두면\n자는 동안 팔릴지도 몰라.", TutorialDefaults.Community),
