@@ -209,7 +209,7 @@ namespace CardShop.Presentation
             stage = PackStage.Flipping;
             float hold = TriggerInput.HoldSeconds;
             context?.Events.RaiseNotice(isBox
-                ? $"오른손 트리거로 한 팩씩 넘기세요 ({packs.Count}팩) · {hold:0.#}초 꾹: 건너뛰기"
+                ? $"오른손 트리거로 한 장씩 넘기세요 ({queue.Count}칸) · {hold:0.#}초 꾹: 건너뛰기"
                 : $"오른손 트리거로 한 장씩 넘기세요 · {hold:0.#}초 꾹: 건너뛰기");
             Pose gaugePose = TriggerInput.GaugePose(stack);
             bool skipped = false;
@@ -234,7 +234,6 @@ namespace CardShop.Presentation
                 yield return TriggerInput.WaitForAdvance(hand, pause, !godPack, gaugePose);
                 Pile.Send(CardStack.TakeFront(), isBox, 0f);
                 qi++;
-                if (isBox && TriggerInput.Last == RevealInput.Result.Next) qi = BoxOpening.SendRestOfPack(packs, queue, qi, item.Pack, CardStack, Pile);
 
                 if (TriggerInput.Last == RevealInput.Result.Skip && !skipped)
                 {
