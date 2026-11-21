@@ -103,6 +103,8 @@ namespace CardShop.Interaction
             button = GetComponent<PokeButton>() != null;
             if (TryGetComponent(out CardShop.Cleanup.TrashSpot trash)) isCleanup = () => trash != null && !trash.IsDone;
             else if (TryGetComponent(out CardShop.Cleanup.RackPack pack)) isCleanup = () => pack != null && !pack.InRack;
+            else if (TryGetComponent(out CardShop.Cleanup.HeldItem item) && GetComponent<CardShop.Cleanup.MopStation>() == null && GetComponent<CardShop.Customers.Broom>() == null)
+                isCleanup = () => item != null && item.NeedsPickup; // 도둑이 떨군 무료 팩 (11-22 T3)
             // 11-21 2차: 납작한 쓰레기도 보이게 바닥 고리(F2), 버튼은 정면에서도 보이게 둘레 빛 판(F4)
             if (isCleanup != null) gameObject.AddComponent<CleanupGlowRing>().Init(isCleanup);
             if (button && GetComponent<ButtonGlowPlate>() == null) gameObject.AddComponent<ButtonGlowPlate>();

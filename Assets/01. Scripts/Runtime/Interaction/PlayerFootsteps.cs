@@ -21,7 +21,8 @@ namespace CardShop.Interaction
         Vector3 last;
         float walked;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        // 11-22 S1: 발소리가 거슬려 자동 설치를 끔 (클래스 · Footstep 파일은 남김 — 좋은 소리를 찾으면 아래 줄의 주석만 풀면 됨)
+        // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
         {
             XROrigin rig = FindAnyObjectByType<XROrigin>();

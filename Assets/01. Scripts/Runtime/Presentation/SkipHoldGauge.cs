@@ -54,7 +54,7 @@ namespace CardShop.Presentation
             var label = labelGo.AddComponent<TextMeshPro>();
             if (font != null) label.font = font;
             label.text = text; // 11-20: "갓팩은 보여 줘요" 뺌 (사용자 요청)
-            label.fontSize = 0.09f; // 1 ≈ 10cm → 글자 약 9mm
+            label.fontSize = 0.11f; // 1 ≈ 10cm → 글자 약 11mm (11-22 U6: 퇴근 버튼 위처럼 팔 길이에서도 읽히게, 9 → 11mm)
             label.alignment = TextAlignmentOptions.Top;
             label.color = Color.white;
             label.textWrappingMode = TextWrappingModes.NoWrap;

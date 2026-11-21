@@ -69,7 +69,8 @@ namespace CardShop.Customers
         {
             Vector3 feet = thief.position;
             Vector3 pos = feet + thief.forward * 0.35f;
-            pos.y = feet.y + lyingHeight;
+            pos.y = FloorSurface.TopAt(pos, feet.y) + lyingHeight; // 문 앞 매트에 묻히지 않게 (11-22 T2)
+            pack.NeedsPickup = true; // 치울 것처럼 연주황 테 + 바닥 고리 (11-22 T3)
             pack.gameObject.SetActive(true);
             pack.transform.SetParent(homeParent, true);
             pack.PlaceAt(pos, Quaternion.Euler(90f, thief.eulerAngles.y, 0f));
@@ -96,6 +97,7 @@ namespace CardShop.Customers
 
         void PlaceHome()
         {
+            pack.NeedsPickup = false;
             pack.transform.SetParent(homeParent, false);
             Pose home = HomePose;
             pack.PlaceAt(home.position, home.rotation);

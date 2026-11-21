@@ -9,7 +9,7 @@ namespace CardShop.Cleanup
 {
     /// <summary>
     /// 빗자루 → 대걸레 (빌드피드백_11-19_FIX설계 F4, DEC-030). 씬을 다시 빌드하지 않게, 씬이 열리면 빗자루(Broom)에 스스로 붙어
-    /// ① 발밑에 양동이 거치대를 두고 ② 놓으면 1초 뒤 양동이로 돌아가게 합니다.
+    /// 놓으면 1초 뒤 제자리로 돌아가게 합니다. (발밑 노란 양동이 장식은 11-22 M1 사용자 요청으로 뺌 — 보기 전용이라 동작과 무관)
     /// 모양은 빗자루 그대로입니다 (11-20 사용자 결정: 걸레 줄 모양이 화장실 솔처럼 보여 되돌림, 이름만 "대걸레").
     /// 도둑 맞히기(Broom: 머리 위치 · 휘두르는 속도)는 그대로입니다. 얼룩을 문지르면(StainSpot → Scrub) 손이 떨립니다.
     /// </summary>
@@ -17,7 +17,6 @@ namespace CardShop.Cleanup
     public sealed class MopStation : MonoBehaviour
     {
         const float ReturnDelay = 1f;
-        static readonly Color BucketColor = new Color(0.95f, 0.75f, 0.2f);
 
         HeldItem held;
         XRGrabInteractable grab;
@@ -37,7 +36,6 @@ namespace CardShop.Cleanup
             held = GetComponent<HeldItem>();
             grab = GetComponent<XRGrabInteractable>();
             home = new Pose(transform.position, transform.rotation);
-            BuildBucket(GetComponentInChildren<MeshRenderer>(true)?.sharedMaterial);
             RenameLabel();
         }
 
@@ -64,7 +62,7 @@ namespace CardShop.Cleanup
                 hand.SendHapticImpulse(Mathf.Clamp(velocity.magnitude * 0.4f, 0.1f, 0.4f), 0.05f);
         }
 
-        // 놓은 자리에 잠깐 섰다가(HeldItem) 양동이로: 바닥에 쓰러진 대걸레를 찾아다니지 않게 (F6 ③)
+        // 놓은 자리에 잠깐 섰다가(HeldItem) 제자리로: 바닥에 쓰러진 대걸레를 찾아다니지 않게 (F6 ③)
         IEnumerator ReturnHome()
         {
             yield return new WaitForSeconds(ReturnDelay);
@@ -72,24 +70,10 @@ namespace CardShop.Cleanup
             if (!held.IsHeld) held.PlaceAt(home.position, home.rotation);
         }
 
-        // 대걸레가 서 있는 양동이 (부모는 대걸레가 아니라 같은 부모: 대걸레를 들어도 양동이는 남음)
-        void BuildBucket(Material baseMat)
-        {
-            Transform bucket = Part(transform.parent, PrimitiveType.Cylinder, new Vector3(0.3f, 0.14f, 0.3f), Vector3.zero, Tint(baseMat, BucketColor));
-            bucket.name = "MopBucket";
-            bucket.position = home.position + Vector3.up * 0.14f;
-        }
-
         static void RenameLabel()
         {
             foreach (TextMeshPro t in FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 if (t.text != null && t.text.StartsWith("빗자루")) t.text = "대걸레\n(청소 · 도둑 잡기)"; // 글이 아직 없는(null) 글자도 있음 (11-20 NullReference)
         }
-
-        static Transform Part(Transform parent, PrimitiveType shape, Vector3 size, Vector3 localPos, Material mat) =>
-            Core.RuntimeShapes.Create(shape, shape.ToString(), parent, localPos, size, mat, castShadows: false).transform;
-
-        static Material Tint(Material source, Color color) =>
-            source != null ? new Material(source) { color = color } : null;
     }
 }

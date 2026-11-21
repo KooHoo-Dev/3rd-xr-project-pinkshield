@@ -60,9 +60,12 @@ namespace CardShop.UI
                 int row = i / 2, col = i % 2;
                 float yy = y - row * (h + Gap);
                 list[i] = WorldUiKit.AddButton(c, $"진열 {i + 1}", new Vector2(col == 0 ? 0.06f : 0.51f, yy - h), new Vector2(col == 0 ? 0.49f : 0.94f, yy), font);
-                list[i].GetComponentInChildren<TMP_Text>().fontSize = 18f;
+                TMP_Text t = list[i].GetComponentInChildren<TMP_Text>();
+                t.enableAutoSizing = true; // 11-22 U6: 18 고정 → 긴 이름은 줄이고 짧은 이름은 크게 (모니터 0.7m에서 16mm 기준)
+                t.fontSizeMin = 16f;
+                t.fontSizeMax = 22f;
             }
-            WorldUiKit.AddText(c, "Hint", Hint, new Vector2(0.04f, 0.005f), new Vector2(0.96f, 0.05f), 17f, UiTheme.SubText, font);
+            WorldUiKit.AddText(c, "Hint", Hint, new Vector2(0.04f, 0.005f), new Vector2(0.96f, 0.05f), 19f, UiTheme.SubText, font);
 
             var panel = rt.gameObject.AddComponent<ShowcasePanel>();
             panel.content = content;

@@ -17,13 +17,16 @@ namespace CardShop.UI
         protected override GamePhaseId Phase => GamePhaseId.Final;
 
         Button continueButton;
+        CertificateDress certificate;
         RectTransform advanceRect;
         Vector2 advanceMin, advanceMax;
 
         // 끝은 "상장" 종이 (UI_개편_설계 C안 10번 판). 씬은 그대로 두고 실행할 때 칠함
         void Awake()
         {
-            if (content != null) UiSkin.ApplyPanel(content.transform, UiSurface.Paper);
+            if (content == null) return;
+            UiSkin.ApplyPanel(content.transform, UiSurface.Paper);
+            if (Application.isPlaying) certificate = CertificateDress.Attach(content.transform, WorldUiKit.KoreanFont); // 금박 테 · 리본 · 랭크 도장 (11-22 U5)
         }
 
         protected override void Start()
@@ -83,11 +86,13 @@ namespace CardShop.UI
             {
                 if (heading != null) heading.text = $"{Context.Session.Day}일 근무 끝!";
                 if (body != null) body.text = ResultTexts.EndlessFinal(endless, Context.Session);
+                if (certificate != null) certificate.Show(null);
                 return;
             }
             bool success = r != null && r.Rank != null && r.Rank.isSuccess;
             if (heading != null) heading.text = $"{Context.Campaign.DayCount}일 알바 끝!";
             if (body != null) body.text = ResultTexts.Final(r, success ? Context.Score.successEnding : Context.Score.failEnding);
+            if (certificate != null) certificate.Show(r != null && r.Rank != null ? r.Rank.name : null);
         }
     }
 }

@@ -224,6 +224,8 @@ namespace CardShop.Cleanup
             float scale = trashScale * SmallTrashBoost(template); // 작은 컵 같은 것은 더 키움 (11-21 2차 F3)
             trash.transform.localScale = template.transform.localScale * scale; // 잡는 콜라이더도 같이 커짐
             trash.transform.position = new Vector3(pos.x, template.transform.position.y * scale, pos.z);
+            // 위 높이는 "원점 = 물건 가운데"라고 가정 — 종이처럼 원점이 아래가 아닌 모델은 바닥 · 문 앞 매트에 묻혔음 (11-22 T1)
+            FloorSurface.LiftAboveFloor(trash.gameObject);
             trash.gameObject.SetActive(true);
             trash.Init(bin);
             context.Events.RaiseNotice("바닥에 쓰레기가 떨어졌어요. 주워서 카운터 오른쪽 쓰레기통에!");

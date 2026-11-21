@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace CardShop.UI
 {
     /// <summary>
-    /// 집 컴퓨터 모니터 = "SlimeOS" 하늘색 바탕화면 + 쪽마다 창 하나 [커뮤니티 · 슬라임 홈쇼핑 · 판매 · 진열]
+    /// 집 컴퓨터 모니터 = "SlimeOS" 바탕화면(눈 편한 청록) + 쪽마다 창 하나 [커뮤니티 · 슬라임 홈쇼핑 · 판매 · 진열]
     /// (집_컴퓨터_화면_설계 J1, 집_책상_하나로_설계 DEC-042, UI_개편_설계 8번 레트로 OS 창).
     /// 아래 작업 표시줄 탭 · 모니터 양옆 [◀] [▶] 버튼 · 레이로 화면을 잡고 좌우로 끌기(ScreenSwipeArea → PagerRules)로 넘깁니다.
     /// 넘길 때 0.25초 옆으로 미끄러지고 딸깍 + 약한 진동. 집에 오면 늘 커뮤니티 쪽부터.
@@ -26,6 +26,16 @@ namespace CardShop.UI
         const float SlideSeconds = 0.25f;
         const float SlideDistance = 0.35f; // m
         const float ButtonSide = 0.78f;    // 모니터 가운데에서 옆 버튼까지 (m)
+
+        // 모니터 캔버스 그리는 순서 (11-22 U1). 층 사이가 2~4mm뿐이라, 순서를 안 정하면 Unity가 "카메라 ~ 캔버스 가운데 거리"로 정해
+        // 비스듬히 서면 가운데에서 옆으로 떨어진 창(판매 · 진열)이 바탕화면보다 먼저 그려져 가려졌음
+        public const int SortDesktop = 0, SortPageBack = 1, SortWindow = 2, SortTaskbar = 3;
+
+        /// <summary>캔버스(루트)의 그리는 순서를 정함</summary>
+        public static void SetSort(Component canvasRoot, int order)
+        {
+            if (canvasRoot != null && canvasRoot.TryGetComponent(out Canvas c)) c.sortingOrder = order;
+        }
 
         readonly List<IComputerPage> pages = new List<IComputerPage>();
         readonly List<string> names = new List<string>();
@@ -75,6 +85,7 @@ namespace CardShop.UI
             RectTransform desk = WorldUiKit.CreateCanvas("SlimeOsDesktop", chrome.transform, ScreenW, ScreenH, out GameObject deskContent);
             desk.localPosition = ScreenCenter + forward * 0.002f;
             desk.localRotation = rot;
+            SetSort(desk, SortDesktop);
             WorldUiKit.AddImage(deskContent.transform, "Wallpaper", Vector2.zero, Vector2.one, UiTheme.OsDesktop).raycastTarget = false;
             TMP_Text mark = WorldUiKit.AddText(deskContent.transform, "Mark", "SlimeOS", new Vector2(0f, 0.4f), new Vector2(1f, 0.6f), 120f, new Color(1f, 1f, 1f, 0.07f), font);
             mark.alignment = TextAlignmentOptions.Center;
@@ -82,6 +93,7 @@ namespace CardShop.UI
             // 작업 표시줄 (화면 아래)
             Vector3 barPos = ScreenCenter + rot * new Vector3(0f, -(ScreenH - ComputerTaskbar.HeightPx) * 0.0005f + 0.004f, 0f) + forward * 0.014f;
             taskbar = ComputerTaskbar.Create(chrome.transform, barPos, rot, ScreenW - 16f, font);
+            SetSort(taskbar, SortTaskbar);
 
             // 1쪽: 커뮤니티 창 (씬의 3D 글자 대신)
             RectTransform communityWindow = CommunityWindow.Create(this, screen, font);
@@ -93,8 +105,9 @@ namespace CardShop.UI
             MarketScreen market = MarketScreen.Create(community.parent, WindowCenter(0.01f), yaw, catalog, font);
             var marketRt = (RectTransform)market.transform;
             marketRt.sizeDelta = new Vector2(WindowW, WindowH); // 안의 칸은 비율로 놓여 창 크기를 따라감
+            SetSort(marketRt, SortWindow);
             if (marketRt.childCount > 0) SlimeOsWindow.Apply(marketRt.GetChild(0), null, font);
-            market.UseLightCards(); // 밝은 창에 맞는 상품 칸 (크림 + 잉크 테)
+            market.UseLightCards(); // SlimeOS 창에 맞는 상품 칸 (이름은 옛 "밝은 칸" — 지금은 눈 편한 어두운 칸 + 테)
             AddSwipe(marketRt);
             AddPage(new CanvasPage(marketRt), "홈쇼핑");
 
@@ -110,6 +123,7 @@ namespace CardShop.UI
             RectTransform rt = WorldUiKit.CreateCanvas(name, community.parent, WindowW, WindowH, out content);
             rt.localPosition = WindowCenter(depth);
             rt.localRotation = ScreenRotation;
+            SetSort(rt, SortWindow);
             return rt;
         }
 
@@ -133,6 +147,7 @@ namespace CardShop.UI
             RectTransform rt = WorldUiKit.CreateCanvas("Page_" + (side < 0 ? "Prev" : "Next"), chrome.transform, 160f, 420f, out GameObject content);
             rt.localPosition = ScreenCenter + rot * new Vector3(side, 0f, 0f) + rot * Vector3.back * 0.01f;
             rt.localRotation = rot;
+            SetSort(rt, SortWindow);
             Button b = WorldUiKit.AddButton(content.transform, "", Vector2.zero, Vector2.one, font);
             b.onClick.AddListener(onClick);
             label = b.GetComponentInChildren<TMP_Text>(true);

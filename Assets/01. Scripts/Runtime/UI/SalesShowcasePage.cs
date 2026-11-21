@@ -26,7 +26,7 @@ namespace CardShop.UI
         HomeComputer computer;
         BinderView binder;
         TMP_Text header;
-        CardView thumb;          // 판매 창 오른쪽 위: 고른 카드 그대로 (바인더와 같은 카드 프리팹)
+        CardView thumb;          // 판매 창 왼쪽 위: 고른 카드 그대로 (바인더와 같은 카드 프리팹)
         RectTransform thumbArea;
         GameObject priceTag;     // 노란 꼬리표 가격표 (샘플 6-1)
         TMP_Text priceText;
@@ -50,6 +50,7 @@ namespace CardShop.UI
             // 바탕: 위 알림 띠(내일 인기 · 고른 카드) + 빈 곳 끌기 판 (창 두 장보다 뒤)
             RectTransform back = computer.CreateWindowCanvas("SalesShowcasePage", 0.008f, out GameObject content);
             back.gameObject.SetActive(false); // 설정을 다 넣은 뒤 켬 (OnEnable 순서)
+            HomeComputer.SetSort(back, HomeComputer.SortPageBack);
             WorldUiKit.AddImage(content.transform, "SwipeHit", Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
             float headerMin = 1f - HeaderMm / HomeComputer.WindowH;
             Image strip = WorldUiKit.AddImage(content.transform, "HeaderStrip", new Vector2(0.02f, headerMin), new Vector2(0.98f, 1f), UiTheme.OsTaskbar);
@@ -103,6 +104,7 @@ namespace CardShop.UI
             rt.localScale = Vector3.one * (0.001f * PanelScale);
             float h = rt.sizeDelta.y * 0.001f * PanelScale;
             rt.localPosition = pos + rot * new Vector3(0f, top - h * 0.5f, 0f);
+            HomeComputer.SetSort(rt, HomeComputer.SortWindow); // 비스듬히 봐도 바탕화면에 안 가림 (11-22 U1)
         }
 
         // 판(캔버스 아래 Content)을 SlimeOS 창으로
@@ -119,16 +121,28 @@ namespace CardShop.UI
                 if (exact ? b.name == word : b.name.Contains(word)) UiSkin.StyleButton(b, kind);
         }
 
-        // 판매 창 "Selected" 글자를 왼쪽으로 좁히고, 오른쪽에 고른 카드 + 노란 꼬리표 가격표
+        // 판매 창 위쪽 (11-22 U2 다시 배치): 왼쪽 = 고른 카드 크게, 오른쪽 = 짧은 글자 3줄(자동 줄임) + 그 아래 노란 꼬리표 「매입 $N」.
+        // 예전엔 글자 칸만 오른쪽에서 좁혀 6줄이 [판매 등록] 버튼 밑으로 넘쳐 잘렸음. 버튼 줄(0.728 아래)은 그대로
         void BuildThumb(Transform panel, TMP_FontAsset font)
         {
             if (panel == null || !Application.isPlaying) return;
-            Transform selected = panel.Find("Selected");
-            if (selected is RectTransform srt) srt.anchorMax = new Vector2(0.68f, srt.anchorMax.y);
-            thumbArea = (RectTransform)WorldUiKit.AddImage(panel, "Thumb", new Vector2(0.72f, 0.775f), new Vector2(0.95f, 0.94f), new Color(0f, 0f, 0f, 0f)).transform;
+            if (panel.GetComponentInParent<SalesPanel>() is SalesPanel sales) sales.CompactOnMonitor = true;
+            if (panel.Find("Selected") is RectTransform srt)
+            {
+                srt.anchorMin = new Vector2(0.35f, 0.80f);
+                srt.anchorMax = new Vector2(0.95f, 0.945f);
+                if (srt.TryGetComponent(out TMP_Text selectedText))
+                {
+                    selectedText.enableAutoSizing = true;
+                    selectedText.fontSizeMin = 18f;
+                    selectedText.fontSizeMax = 30f;
+                    selectedText.lineSpacing = -6f;
+                }
+            }
+            thumbArea = (RectTransform)WorldUiKit.AddImage(panel, "Thumb", new Vector2(0.05f, 0.745f), new Vector2(0.32f, 0.945f), new Color(0f, 0f, 0f, 0f)).transform;
             thumbArea.GetComponent<Image>().raycastTarget = false;
 
-            Image tag = WorldUiKit.AddImage(panel, "PriceTag", new Vector2(0.66f, 0.735f), new Vector2(0.96f, 0.785f), UiTheme.PriceTag);
+            Image tag = WorldUiKit.AddImage(panel, "PriceTag", new Vector2(0.35f, 0.745f), new Vector2(0.68f, 0.792f), UiTheme.PriceTag);
             tag.raycastTarget = false;
             tag.sprite = UiSprites.Rounded();
             tag.type = Image.Type.Sliced;

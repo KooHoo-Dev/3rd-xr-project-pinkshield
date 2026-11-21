@@ -38,6 +38,7 @@ namespace CardShop.EditorTools.Interior
         public static readonly string[] ShowcaseArt = { "F_L", "W_U", "E_SR", "A_SR", "W_L", "F_U", "E_L", "A_R1" };
 
         // 진열 팩은 수백 개라 렌더러를 줄이려고 몸통 + 위아래 압착 띠를 메시 하나(서브메시 2개)로 합침
+        // 11-22 D1: 앞면 MALLANG 그림은 DisplayPackMallangBaker(메뉴)가 이 프리팹의 메시 · 재질을 바꿔 입힘 — 프리팹을 지우고 다시 만들면 그 메뉴를 다시 실행
         public static GameObject DisplayPack(int color) => LoadOrBuild($"DisplayPack_{PackColors[color % PackColors.Length]}", root =>
         {
             Material body = Placer.Mat(MatDir, $"DisplayPack_{PackColors[color % PackColors.Length]}", PackColorValues[color % PackColorValues.Length]);

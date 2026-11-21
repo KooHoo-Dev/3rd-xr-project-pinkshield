@@ -8,8 +8,8 @@ namespace CardShop.Customers
     /// 물리로 쌓지 않고 정해진 자리에 놓기만 합니다(튀거나 떨림 없음). 담기 판정 · 안내는 CheckoutCounter가 합니다.
     /// 원점 = 봉투 안쪽 바닥 가운데, 크기 1로 둡니다(벽은 자식 메시).
     ///
-    /// 담는 자리 (11-20 C3, 순서는 <see cref="BagLayout"/>가 정함): 상자처럼 바닥이 넓은 물건이 바닥, 팩 · 카드처럼 납작한 물건은 그 위,
-    /// 피규어는 상자 옆 빈 바닥(자리가 없으면 상자 위). 새 물건이 들어올 때마다 담긴 물건 전체를 다시 놓습니다.
+    /// 담는 자리 (11-22 G1, 순서는 <see cref="BagLayout"/>가 정함): 오른쪽 칸에 상자 → 팩 → 카드(맨 위), 왼쪽 칸에 피규어 앞뒤로.
+    /// 새 물건이 들어올 때마다 담긴 물건 전체를 다시 놓습니다. 모양은 PaperBagLook.
     /// </summary>
     public sealed class PaperBag : MonoBehaviour
     {
@@ -23,6 +23,9 @@ namespace CardShop.Customers
         readonly List<ScannableItem> items = new List<ScannableItem>();
 
         public Vector3 InnerSize => innerSize;
+
+        /// <summary>새 봉투 모양(PaperBagLook)이 크기를 바꿀 때: 상자 옆에 피규어가 서게 폭을 넓힘 (11-22 G1)</summary>
+        public void SetInnerSize(Vector3 size) => innerSize = size;
 
         /// <summary>이 월드 위치에서 물건을 놓으면 봉투에 담는가.</summary>
         public bool Contains(Vector3 world)
@@ -42,7 +45,7 @@ namespace CardShop.Customers
 
             var sizes = new List<Vector3>(items.Count);
             foreach (ScannableItem i in items) sizes.Add(i.Size);
-            List<Vector3> spots = BagLayout.Place(sizes, innerSize.x);
+            List<Vector3> spots = BagLayout.Place(sizes, innerSize.x, innerSize.z);
             for (int k = 0; k < items.Count; k++)
                 items[k].PutInBag(transform.TransformPoint(spots[k] + Vector3.up * 0.002f), items[k].HomeRotation);
         }

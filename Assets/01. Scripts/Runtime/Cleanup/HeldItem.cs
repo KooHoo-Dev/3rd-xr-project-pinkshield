@@ -40,6 +40,8 @@ namespace CardShop.Cleanup
         public bool LandFlat { get; set; }
 
         public bool IsHeld => grab != null && grab.isSelected;
+        /// <summary>바닥에서 주워 와야 하는 물건 (도둑이 떨군 무료 팩, 11-22 T3): 쓰레기처럼 연주황 테 + 바닥 고리 (InteractableOutline)</summary>
+        public bool NeedsPickup { get; set; }
 
         /// <summary>손에 쥠</summary>
         public event Action<HeldItem> Grabbed;
@@ -100,6 +102,7 @@ namespace CardShop.Cleanup
                 if (hit.distance < bestDist) { bestDist = hit.distance; hitPoint = hit.point; }
             }
             if (float.IsPositiveInfinity(bestDist)) hitPoint = new Vector3(from.x, 0f, from.z); // 콜라이더 없는 바닥이면 y=0
+            hitPoint.y = FloorSurface.TopAt(hitPoint, hitPoint.y); // 콜라이더 없는 매트 · 러그 위에 (11-22 T2)
 
             Vector3 pos = hitPoint + Vector3.up * LandHeight;
             if (!ShopLayout.InsideShop(pos, 0.2f)) return new Pose(restPos, restRot);

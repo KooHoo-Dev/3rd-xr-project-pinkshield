@@ -42,6 +42,9 @@ namespace CardShop.UI
         string message = "";
         float sellAllArmedUntil = -1f; // 이 시각까지 한 번 더 누르면 팖
 
+        /// <summary>모니터 창(SalesShowcasePage)에 놓임: 매입가는 노란 꼬리표가 보여 주므로 글자는 짧게 3줄 (11-22 U2 글자 넘침)</summary>
+        public bool CompactOnMonitor { get; set; }
+
         protected override void OnEnable()
         {
             if (undisplayAllButton == null) undisplayAllButton = CreateUndisplayAllButton();
@@ -229,6 +232,27 @@ namespace CardShop.UI
             return line;
         }
 
+        // 등급 기호 (UI_개편_설계 5장: ◆ 노말 · ◆◆ 레어 · ◆◆◆ 수퍼레어 · ★ 유니크 · ★★ 레전더리)
+        // shortcut: 다른 세션의 결과판 작업(RevealText.RaritySymbol)이 커밋되면 그 함수로 바꾸고 지움
+        static string Symbol(CardRarity r) => r switch
+        {
+            CardRarity.Rare => "◆◆",
+            CardRarity.SuperRare => "◆◆◆",
+            CardRarity.Unique => "★",
+            CardRarity.Legendary => "★★",
+            _ => "◆",
+        };
+
+        // 모니터 창의 짧은 줄 끝: 가게 값 비교 또는 묶음 매입 (매입가 자체는 꼬리표)
+        string StoreHint(CardData card, GameSession session)
+        {
+            if (Context.Sales.CanDisplay(card))
+                return $"\n가게에 올리면 {MoneyText.Format(Context.EconomyRules.SellPrice(card, MarketDay.None))}+";
+            float value = Context.Sales.InstantValue(card, session);
+            return Context.Sales.InstantPrice(card, session) <= 0 && value > 0f
+                ? $"\n{Mathf.RoundToInt(1f / value)}장에 {MoneyText.Format(1)} (모두 팔기)" : "";
+        }
+
         protected override void Redraw()
         {
             if (Context == null || Context.Session == null) return;
@@ -245,9 +269,10 @@ namespace CardShop.UI
                 string display = Context.Sales.CanDisplay(card)
                     ? "판매 등록 가능"
                     : $"판매 등록 불가 ({RarityName(Context.Economy.minDisplayRarity)} 이상만)";
-                selectedLabel.text =
-                    $"{card.displayName}  ({RarityName(card.rarity)})\n" +
-                    $"보유 {count}장\n{display}\n{BuybackLine(card, session)}";
+                selectedLabel.text = CompactOnMonitor
+                    ? $"{card.displayName}\n<size=78%>{Symbol(card.rarity)} {RarityName(card.rarity)}  ·  보유 {count}장\n{display}{StoreHint(card, session)}</size>"
+                    : $"{card.displayName}  ({RarityName(card.rarity)})\n" +
+                      $"보유 {count}장\n{display}\n{BuybackLine(card, session)}";
             }
             displayButton.interactable = card != null;
             sellButton.interactable = card != null;
@@ -262,7 +287,10 @@ namespace CardShop.UI
             int slots = Context.Sales.SlotCount(session); // 바인더 업그레이드로 늘 수 있음
             displayedButtons = SalesListGrower.Grow(displayedButtons, slots, OnDisplayedClicked);
             statusLabel.text = $"판매 등록 칸 {session.SalesDisplay.Count} / {slots}   ·   내 자산 {MoneyText.Format(session.Wallet.Money)}";
-            messageLabel.text = message;
+            // 목록이 비면 아래가 텅 빈 판으로 보였음 (11-22 U2) → 안내 한 줄
+            messageLabel.text = string.IsNullOrEmpty(message) && session.SalesDisplay.Count == 0
+                ? $"<color=#{ColorUtility.ToHtmlStringRGB(UiTheme.SubText)}>{DisplayEmpty}</color>"
+                : message;
 
             for (int i = 0; i < displayedButtons.Length; i++)
             {
