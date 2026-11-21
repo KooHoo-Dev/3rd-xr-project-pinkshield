@@ -11,7 +11,8 @@ Material:
   m_Shader: {fileID: 4800000, guid: e5b7a9c1d3f24680e5b7a9c1d3f24681, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _WINDOW_NIGHT
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -116,6 +117,7 @@ Material:
     - _LightsOn: 0.6
     - _Metallic: 0
     - _Night: 1
+    - _NightOnly: 1
     - _OcclusionStrength: 1
     - _PaneFrame: 0.04
     - _Parallax: 0.005
