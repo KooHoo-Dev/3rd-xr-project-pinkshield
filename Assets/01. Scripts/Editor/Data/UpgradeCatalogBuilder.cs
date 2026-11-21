@@ -49,6 +49,24 @@ namespace CardShop.Cards.EditorTools
 
         public static void RunFromCommandLine() => Run();
 
+        /// <summary>
+        /// 분야 · 단계 · 가격 · 모델 목록을 코드 기본값(UpgradeCatalog.CodeDefaults)으로 되돌리고 모델을 다시 연결합니다.
+        /// 코드에서 분야를 더하거나(에어컨) 모델을 바꾼 뒤(침대 · 컴퓨터, 11-20 F5 · F6) 씁니다. 인스펙터에서 바꾼 가격도 코드 값으로 돌아갑니다.
+        /// 배치 모드: -executeMethod CardShop.Cards.EditorTools.UpgradeCatalogBuilder.ResetTracksToCode -quit
+        /// </summary>
+        [MenuItem("Tools/CardShop/Data/Reset Upgrade Tracks To Code")]
+        public static void ResetTracksToCode()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<UpgradeCatalog>(AssetPath);
+            if (catalog != null)
+            {
+                catalog.tracks = UpgradeCatalog.CodeDefaults();
+                EditorUtility.SetDirty(catalog);
+            }
+            Run();
+            CardShop.EditorTools.UpgradeAnchorEntries.Invalidate();
+        }
+
         static GameObject Resolve(string path)
         {
             GameObject go = path.StartsWith(LowPolyPrefix)

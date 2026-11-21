@@ -34,6 +34,8 @@ namespace CardShop.Tutorial
             GameMoment.SalesRegistered => TutorialSignal.SalesRegistered,
             GameMoment.InstantSold => TutorialSignal.InstantSold,
             GameMoment.BinderBrowsed => TutorialSignal.BinderBrowsed,
+            GameMoment.InstantSoldZero => TutorialSignal.InstantSoldZero,
+            GameMoment.DeliveryArrived => TutorialSignal.DeliveryArrived,
             _ => TutorialSignal.None,
         };
     }

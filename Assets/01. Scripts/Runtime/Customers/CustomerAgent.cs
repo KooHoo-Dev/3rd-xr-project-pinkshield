@@ -81,6 +81,9 @@ namespace CardShop.Customers
         public bool IsYoung { get; set; }
         /// <summary>등장할 때 정한 목소리 번호. 같은 손님은 끝까지 같은 클립 번호로 말함</summary>
         public int VoiceSeed { get; set; }
+        /// <summary>이 모델의 복면 자리 (CustomerRoster.Entry.maskOffset · maskScale, maskScale 0 = 안 잼)</summary>
+        public Vector3 MaskOffset { get; set; }
+        public float MaskScale { get; set; }
 
         /// <param name="paused">일시정지 중인가 (이동 · 타이머 · 애니메이션을 멈춤)</param>
         public void Init(Func<bool> paused, Animator anim, float speed, float turnDegreesPerSecond)

@@ -29,7 +29,18 @@ namespace CardShop.EditorTools
             public Vector3 previewCenter, previewSize;
         }
 
-        public static readonly IReadOnlyList<Entry> All = new[]
+        /// <summary>고정 목록 + 집 업그레이드 가구 자리표 (카탈로그에서 만듦, UpgradeAnchorEntries · F7)</summary>
+        public static IReadOnlyList<Entry> All
+        {
+            get
+            {
+                var all = new List<Entry>(Fixed);
+                all.AddRange(UpgradeAnchorEntries.All());
+                return all;
+            }
+        }
+
+        static readonly Entry[] Fixed =
         {
             new Entry { key = TutorialSigns.ControlsKey, label = "조작 안내 판 (타이틀 · 인트로)",
                 defaultPose = () => TutorialSigns.ControlsDefault, previewSize = Board(TutorialSigns.ControlsSize) },
@@ -85,7 +96,8 @@ namespace CardShop.EditorTools
 
         public static Entry Find(string key)
         {
-            foreach (Entry e in All) if (e.key == key) return e;
+            foreach (Entry e in Fixed) if (e.key == key) return e;
+            foreach (Entry e in UpgradeAnchorEntries.All()) if (e.key == key) return e;
             return null;
         }
 

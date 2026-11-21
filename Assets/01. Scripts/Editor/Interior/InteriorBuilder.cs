@@ -550,6 +550,8 @@ namespace CardShop.EditorTools.Interior
                 DataPaths.EnsureFolder(DecorFactory.MatDir);
                 mat = new Material(baseMat) { name = "WindowView_HomeNight" };
                 mat.SetFloat("_Night", 1f);
+                mat.SetFloat("_NightOnly", 1f);
+                mat.EnableKeyword("_WINDOW_NIGHT"); // 늘 밤이라 낮 계산을 뺀 셰이더 조합
                 mat.SetFloat("_LightsOn", 0.6f);
                 mat.SetFloat("_EyeHeight", 4.5f); // 원룸 2층에서 내다본 높이
                 AssetDatabase.CreateAsset(mat, path);

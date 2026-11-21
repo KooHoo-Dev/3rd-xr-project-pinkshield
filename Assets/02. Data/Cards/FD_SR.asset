@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: FD_SR
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CardData
   id: FD-SR
+  number: 43
   kind: 1
   element: 0
   rarity: 2
-  displayName: "\uBC18\uB527\uBD88 \uBC84\uC12F \uB3D9\uAD74"
+  displayName: "\uBC18\uB527\uBD88 \uC774\uB07C \uB3D9\uAD74"
   description: 
   basePrice: 20
   character: {fileID: 0}

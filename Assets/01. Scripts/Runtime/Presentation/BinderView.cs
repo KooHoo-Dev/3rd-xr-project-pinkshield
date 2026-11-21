@@ -16,7 +16,7 @@ namespace CardShop.Presentation
     /// 이 클래스는 칸 그리기 · 선택 · 집 도착 반짝임 · 이벤트 연결만 맡고, 일은 부품이 합니다 (AI-005 · 큰_클래스_나누기_제안 3장):
     ///   <see cref="BinderCursor"/> 탭 · 쪽 · 카드 찾아가기(순수, 테스트) · <see cref="StashedCards"/> 반짝일 카드(순수) ·
     ///   <see cref="BinderTabBar"/> 탭 버튼 · <see cref="BinderSocketStore"/> 표지 소켓에 꽂은 카드 날려 넣기.
-    /// - 속성 탭: 전체 · 불 · 물 · 땅 · 공기 · 무 · 기타 (인기 속성 탭에 ★: 가게에서는 오늘, 집에서는 내일). 칸 번호는 탭과 상관없이 도감 번호
+    /// - 속성 탭: 전체 · 불 · 물 · 땅 · 공기 · 무 · 기타 (인기 속성 탭에 ★: 가게에서는 오늘, 집에서는 내일) + 줄 끝 [도감순 ⇄ 레어도순]. 칸 번호는 탭 · 정렬과 상관없이 도감 번호
     /// - 칸 오브젝트는 한 쪽 분량만 두고 쪽을 넘길 때 다시 그립니다 (Quest 성능: 50장을 만들지 않음)
     /// - 판매 등록 등은 CardSelected 이벤트와 SelectedCard로 연결합니다 (DEC-023: 레이 클릭 방식).
     /// </summary>
@@ -78,7 +78,7 @@ namespace CardShop.Presentation
                 int index = i; // 람다가 반복 변수 대신 이 칸 번호를 기억하도록
                 slots[i].Button.onClick.AddListener(() => OnSlotClicked(index));
             }
-            tabBar = new BinderTabBar(tabButtons, tabSelectedText, ShowTab);
+            tabBar = new BinderTabBar(tabButtons, tabSelectedText, ShowTab, () => { Cursor?.ShowSort(BinderSort.Next(Cursor.Sort)); Refresh(); });
             socketStore = new BinderSocketStore(this, coverSocket, SlotFor, () => flySeconds);
         }
 
@@ -246,8 +246,9 @@ namespace CardShop.Presentation
 
             prevButton.interactable = c != null && c.HasPrevious;
             nextButton.interactable = c != null && c.HasNext;
-            CardElement star = StarElement();
-            tabBar.Redraw(Tab, star);
+            MarketDay starMarket = StarMarket();
+            CardElement star = starMarket.Primary;
+            tabBar.Redraw(Tab, star, c != null ? c.Sort : BinderSortOrder.Dex, starMarket.Secondary);
             if (pageLabel != null)
             {
                 int total = c != null ? c.FullLayout.CardCount : 0;
@@ -257,15 +258,15 @@ namespace CardShop.Presentation
                 int money = context != null && context.Session != null ? context.Session.Wallet.Money : 0; // 판매하면 Collection.Changed로 다시 그려짐 (FIX B3)
                 if (!pageLabel.enableAutoSizing) // 한 줄이 넘치면 줄임, 원래 크기(30)보다 커지지는 않게 (씬 다시 빌드 없이)
                 { pageLabel.fontSizeMax = pageLabel.fontSize; pageLabel.fontSizeMin = 20f; pageLabel.enableAutoSizing = true; }
-                pageLabel.text = $"<color=#FFD84D>내 자산 {MoneyText.Format(money)}</color>  ·  {tabName}{Page + 1} / {PageCount} 쪽  ·  도감 {found} / {total}{starHint}";
+                pageLabel.text = $"<color=#E2BE6A>내 자산 {MoneyText.Format(money)}</color>  ·  {tabName}{Page + 1} / {PageCount} 쪽  ·  도감 {found} / {total}{starHint}";
             }
         }
 
-        // 집에서 등록한 카드는 내일 영업 때 팔리므로 집에서는 내일 인기 속성에 ★ (마지막 날은 내일이 없어 ★ 없음, 11-19 A4)
-        CardElement StarElement()
+        // 집에서 등록한 카드는 내일 영업 때 팔리므로 집에서는 내일 시세로 ★ 1순위 · ☆ 2순위 (11-19 A4, DEC-041)
+        MarketDay StarMarket()
         {
-            if (context == null || context.Session == null || context.PopularElements == null) return CardElement.None;
-            return atHome ? context.PopularElements.For(context.Session.Day + 1) : context.PopularToday;
+            if (context == null || context.Session == null || context.Market == null) return MarketDay.None;
+            return atHome ? context.Market.For(context.Session.Day + 1) : context.MarketToday;
         }
 
         // ------------------------------------------------------------------ 선택 (판매 등록 연결 지점)

@@ -1,6 +1,6 @@
 // 원본: 3rd-study-shader-pinkshield (02. MyShaders/interior-room-mapping_Window_View) 에서 이식. 집 창밖 밤 풍경에 사용 (가게_집_인테리어_설계 6장).
 // 창밖 풍경: 창 Quad 하나를 통해 건물 안에서 내다본 거리를 그린다. 맞은편 건물(창마다 입체 방), 도로, 오가는 차량과 사람을 시선으로 계산한다 (URP 17, HLSL).
-// 효과 본체는 core.hlsl 에 있고, 이 파일은 Unity 전용 부분(패스, SRP Batcher)만 맡는다. 창은 불투명한 그림이라 조명과 그림자를 쓰지 않는다.
+// 효과 본체는 core.hlsl(합치기) · view_room.hlsl(맞은편 방) · view_shapes.hlsl(도형 · 차 · 사람)에 있고, 이 파일은 Unity 전용 부분(패스, SRP Batcher)만 맡는다. 창은 불투명한 그림이라 조명과 그림자를 쓰지 않는다.
 Shader "CardShop/WindowView"
 {
     Properties
@@ -26,6 +26,21 @@ Shader "CardShop/WindowView"
         _WalkSpeed ("사람 걷는 속도 (m/초)", Range(0.2, 3)) = 1.2
         _ActorScale ("차량과 사람 크기 배율", Range(0.5, 3)) = 1.3
         _PaneFrame ("창틀 두께 (창 크기 대비)", Range(0, 0.2)) = 0.04
+
+        [Space(10)]
+        _SkyTopColor ("밤하늘 위쪽 색", Color) = (0.035, 0.02, 0.075, 1)
+        _SkyHorizonColor ("밤하늘 지평선 색 (도시 불빛)", Color) = (0.17, 0.075, 0.17, 1)
+        _StreetLampColor ("가로등 불빛 색", Color) = (1, 0.76, 0.58, 1)
+        _AccentLights ("색 불빛 방 비율 (분홍 · 민트 · 하늘 · 연보라)", Range(0, 1)) = 0.3
+        _SlimeRooms ("슬라임 방 비율", Range(0, 1)) = 0.25
+        _SignColor ("간판 빛 번짐 색", Color) = (1, 0.45, 0.72, 1)
+        _SignGlow ("간판 밝기", Range(0, 4)) = 1.6
+        _SignOffset ("간판 위치 (창 중심 좌우 m)", Range(-20, 20)) = 1.5
+        _SignHeight ("간판 중심 높이 (m)", Range(1, 12)) = 4
+        _SignWidth ("간판 폭 (m, 높이는 폭의 절반)", Range(0, 8)) = 3.6
+
+        [Space(10)]
+        [Toggle(_WINDOW_NIGHT)] _NightOnly ("밤 전용 (낮 계산 생략)", Float) = 0
     }
 
     SubShader
@@ -64,10 +79,20 @@ Shader "CardShop/WindowView"
             float _WalkSpeed;
             float _ActorScale;
             float _PaneFrame;
+            float4 _SkyTopColor;
+            float4 _SkyHorizonColor;
+            float4 _StreetLampColor;
+            float _AccentLights;
+            float _SlimeRooms;
+            float4 _SignColor;
+            float _SignGlow;
+            float _SignOffset;
+            float _SignHeight;
+            float _SignWidth;
         CBUFFER_END
 
-        // core.hlsl 안에서 텍스처를 읽는 매크로.
-        #define SG_TEX(name, uv) SAMPLE_TEXTURE2D(name, sampler##name, uv)
+        // core.hlsl 안에서 텍스처를 읽는 매크로. 분기 안에서 읽으므로 밉맵 단계를 직접 준다.
+        #define SG_TEX_LOD(name, uv, lod) SAMPLE_TEXTURE2D_LOD(name, sampler##name, uv, lod)
 
         // core.hlsl 이 받는 입력. 창은 조명을 받지 않으므로 광원 값은 없고, 창 중심(centerWS)이 있다.
         struct SgInput
@@ -124,6 +149,8 @@ Shader "CardShop/WindowView"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
+            // 늘 밤인 창(집)은 낮 계산을 빼 둔다. 머티리얼에서 켠 조합만 빌드에 들어간다.
+            #pragma shader_feature_local_fragment _WINDOW_NIGHT
 
             float4 frag(Varyings v) : SV_Target
             {

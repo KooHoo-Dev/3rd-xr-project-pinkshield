@@ -17,462 +17,692 @@ MonoBehaviour:
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.017067198, y: 0.15462017, z: -0.013564829}
+    maskScale: 1.0114448
   - prefab: {fileID: 781533360851499330, guid: 1d495a0e463a6bb44b70c25502a022ea, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.01630215}
+    maskScale: 0.8460659
   - prefab: {fileID: 9169212391925830244, guid: ba3abdd03397b864c979430207e9103c, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.1880492, z: 0.01645353}
+    maskScale: 0.8460659
   - prefab: {fileID: 243625375064793283, guid: 4af186cf1f9219c47a9d8443fd365025, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.1880492, z: 0.014027234}
+    maskScale: 0.8460659
   - prefab: {fileID: 3511280355324795919, guid: c4c95a2a91970df419542e9eaaeba78c, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.0024813532, y: 0.13654613, z: -0.053969737}
+    maskScale: 1.25
   - prefab: {fileID: 5988885420621706848, guid: 432bdd090ef32ee4b96e6b5d5093180c, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.013899925, y: 0.13821149, z: -0.04759645}
+    maskScale: 1.25
   - prefab: {fileID: 7182255190191422324, guid: 7cbebb223576aaa46995c1f460dbd1ed, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.19191921, z: 0.016302135}
+    maskScale: 0.8460659
   - prefab: {fileID: 8046069727816651627, guid: 6659069b03aec3d41829762191e59a03, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.0056437883, y: 0.13534963, z: -0.03465273}
+    maskScale: 1.1324009
   - prefab: {fileID: 5899030634526246888, guid: 21b0482f8e8b3824bab55bfc22acd8f0, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.0024813532, y: 0.13654613, z: -0.055155333}
+    maskScale: 1.25
   - prefab: {fileID: 395348359549454106, guid: 0a9505291865f964d9a7f23618461b28, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.013481181}
+    maskScale: 0.8460659
   - prefab: {fileID: 8922496502831848654, guid: 9dcd26c80941fa44fa8ce2b51fbcc2f0, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.15268719, z: 0.01630215}
+    maskScale: 0.8460659
   - prefab: {fileID: 3511191122251682477, guid: c13bab14eed21b94993956321a4ec5a3, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.005212818, y: 0.15899515, z: 0.007646885}
+    maskScale: 0.8965791
   - prefab: {fileID: 4652901689657578974, guid: 03219b07f6f4e634eb9842514317df90, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.0056437883, y: 0.13534963, z: -0.036439437}
+    maskScale: 1.1324009
   - prefab: {fileID: 3655725037891713775, guid: e21b16c8da21d3748882edae8fe85e2f, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000027880117, y: 0.16681111, z: 0.016302159}
+    maskScale: 0.8460658
   - prefab: {fileID: 4354812468946983445, guid: 874e4cc165717684298387762ce66e2e, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.017067198, y: 0.15462017, z: -0.013641391}
+    maskScale: 1.0114448
   - prefab: {fileID: 4422666429975233077, guid: 6c301edb9c8fa6940a6d4e91b8728e54, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.15268719, z: 0.016453516}
+    maskScale: 0.8460659
   - prefab: {fileID: 8133673180590934331, guid: 8ab26ca9fcafe594c8a6670855db0c23, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000037565871, y: 0.15621316, z: -0.027078923}
+    maskScale: 1.0818428
   - prefab: {fileID: 950971595571712196, guid: 4e8d64d99a5f21646853fe816683889c, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.014027219}
+    maskScale: 0.8460659
   - prefab: {fileID: 2835984154060624451, guid: 98048391d8e840748bb0d3cd1f9b5368, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.017067198, y: 0.15462017, z: -0.012530569}
+    maskScale: 1.0114448
   - prefab: {fileID: 6444116013657083037, guid: 393c30d46a495eb4abb2be570a39c052, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.19191921, z: 0.016302135}
+    maskScale: 0.8460659
   - prefab: {fileID: 3060962071680639403, guid: 0e737310571897747aaae562fce497b4, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.0024813532, y: 0.13654613, z: -0.054121133}
+    maskScale: 1.25
   - prefab: {fileID: 7541517628369732320, guid: 09f03cee820d0d6488f0b7e082e64f01, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.013899925, y: 0.13821149, z: -0.04759645}
+    maskScale: 1.25
   - prefab: {fileID: 125032738119861007, guid: 0886323cd067fa049a2294c4d335416a, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.15268719, z: 0.01630215}
+    maskScale: 0.8460659
   - prefab: {fileID: 2475928470113644066, guid: edaf8b07a84de574b8d2bea333afdb1b, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.01630215}
+    maskScale: 0.8460659
   - prefab: {fileID: 2020538974458594895, guid: b58ff2985858c40439b416062460c8ae, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.1880492, z: 0.014027234}
+    maskScale: 0.8460659
   - prefab: {fileID: 7808873161916128668, guid: c678ba99aad6d474a85e16a186b549eb, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.016453516}
+    maskScale: 0.8460659
   - prefab: {fileID: 1422144417082672938, guid: a3278c303021a404294a2aacbc1ad261, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.19191921, z: 0.013481196}
+    maskScale: 0.8460659
   - prefab: {fileID: 2459942262584346277, guid: 3d0476802a12fae40b5af719378a0e61, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.0056437883, y: 0.13534963, z: -0.03361847}
+    maskScale: 1.1324009
   - prefab: {fileID: 8649271019238437460, guid: d6b7e9f93b9e0d54badf91f152f3181b, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.1880492, z: 0.016302165}
+    maskScale: 0.8460659
   - prefab: {fileID: 2591590474664377115, guid: b95aae9491cbff9409924455c96d8d6e, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.01526792}
+    maskScale: 0.8460659
   - prefab: {fileID: 2237743348912171678, guid: da8dbc8f467cc5b41a5373a1190880c7, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.016453516}
+    maskScale: 0.8460659
   - prefab: {fileID: 551846341105381661, guid: d896314c4fe68254eae626328eb13ef3, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000027880117, y: 0.1880492, z: 0.016302174}
+    maskScale: 0.8460658
   - prefab: {fileID: 3900763793246975244, guid: 558ec87f109ecff44acd4f246d29aa2a, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.15268719, z: 0.01526792}
+    maskScale: 0.8460659
   - prefab: {fileID: 2438881705336779763, guid: 39f7c861f0970dc428b5121b3704b4da, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.013899925, y: 0.13821149, z: -0.04759645}
+    maskScale: 1.25
   - prefab: {fileID: 4314021057670398993, guid: 1d80e5fd20e62084385518a1b9746079, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.0024813532, y: 0.13654613, z: -0.054121133}
+    maskScale: 1.25
   - prefab: {fileID: 610310811388695946, guid: b501591eda65446418b6185316e656f8, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.013899925, y: 0.13821149, z: -0.04759645}
+    maskScale: 1.25
   - prefab: {fileID: 5074891665075486605, guid: e0a3c6ad794edf14f9a28cedca6e9aeb, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.017067183, y: 0.15462017, z: -0.012530569}
+    maskScale: 1.0114448
   - prefab: {fileID: 3416495149556114149, guid: e2dad7e6c67780f45af13c0b52b3dad8, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.013481181}
+    maskScale: 0.8460659
   - prefab: {fileID: 555862080851798476, guid: 1767180353bc5f74ebfa14d3cebcb25f, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.005212818, y: 0.15899515, z: 0.007495519}
+    maskScale: 0.8965791
   - prefab: {fileID: 5574722080050076753, guid: 291af9197dde0bd40a8b80b493213dc4, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.15268719, z: 0.01630215}
+    maskScale: 0.8460659
   - prefab: {fileID: 2552421434266830490, guid: 8598e7dbf218b394481360465cee8560, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.0056437883, y: 0.13534963, z: -0.03361847}
+    maskScale: 1.1324009
   - prefab: {fileID: 9049457027446045054, guid: bc5f09cd356b12a47aca6e222374a995, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.0024813532, y: 0.13654613, z: -0.053969737}
+    maskScale: 1.25
   - prefab: {fileID: 7066333794465291414, guid: 5e57d7c5f03ef8c46926dcd897d9ff5c, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.0056437883, y: 0.13534963, z: -0.033467103}
+    maskScale: 1.1324009
   - prefab: {fileID: 8635158510138074041, guid: 6d0b139e5429c6f49b76fb6f1a7ca1d7, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.15268719, z: 0.013481181}
+    maskScale: 0.8460659
   - prefab: {fileID: 4024987559555183145, guid: d729321b3e4a0c2439dfa9c7325c24d9, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.014027219}
+    maskScale: 0.8460659
   - prefab: {fileID: 7423272609558938194, guid: 9452d686d6c45b2498bd2f4ce8ab86df, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000027880117, y: 0.16681111, z: 0.036755465}
+    maskScale: 0.8460658
   - prefab: {fileID: 358496899928349654, guid: 72b19aeed10a17142aa466bb57f5a2a5, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.15268719, z: 0.036755454}
+    maskScale: 0.8460659
   - prefab: {fileID: 4837946640048234224, guid: b39121b2fac9cb044a5d9b1d3dde6c50, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.15268719, z: 0.036755454}
+    maskScale: 0.8460659
   - prefab: {fileID: 3940021089401389722, guid: 5a2e23f659abaad4aaf377562aedf802, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000027880117, y: 0.16681111, z: 0.036755465}
+    maskScale: 0.8460658
   - prefab: {fileID: 7612107538032987220, guid: 1a1a29f13fcf6c94197c6175737d7aba, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.1880492, z: 0.03675547}
+    maskScale: 0.8460659
   - prefab: {fileID: 918767028926389430, guid: a07a79fe5cd0fe24081a9a0638dfac9b, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.0024813532, y: 0.13654613, z: -0.054121133}
+    maskScale: 1.25
   - prefab: {fileID: 2131098141810133929, guid: 251e24b6807aceb4bbbe99e88bd8c19f, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.19191921, z: 0.01645353}
+    maskScale: 0.8460659
   - prefab: {fileID: 6591426298162690746, guid: 10ac940e81b99b4409e2ae0fae4d26a4, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000037565871, y: 0.15621316, z: -0.025838252}
+    maskScale: 1.0818428
   - prefab: {fileID: 1991400585445445419, guid: 0736137f7ae71f54e94479446c08f48d, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.013899925, y: 0.13821149, z: -0.04759645}
+    maskScale: 1.25
   - prefab: {fileID: 3441097268717503658, guid: bcac1ce351df029428104bda3f59122f, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: 0.017067198, y: 0.15462017, z: -0.012530569}
+    maskScale: 1.0114448
   - prefab: {fileID: 7449186210709284022, guid: b0837e8b827595540be2d6a536d3752f, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.013481181}
+    maskScale: 0.8460659
   - prefab: {fileID: 7737963858675384136, guid: 24feda0122c36e249b41732612d7e79b, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.0056437883, y: 0.13534963, z: -0.03361847}
+    maskScale: 1.1324009
   - prefab: {fileID: 3687721442396756007, guid: 8ec2556cf592d7846957caa1ec37a8f5, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000037565871, y: 0.15621316, z: -0.024652626}
+    maskScale: 1.0818428
   - prefab: {fileID: 1577968875110953461, guid: 1b309c1c02b95fd4bbbb849e6be161b1, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.1880492, z: 0.016302165}
+    maskScale: 0.8460659
   - prefab: {fileID: 870168686052204314, guid: 77b7efae71390c449bc910c12d6e27d4, type: 3}
     gender: 1
     look: 0
     age: 0
+    maskOffset: {x: -0.00000024899884, y: 0.16681111, z: 0.01526792}
+    maskScale: 0.8460659
   - prefab: {fileID: 5155962873916933872, guid: 5048fd8cc5e3812418fc6b6bee62b3df, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000065188397, y: 0.14358807, z: -0.030753005}
+    maskScale: 1.1722193
   - prefab: {fileID: 4435057464839422671, guid: 636c3d629da6f6b40b9a10536f7c1351, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000026445377, y: 0.14574814, z: -0.0021832772}
+    maskScale: 1.0285646
   - prefab: {fileID: 3678418512172474297, guid: c1c8fbac634cc0b41840263e211f79e6, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000035386074, y: 0.14306223, z: 0.004582893}
+    maskScale: 1
   - prefab: {fileID: 495563021869945300, guid: 0b9ecf0c82f81574c90af9261dcbeec1, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.15671551, z: 0.058089092}
+    maskScale: 1
   - prefab: {fileID: 3152206784990767149, guid: 89ba6650f5c05b641b9f468d1bb365c6, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.0048927628}
+    maskScale: 1
   - prefab: {fileID: 890190552241080489, guid: 7333812526e5d7f4a9918b69b715a662, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.004892748}
+    maskScale: 1
   - prefab: {fileID: 2640588050781274168, guid: 28d013f6bf18e344bb1a2256cc17a92e, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.0000011212705, y: 0.15826607, z: 0.040206738}
+    maskScale: 1.0409555
   - prefab: {fileID: 2405786958328627338, guid: c12452012816d294881fec940ed1bf3b, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.14418185, z: 0.0011344068}
+    maskScale: 1
   - prefab: {fileID: 7688336687380344311, guid: ca5eab9d4ef41824593d6f8910a58eb1, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000035386074, y: 0.13459218, z: 0.0027967654}
+    maskScale: 1
   - prefab: {fileID: 7923670800328359737, guid: dc7533f34b7ff514c952c9f13c33b90e, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.17299688, z: 0.012583423}
+    maskScale: 0.9374884
   - prefab: {fileID: 179265779746670771, guid: 9e4341f1cfa99da4598844ae1142fd3d, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.14445436, z: -0.0043687113}
+    maskScale: 1
   - prefab: {fileID: 3165355932118336909, guid: e416b10a15123a34b8abfec835bf55fe, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000035386074, y: 0.13955843, z: 0.0027967803}
+    maskScale: 1
   - prefab: {fileID: 8766219304379407187, guid: 6a91c5a45bfadea4a816ce45092c17d6, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000065188397, y: 0.14358807, z: -0.028340328}
+    maskScale: 1.1722193
   - prefab: {fileID: 8605928044352749735, guid: 54a070d9a0b587044968e97afefdeed6, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.14306223, z: 0.004892748}
+    maskScale: 1
   - prefab: {fileID: 6987916907938472867, guid: 3e441819446dfce4fa442900daf984b0, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.1677829, z: -0.004368726}
+    maskScale: 1
   - prefab: {fileID: 3409090763626657487, guid: 6d1e803f2b77f1c4bbecfb4c8190b72b, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000035386074, y: 0.15671551, z: 0.058089092}
+    maskScale: 1
   - prefab: {fileID: 2547520864096503898, guid: 1fc42ab69d31008419fd309981c829ba, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000026445377, y: 0.14574814, z: -0.0038457103}
+    maskScale: 1.0285646
   - prefab: {fileID: 3452463315143778851, guid: cbee122d77d5d5a43a8316627eecdb85, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000065188397, y: 0.14358807, z: -0.027228523}
+    maskScale: 1.1722193
   - prefab: {fileID: 7230842372643017589, guid: 8fe1f79323ae8b04caf45f51792ae26a, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.1677829, z: 0.0048927628}
+    maskScale: 1
   - prefab: {fileID: 2999261171375050040, guid: 47a20ff9ad11b95449c944eb97550ea5, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13955843, z: 0.005082857}
+    maskScale: 1
   - prefab: {fileID: 6888662042994034391, guid: 152408c0a03df6842a29046c7049ff9b, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.004892748}
+    maskScale: 1
   - prefab: {fileID: 6205647229676089374, guid: daee0c151c706cc478999d7d9a4aa63c, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.14077723, z: 0.010170791}
+    maskScale: 0.9374884
   - prefab: {fileID: 3120158313844183248, guid: 9730edb746cbb3f4ea16be59fde503b6, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.0011344664}
+    maskScale: 1
   - prefab: {fileID: 3369997886148995392, guid: de60f1c19a92da14ab2814947b3cdd4c, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13955843, z: 0.005082857}
+    maskScale: 1
   - prefab: {fileID: 1139141828775363161, guid: 6ee9eb5af476f4f499d4089f6a145d7a, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000035386074, y: 0.14306223, z: 0.0027967803}
+    maskScale: 1
   - prefab: {fileID: 4569480025246245063, guid: e37347cbf59e3594aa8898a20fcba262, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000035386074, y: 0.16880262, z: 0.0027967654}
+    maskScale: 1
   - prefab: {fileID: 3439430114994320048, guid: 1a1a68ccd551d3a4ea32e0e2b9dbf2aa, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000026445377, y: 0.14574814, z: -0.00039716437}
+    maskScale: 1.0285646
   - prefab: {fileID: 9039873102757891866, guid: eef3a40e71330dc498505447455c0673, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.15671551, z: 0.058089092}
+    maskScale: 1
   - prefab: {fileID: 8062406919089553360, guid: 83ce4a5706576344ba5fe6166fee312e, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.0000011212705, y: 0.15826607, z: 0.040206738}
+    maskScale: 1.0409555
   - prefab: {fileID: 1658646545932328313, guid: 4d9ab8a4eb5ac394fb44828b456a4da3, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000065188397, y: 0.15724754, z: -0.025442455}
+    maskScale: 1.1722193
   - prefab: {fileID: 4013194735748843051, guid: 803b9a2b4004df24cbb00cca5e6c9c9d, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.0011344068}
+    maskScale: 1
   - prefab: {fileID: 5521029074669377743, guid: b187d42bd7e662244ba9f7f8f0da53db, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.1437527, z: 0.015481446}
+    maskScale: 0.9374884
   - prefab: {fileID: 4042991407772607528, guid: 9965ab6bc37f6a64bbb641776e109749, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.005082857}
+    maskScale: 1
   - prefab: {fileID: 6772465175157687365, guid: 4c67bb8083e9fbd46895e33c874a8b7e, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13878644, z: 0.015481371}
+    maskScale: 0.9374884
   - prefab: {fileID: 720056515358151551, guid: c3743ecfd36753a478e8dfdccb6a28be, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.0011344068}
+    maskScale: 1
   - prefab: {fileID: 444667346927129055, guid: 3516a82b2f449d14499922a9c29e4d2b, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.14077723, z: 0.010170791}
+    maskScale: 0.9374884
   - prefab: {fileID: 2661647526639023501, guid: f86350e01d68dbc43ac4f4c06f30e020, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000065188397, y: 0.14358807, z: -0.024942447}
+    maskScale: 1.1722193
   - prefab: {fileID: 2151304792932538328, guid: 0cf51b5a0c8758447a0ea8d543a0f741, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.15671551, z: 0.058089092}
+    maskScale: 1
   - prefab: {fileID: 831166425223743141, guid: 21f8d9db9438ad94bb2d67808f663919, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13955843, z: 0.005082857}
+    maskScale: 1
   - prefab: {fileID: 4978626142451538380, guid: 734839f7d6e70044fae9d950fe236a18, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000026445377, y: 0.14574814, z: -0.00039722398}
+    maskScale: 1.0285646
   - prefab: {fileID: 555534754333137616, guid: bac3b14d6997c42459f47b7fcfb2d0ef, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000035386074, y: 0.13658297, z: 0.0027967654}
+    maskScale: 1
   - prefab: {fileID: 7722680031922464976, guid: bed2fd26f2d10ad4482f40cf1181070d, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.1677829, z: 0.0048927628}
+    maskScale: 1
   - prefab: {fileID: 2645320221204796192, guid: c49cc6208e4f8364981b243e60c50af6, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.17299688, z: 0.012583423}
+    maskScale: 0.9374884
   - prefab: {fileID: 3519757685718201126, guid: 2e092c31ac1b7164b9b1e19b8df626b2, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.14418185, z: 0.004892748}
+    maskScale: 1
   - prefab: {fileID: 4584446179814518705, guid: 1ef6d2836fa41bf498e96150f2e1c484, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000065188397, y: 0.14358807, z: -0.03439403}
+    maskScale: 1.1722193
   - prefab: {fileID: 2564360980072601949, guid: ba191a569fa51ee4596820a5733d767d, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.0048927628}
+    maskScale: 1
   - prefab: {fileID: 1646622377947607978, guid: ccf1e04d58b4c2b45bfbce002047a971, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.16880262, z: 0.0016848706}
+    maskScale: 1
   - prefab: {fileID: 3973497849794596360, guid: 9d8e6a8704b862744a5ca623d459449a, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000035386074, y: 0.14445436, z: 0.0027967803}
+    maskScale: 1
   - prefab: {fileID: 7176126403832195840, guid: 5b557302e59f17340ac92268fba7c6cb, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.16090977, z: 0.06898758}
+    maskScale: 0.9374884
   - prefab: {fileID: 4850962885680753033, guid: 2e9d9fe78daf97843a04b04a37e04f92, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.14077723, z: 0.010170791}
+    maskScale: 0.9374884
   - prefab: {fileID: 8094027891788189300, guid: 790d7fa32d5bc4944b5c3fc8965e5ee1, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.14077723, z: 0.04757865}
+    maskScale: 0.9374884
   - prefab: {fileID: 887259193116117859, guid: 88ccf4fab7a355449b0375facf7a086b, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13955843, z: 0.036680177}
+    maskScale: 1
   - prefab: {fileID: 2966558696099379201, guid: 41dd83fca0678a344a5b4fc9717ffd79, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13658297, z: 0.036680162}
+    maskScale: 1
   - prefab: {fileID: 3135290345207526682, guid: bc92bad7553ef5c43a38d22d066aaa5e, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000065188397, y: 0.14358807, z: 0.0066548586}
+    maskScale: 1.1722193
   - prefab: {fileID: 2592492543570027158, guid: c9750e7889bf20a45b4a460ff330ba07, type: 3}
     gender: 0
     look: 0
     age: 0
+    maskOffset: {x: -0.00000032405842, y: 0.13459218, z: 0.036680177}
+    maskScale: 1
   localWeight: 85
   foreignWeight: 15
   noRepeatCount: 3

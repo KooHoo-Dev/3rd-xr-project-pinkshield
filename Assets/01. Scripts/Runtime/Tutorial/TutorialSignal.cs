@@ -56,5 +56,27 @@ namespace CardShop.Tutorial
         ClosingCleanupStarted = 72,
         ListedCardCheckout = 73,
         WalletViewed = 74,
+
+        // 경제 · 가구 튜토리얼 (튜토리얼_설계 13-4, DEC-040 · 041)
+        RareCardPicked = 80,         // 집: 바인더에서 수퍼레어 이상 카드를 고름
+        InstantSoldZero = 81,        // 집: 노멀 낱장을 팔려다 매입가 0
+        ListedSaleSettled = 82,      // 정산: 판매 등록 카드 판매 수입 > 0
+        SalesSlotsFull = 83,         // 집: 판매 칸이 다 참 (바인더 최고 단계가 아닐 때)
+        ListedCardsOnShelf = 84,     // 영업: 가게 진열대에 등록 카드가 있음
+        MarketSurgeToday = 85,       // 영업: 오늘 1순위 강도 ≥ 급등
+        ForecastStrengthVisible = 86,// 컴퓨터 2단계 이상
+        DeliveryArrived = 87,        // 집: 택배 초인종
+        ShowcaseSetPossible = 88,    // 집: 같은 속성 수퍼레어 이상 3장 보유
+        ShowcaseSetCompleted = 89,   // 집: 진열장 세트 완성
+        DecorInstalled = 90,         // 집: 꾸미기 설치
+        PosterInstalled = 91,        // 집: 포스터 설치
+        CozyRoomCompleted = 92,      // 집: 꾸미기 5종 완성
+        OnlineStallInstalled = 93,   // 집: 컴퓨터 3단계 (슬라임마켓)
+        UpgradeCreditShown = 94,     // 정산: "가구 덕분에" 줄이 있음
+        EndlessFirstDay = 95,        // 영업: 무한 모드 연장 첫날
+        MarketFallingToday = 96,     // 영업: 오늘 하락 속성이 있음
+        RecordSurgeToday = 97,       // 영업: 오늘 강도 = 역대급
+        LampInstalled = 98,          // 집: 조명 설치 (누르면 켜고 끔, T6)
+        AirConInstalled = 99,        // 집: 에어컨 설치 (누르면 켜고 끔, T6)
     }
 }

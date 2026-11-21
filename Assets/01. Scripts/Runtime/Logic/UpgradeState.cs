@@ -4,12 +4,12 @@ using CardShop.Cards;
 
 namespace CardShop.Logic
 {
-    /// <summary>한 분야의 택배 상태 (DEC-031 Q3: 사면 다음 날 아침 택배 → 잡아서 열면 바뀜).</summary>
+    /// <summary>한 분야의 택배 상태 (DEC-031 Q3 → DEC-040 U5: 사면 그날 밤 초인종과 함께 택배 → 잡아서 열면 바뀜, 효과는 다음 날 영업부터).</summary>
     public enum UpgradeStatus
     {
         /// <summary>주문한 것 없음</summary>
         None = 0,
-        /// <summary>오늘 샀음 → 다음 날 아침 도착</summary>
+        /// <summary>(DEC-040 U5 뒤로는 쓰지 않음 — 주문하면 바로 Arrived) 예전: 오늘 샀음 → 다음 날 아침 도착</summary>
         Ordered = 1,
         /// <summary>방에 택배 상자가 와 있음 (열면 단계가 오름)</summary>
         Arrived = 2,
@@ -46,10 +46,10 @@ namespace CardShop.Logic
             return list;
         }
 
-        /// <summary>주문 기록 (돈은 UpgradeRules가 지갑에서 뺌)</summary>
+        /// <summary>주문 기록 (돈은 UpgradeRules가 지갑에서 뺌). 그날 밤 바로 택배가 옴 (DEC-040 U5, 초인종 연출은 RoomUpgradeView)</summary>
         internal void Order(UpgradeKind kind, int price)
         {
-            status[kind] = UpgradeStatus.Ordered;
+            status[kind] = UpgradeStatus.Arrived;
             Spent += price;
             Changed?.Invoke();
         }
@@ -65,7 +65,7 @@ namespace CardShop.Logic
         }
 
         /// <summary>
-        /// 다음 날 아침: 어제 안 연 상자는 저절로 열고, 어제 주문한 것은 도착. 저절로 열린 분야를 돌려줍니다.
+        /// 다음 날 아침: 어제 안 연 상자는 저절로 열고, (예전 형식의) 주문 중인 것은 도착. 저절로 열린 분야를 돌려줍니다.
         /// GameSession.AdvanceDay가 부릅니다.
         /// </summary>
         public List<UpgradeKind> AdvanceDay()

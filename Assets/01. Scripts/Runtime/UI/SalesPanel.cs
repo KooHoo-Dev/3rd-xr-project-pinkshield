@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace CardShop.UI
 {
     /// <summary>
-    /// 집 책상 바인더 옆의 판매 패널 (시연 피드백 7-4).
+    /// 집 판매 패널 (시연 피드백 7-4). 씬에서는 바인더 옆이지만, 실행하면 SalesShowcasePage가 모니터 [판매 · 진열] 쪽으로 옮깁니다 (DEC-042).
     /// 바인더에서 카드를 고르면 이름 · 보유 장수 · 판매 등록 가능 여부 · 즉시 판매가 · 판매 등록 칸을 보여 주고,
     /// [판매 등록] [즉시 판매] [레어 이하 모두 팔기] 버튼과 판매 등록 중인 카드 목록(누르면 판매 등록 취소)을 둡니다.
     /// 모두 팔기는 실수 방지로 한 번 누르면 견적(장수 · 금액)을 보여 주고, ConfirmSeconds 안에 한 번 더 누르면 팝니다.
@@ -36,12 +36,16 @@ namespace CardShop.UI
         [SerializeField] Button sellAllButton;
         [Tooltip("판매 등록 중인 카드 버튼(판매 등록 칸 수만큼). 누르면 판매 등록 취소")]
         [SerializeField] Button[] displayedButtons;
+        [Tooltip("판매 등록 모두 내리기 (비우면 런타임에 [모두 팔기] 버튼을 복제해 목록 제목 오른쪽에 만듦, DEC-037)")]
+        [SerializeField] Button undisplayAllButton;
 
         string message = "";
         float sellAllArmedUntil = -1f; // 이 시각까지 한 번 더 누르면 팖
 
         protected override void OnEnable()
         {
+            if (undisplayAllButton == null) undisplayAllButton = CreateUndisplayAllButton();
+            if (undisplayAllButton != null) undisplayAllButton.onClick.AddListener(OnUndisplayAllClicked);
             displayButton.onClick.AddListener(OnDisplayClicked);
             sellButton.onClick.AddListener(OnSellClicked);
             if (sellAllButton != null) sellAllButton.onClick.AddListener(OnSellAllClicked);
@@ -59,6 +63,7 @@ namespace CardShop.UI
             displayButton.onClick.RemoveListener(OnDisplayClicked);
             sellButton.onClick.RemoveListener(OnSellClicked);
             if (sellAllButton != null) sellAllButton.onClick.RemoveListener(OnSellAllClicked);
+            if (undisplayAllButton != null) undisplayAllButton.onClick.RemoveListener(OnUndisplayAllClicked);
             foreach (Button b in displayedButtons) b.onClick.RemoveAllListeners();
             if (binder != null) binder.CardSelected -= OnCardSelected;
             base.OnDisable();
@@ -110,8 +115,12 @@ namespace CardShop.UI
             if (card == null || Context == null) return;
 
             bool sold = Context.Sales.TrySellInstantly(Context.Session, card.id, out int price);
-            message = sold ? $"{card.displayName} 판매  {MoneyText.Signed(price)}" : "보유한 카드가 없어요";
+            bool bulkOnly = !sold && Context.Session.Collection.CountOf(card.id) > 0 && Context.Sales.InstantPrice(card, Context.Session) <= 0;
+            message = sold ? $"{card.displayName} 판매  {MoneyText.Signed(price)}"
+                : bulkOnly ? $"{RarityName(card.rarity)}은 낱장 매입가가 없어요\n'{RarityName(SellAllMax)} 이하 모두 팔기'로 묶어서 팔아요"
+                : "보유한 카드가 없어요";
             if (sold) { Sfx.Play(SoundId.MoneyIn, transform.position); Context.Events.RaiseHappened(GameMoment.InstantSold); }
+            else if (bulkOnly) Context.Events.RaiseHappened(GameMoment.InstantSoldZero); // 튜토리얼 "노멀은 모아서" (13-3 ①)
             Refresh();
         }
 
@@ -164,6 +173,40 @@ namespace CardShop.UI
             Refresh();
         }
 
+        // 판매 등록은 다음 날까지 남으므로(DEC-037) 한 번에 모두 보유로 돌려놓는 버튼. 되돌릴 수 있어 확인은 없음
+        void OnUndisplayAllClicked()
+        {
+            if (Context == null) return;
+            int n = Context.Sales.ReturnUnsold(Context.Session);
+            message = n > 0 ? $"판매 등록 {n}장 모두 내림 (바인더로)" : DisplayEmpty;
+            Refresh();
+        }
+
+        // 씬 판을 다시 빌드하지 않도록 [모두 팔기]를 복제해 "판매 등록 중" 제목 줄 오른쪽에 둠
+        Button CreateUndisplayAllButton()
+        {
+            if (sellAllButton == null || displayedButtons == null || displayedButtons.Length == 0) return null;
+            Button b = Instantiate(sellAllButton, sellAllButton.transform.parent);
+            b.name = "Button_모두 내리기";
+            b.onClick.RemoveAllListeners();
+            var first = (RectTransform)displayedButtons[0].transform;
+            var rt = (RectTransform)b.transform;
+            float bottom = first.anchorMax.y + 0.01f;
+            rt.anchorMin = new Vector2(0.64f, bottom);
+            rt.anchorMax = new Vector2(first.anchorMax.x, bottom + 0.04f);
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            TMP_Text label = b.GetComponentInChildren<TMP_Text>();
+            if (label != null) { label.text = "모두 내리기"; label.fontSize = 18f; }
+            // 제목 글자는 왼쪽으로 좁혀 버튼과 겹치지 않게
+            Transform header = sellAllButton.transform.parent.Find("ListHeader");
+            if (header is RectTransform h)
+            {
+                h.anchorMax = new Vector2(0.62f, h.anchorMax.y);
+                if (h.TryGetComponent(out TMP_Text t)) t.alignment = TextAlignmentOptions.Left;
+            }
+            return b;
+        }
+
         // ------------------------------------------------------------------ 화면
 
         // 등급 이름은 CardRarityStyles 에셋의 label이 원본 (바인더와 같은 에셋)
@@ -171,6 +214,19 @@ namespace CardShop.UI
         {
             CardRarityStyles styles = binder != null ? binder.Styles : null;
             return styles != null ? styles.Get(r).label : r.ToString();
+        }
+
+        // 매입가 한 줄 (DEC-041): 노멀은 묶음 값, 판매 등록할 수 있는 카드는 가게 값과 비교
+        string BuybackLine(CardData card, GameSession session)
+        {
+            float value = Context.Sales.InstantValue(card, session);
+            int price = Context.Sales.InstantPrice(card, session);
+            if (price <= 0 && value > 0f)
+                return $"매입가  {Mathf.RoundToInt(1f / value)}장에 {MoneyText.Format(1)} (모두 팔기)";
+            string line = $"매입가  {MoneyText.Format(price)}";
+            if (Context.Sales.CanDisplay(card))
+                line += $"  ·  가게에 올리면 {MoneyText.Format(Context.EconomyRules.SellPrice(card, MarketDay.None))}+";
+            return line;
         }
 
         protected override void Redraw()
@@ -191,7 +247,7 @@ namespace CardShop.UI
                     : $"판매 등록 불가 ({RarityName(Context.Economy.minDisplayRarity)} 이상만)";
                 selectedLabel.text =
                     $"{card.displayName}  ({RarityName(card.rarity)})\n" +
-                    $"보유 {count}장\n{display}\n즉시 판매가  {MoneyText.Format(Context.Sales.InstantPrice(card, session))}";
+                    $"보유 {count}장\n{display}\n{BuybackLine(card, session)}";
             }
             displayButton.interactable = card != null;
             sellButton.interactable = card != null;
@@ -200,6 +256,8 @@ namespace CardShop.UI
                 bool armed = Time.unscaledTime <= sellAllArmedUntil;
                 sellAllButton.GetComponentInChildren<TMP_Text>().text = armed ? "한 번 더 눌러 판매" : $"{RarityName(SellAllMax)} 이하 모두 팔기";
             }
+
+            if (undisplayAllButton != null) undisplayAllButton.interactable = session.SalesDisplay.Count > 0;
 
             int slots = Context.Sales.SlotCount(session); // 바인더 업그레이드로 늘 수 있음
             displayedButtons = SalesListGrower.Grow(displayedButtons, slots, OnDisplayedClicked);

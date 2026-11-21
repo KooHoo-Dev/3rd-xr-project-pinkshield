@@ -26,6 +26,7 @@ namespace CardShop.Cards.EditorTools
         const string MeshPath = ArtDir + "/Meshes/CardMesh.asset";
         const string MatDir = "Assets/05. Shaders/Cards/Materials";
         const string BackTexPath = ArtDir + "/Back/card_back_placeholder.png";
+        const string ElementIconsPath = ArtDir + "/Icons/element_icons.png";
         const string PrefabPath = "Assets/03. Prefabs/Cards/Card.prefab";
         const string DataDir = "Assets/02. Data/Cards";
         const string StylesPath = DataDir + "/CardRarityStyles.asset";
@@ -322,17 +323,24 @@ namespace CardShop.Cards.EditorTools
             var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
             if (font == null) Debug.LogWarning($"[CardPrefabBuilder] Font not found: {FontPath}");
 
-            // 위치는 카드 UV(0~1) 기준 사각형
-            TMP_Text nameText = CreateText(visual, "Text_Name", font, new Rect(0.075f, 0.885f, 0.62f, 0.07f), TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
-            TMP_Text rarityText = CreateText(visual, "Text_Rarity", font, new Rect(0.70f, 0.89f, 0.225f, 0.055f), TextAlignmentOptions.MidlineRight, FontStyles.Bold);
-            TMP_Text descText = CreateText(visual, "Text_Description", font, new Rect(0.09f, 0.14f, 0.82f, 0.22f), TextAlignmentOptions.TopLeft, FontStyles.Normal);
-            TMP_Text priceText = CreateText(visual, "Text_Price", font, new Rect(0.09f, 0.055f, 0.82f, 0.06f), TextAlignmentOptions.MidlineRight, FontStyles.Normal);
+            // 위치는 카드 UV(0~1) 기준 사각형. 배치는 카드 캔버스 v2 (CardFront.shader의 띠 · 배지 · 바닥 줄과 맞춤)
+            TMP_Text nameText = CreateText(visual, "Text_Name", font, new Rect(0.075f, 0.885f, 0.73f, 0.07f), TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
+            TMP_Text infoText = CreateText(visual, "Text_Info", font, new Rect(0.11f, 0.364f, 0.78f, 0.036f), TextAlignmentOptions.MidlineLeft, FontStyles.Italic);
+            TMP_Text descText = CreateText(visual, "Text_Description", font, new Rect(0.09f, 0.13f, 0.82f, 0.23f), TextAlignmentOptions.TopLeft, FontStyles.Normal);
+            TMP_Text numberText = CreateText(visual, "Text_Number", font, new Rect(0.50f, 0.058f, 0.42f, 0.045f), TextAlignmentOptions.MidlineRight, FontStyles.Normal);
             descText.fontSizeMax = 0.32f;
-            rarityText.fontSizeMax = 0.4f;
-            priceText.fontSizeMax = 0.3f;
+            infoText.fontSizeMax = 0.13f;
+            numberText.fontSizeMax = 0.16f;
+            // 한 줄 글자: 줄바꿈하면 위로 넘쳐 그림 창을 덮으므로 끄고 자동 크기로만 맞춤
+            infoText.textWrappingMode = TextWrappingModes.NoWrap;
+            numberText.textWrappingMode = TextWrappingModes.NoWrap;
+
+            // 속성 배지 아이콘 (원본: Assets/98. Doc/카드_속성아이콘_원본.html)
+            var icons = AssetDatabase.LoadAssetAtPath<Texture2D>(ElementIconsPath);
+            if (icons == null) Debug.LogWarning($"[CardPrefabBuilder] Element icons not found: {ElementIconsPath}");
 
             var view = root.AddComponent<CardView>();
-            view.Configure(styles, mr, 0, nameText, rarityText, descText, priceText);
+            view.Configure(styles, mr, 0, nameText, icons, descText, infoText, numberText);
             view.Bind(sample);
             return root;
         }
@@ -409,6 +417,7 @@ namespace CardShop.Cards.EditorTools
             {
                 var data = Object.Instantiate(sample);
                 data.rarity = (CardRarity)r;
+                data.element = (CardElement)(r + 1); // 불 · 물 · 땅 · 공기 · 무속성 배지를 한 번에 확인
                 var card = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
                 card.GetComponent<Rigidbody>().isKinematic = true;
                 card.transform.position = new Vector3((r - 2) * 0.075f, 0, 0);

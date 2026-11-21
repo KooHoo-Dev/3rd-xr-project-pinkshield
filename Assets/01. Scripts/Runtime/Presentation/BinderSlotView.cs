@@ -33,6 +33,9 @@ namespace CardShop.Presentation
 
         bool selected;
         Coroutine flash;
+        BinderSlotCard slotCard; // 실제 카드 (실행할 때 만듦)
+        CardData shownCard;
+        bool labelsMoved;
 
         public Button Button => button;
 
@@ -69,6 +72,7 @@ namespace CardShop.Presentation
                 return;
             }
             gameObject.SetActive(true);
+            shownCard = card;
 
             art.texture = card.character;
             art.enabled = card.character != null;
@@ -94,6 +98,41 @@ namespace CardShop.Presentation
             }
             // 못 얻은 카드는 고를 수 없음 (선택 이벤트는 발견한 카드만)
             button.interactable = discovered;
+            ApplySleeve(discovered);
+        }
+
+        // UI 개편 11-20: 칸 그림 · 이름 대신 실제 카드(BinderSlotCard). 칸의 Frame은 투명하게 두고 레이 · 선택만 받음.
+        // 아래 꼬리표 줄: 가진 카드 = 장수 · 판매 등록 · 진열, 없는 카드 = 번호 (실행 중에만 — 에디터 씬은 예전 모습)
+        void ApplySleeve(bool discovered)
+        {
+            if (!Application.isPlaying || frame == null) return;
+            frame.color = Color.clear;
+            if (artBackground != null) artBackground.gameObject.SetActive(false);
+            if (!labelsMoved)
+            {
+                labelsMoved = true;
+                ToLabelRow(nameText);
+                ToLabelRow(countText);
+                countText.alignment = TextAlignmentOptions.Center;
+                nameText.alignment = TextAlignmentOptions.Center;
+            }
+            nameText.gameObject.SetActive(!discovered);
+            if (!discovered)
+            {
+                nameText.text = nameText.text.Replace("  ???", ""); // 점선 칸 아래 "No.3"
+                nameText.color = UiTheme.SoftSub;                   // 어두운 속지 위
+            }
+            if (slotCard == null) slotCard = gameObject.AddComponent<BinderSlotCard>();
+            slotCard.Show(shownCard, discovered);
+        }
+
+        static void ToLabelRow(TMP_Text t)
+        {
+            if (t == null) return;
+            var rt = (RectTransform)t.transform;
+            rt.anchorMin = new Vector2(0.02f, 0f);
+            rt.anchorMax = new Vector2(0.98f, 0.16f);
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
         }
 
         public void SetSelected(bool on)

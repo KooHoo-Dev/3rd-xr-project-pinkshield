@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: A_R1
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.CardData
   id: A-R1
+  number: 28
   kind: 0
   element: 4
   rarity: 1

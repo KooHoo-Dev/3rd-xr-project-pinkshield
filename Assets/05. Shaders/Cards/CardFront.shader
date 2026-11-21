@@ -28,6 +28,16 @@ Shader "CardShop/CardFront"
         _Rim ("Rim", Range(0, 1)) = 0
         _Glow ("Glow", Range(0, 2)) = 0
 
+        _MarkCount ("Rarity Mark Count", Float) = 1
+        _MarkColor ("Rarity Mark Color", Color) = (0.66, 0.68, 0.72, 1)
+        _MarkRainbow ("Rarity Mark Rainbow", Float) = 0
+        _MarkSparkle ("Rarity Mark Sparkle", Float) = 0
+
+        _IconTex ("Element Icons (horizontal atlas)", 2D) = "black" {}
+        _IconIndex ("Element Icon Index", Float) = 0
+        _IconCount ("Element Icon Count", Float) = 7
+        _HasIcon ("Has Icon", Float) = 0
+
         _CardSize ("Card Size (m)", Vector) = (0.063, 0.088, 0, 0)
         _Border ("Border (fraction of width)", Float) = 0.045
         _ArtRect ("Art Window (xMin, yMin, xMax, yMax)", Vector) = (0.075, 0.42, 0.925, 0.875)
@@ -62,6 +72,14 @@ Shader "CardShop/CardFront"
             half _Scroll;
             half _Rim;
             half _Glow;
+            float _MarkCount;
+            half4 _MarkColor;
+            float _MarkRainbow;
+            float _MarkSparkle;
+            float4 _IconTex_ST;
+            float _IconIndex;
+            float _IconCount;
+            float _HasIcon;
             float4 _CardSize;
             float _Border;
             float4 _ArtRect;
@@ -86,6 +104,7 @@ Shader "CardShop/CardFront"
 
             TEXTURE2D(_CharTex); SAMPLER(sampler_CharTex);
             TEXTURE2D(_BgTex);   SAMPLER(sampler_BgTex);
+            TEXTURE2D(_IconTex); SAMPLER(sampler_IconTex);
 
             struct Attributes
             {
@@ -136,6 +155,24 @@ Shader "CardShop/CardFront"
             half3 Rainbow(float h)
             {
                 return saturate(abs(frac(h + float3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0);
+            }
+
+            // 등급 마크 하나: 슬라임 돔(반원) 모양. q = 바닥 가운데 기준, 폭 반·높이로 나눈 좌표.
+            float DomeMask(float2 pM, float2 baseM, float2 halfSizeM, float aaM)
+            {
+                float2 q = (pM - baseM) / halfSizeM;
+                float d = (length(q) - 1.0) * halfSizeM.y;          // 둥근 윗부분까지 거리 (m)
+                float body = 1.0 - smoothstep(-aaM, aaM, d);
+                float bottom = smoothstep(-aaM, aaM, (pM.y - baseM.y));
+                return body * bottom;
+            }
+
+            // 네 갈래 반짝임
+            float SparkMask(float2 pM, float2 cM, float rM, float aaM)
+            {
+                float2 a = abs(pM - cM) / rM;
+                float s = sqrt(a.x) + sqrt(a.y);
+                return 1.0 - smoothstep(1.0 - aaM / rM * 3.0, 1.0 + aaM / rM * 3.0, s);
             }
 
             half4 frag(Varyings i) : SV_Target
@@ -196,15 +233,24 @@ Shader "CardShop/CardFront"
                 float4 lineR = float4(innerR.xy - b * 0.25, innerR.zw + b * 0.25);
                 float innerLine = RectMask(uv, lineR, aa) - inner;
                 col = lerp(col, _AccentColor.rgb, saturate(innerLine) * 0.8);
-                col = lerp(col, _PanelColor.rgb, inner);
-                // 일러스트 창 테두리 (창 모드)
+                // 안쪽 판: 위는 속성 색을 옅게, 아래로 갈수록 종이색 (카드 캔버스 v2)
+                half3 elemLight = lerp(_ElementColor.rgb, 1.0, 0.78);
+                half3 elemDeep = _ElementColor.rgb * 0.82;
+                half3 panel = lerp(_PanelColor.rgb, elemLight, smoothstep(0.3, 1.0, uv.y));
+                col = lerp(col, panel, inner);
+                // 일러스트 창 테두리 (창 모드): 속성 색
                 float4 winLineR = float4(artR.xy - 0.006, artR.zw + 0.006);
                 float winLine = (RectMask(uv, winLineR, aa) - art) * (1.0 - _FullArt);
-                col = lerp(col, _AccentColor.rgb, saturate(winLine));
+                col = lerp(col, elemDeep, saturate(winLine));
+                // 정보 띠 (창 아래, 가운데가 진하고 양끝이 흐려짐)
+                float strip = RectMask(uv, float4(0.09, 0.362, 0.91, 0.402), aa) * (1.0 - _FullArt);
+                strip *= 1.0 - pow(abs(uv.x - 0.5) / 0.41, 3.0);
+                col = lerp(col, lerp(elemLight, _ElementColor.rgb, 0.18), saturate(strip));
                 col = lerp(col, bgCol, art);
 
                 // 풀아트: 텍스트 영역 가독성용 그늘
-                float shade = (smoothstep(0.42, 0.06, uv.y) * 0.6 + smoothstep(0.84, 0.97, uv.y) * 0.5) * _FullArt * inner;
+                // 아래 그늘은 정보 띠(0.36~0.40)와 설명을 덮도록 0.5~0.3에서 진해짐 (카드 캔버스 v2)
+                float shade = (smoothstep(0.5, 0.3, uv.y) * 0.72 + smoothstep(0.84, 0.97, uv.y) * 0.5) * _FullArt * inner;
 
                 // 배경에만 들어가는 홀로 (캐릭터 아래)
                 float t = _Time.y;
@@ -215,6 +261,48 @@ Shader "CardShop/CardFront"
 
                 col = col * (1.0 - shade);
                 col = lerp(col, ch.rgb, charA);
+
+                // ---- 바닥 줄: 구분선 + 등급 마크 (가격 자리, 카드 캔버스 v2). 캐릭터보다 위에 그림.
+                float aaM = max(fwidth(pM.x), 1e-5);
+                float sepLine = RectMask(uv, float4(0.08, 0.116, 0.92, 0.119), aa);
+                col = lerp(col, _FullArt > 0.5 ? half3(1, 1, 1) : elemDeep, sepLine * 0.35);
+
+                float2 markHalf = float2(0.0016, 0.0024);           // 돔 하나: 폭 3.2mm, 높이 2.4mm
+                float markStep = 0.0037;
+                float2 markBase = float2(0.09, 0.072) * size + float2(markHalf.x, 0.0);
+                float marks = 0.0;
+                float markHi = 0.0;
+                half3 markCol = _MarkColor.rgb;
+                [unroll] for (int m = 0; m < 3; m++)
+                {
+                    float on = step((float)m + 0.5, _MarkCount);
+                    float2 baseM = markBase + float2(markStep * m, 0.0);
+                    marks = max(marks, DomeMask(pM, baseM, markHalf, aaM) * on);
+                    // 돔 왼쪽 위 광택 (작은 흰 타원)
+                    float2 hl = (pM - (baseM + float2(-markHalf.x * 0.35, markHalf.y * 0.62))) / float2(markHalf.x * 0.32, markHalf.y * 0.18);
+                    markHi = max(markHi, (1.0 - smoothstep(0.7, 1.0, length(hl))) * 0.6 * on);
+                }
+                if (_MarkRainbow > 0.5)
+                    markCol = Rainbow((pM.x - markBase.x) / (markHalf.x * 2.0) * 0.8 + 0.5) * 0.85 + 0.15;
+                col = lerp(col, markCol, marks);
+                col = lerp(col, 1.0, markHi * marks);
+                // 반짝임 (유니크 · 레전더리): 마지막 마크 오른쪽 위
+                float lastX = markBase.x + markStep * (max(_MarkCount, 1.0) - 1.0);
+                float spark = SparkMask(pM, float2(lastX + markHalf.x + 0.0012, markBase.y + markHalf.y * 0.9), 0.0011, aaM) * _MarkSparkle;
+                col = lerp(col, half3(1.0, 0.97, 0.8), spark);
+
+                // ---- 속성 배지 (오른쪽 위 원 + 흰 아이콘). 아이콘은 가로로 늘어선 아틀라스에서 _IconIndex 칸을 씀.
+                float2 badgeC = float2(0.875, 0.92) * size;
+                float badgeD = length(pM - badgeC);
+                float badge = 1.0 - smoothstep(0.0027 - aaM, 0.0027 + aaM, badgeD);
+                float badgeRing = (1.0 - smoothstep(0.0032 - aaM, 0.0032 + aaM, badgeD)) - badge;
+                col = lerp(col, half3(1, 1, 1), badgeRing);
+                col = lerp(col, _ElementColor.rgb * 0.66, badge);   // 옅은 속성 색(무속성 분홍 등)에서도 흰 아이콘이 보이게 더 진하게
+                float2 iconLocal = (pM - badgeC) / 0.0042 + 0.5;                 // 아이콘 칸: 지름 4.2mm
+                float iconIn = step(0.0, iconLocal.x) * step(iconLocal.x, 1.0) * step(0.0, iconLocal.y) * step(iconLocal.y, 1.0);
+                float2 iconUV = float2((_IconIndex + saturate(iconLocal.x)) / max(_IconCount, 1.0), saturate(iconLocal.y));
+                float icon = SAMPLE_TEXTURE2D(_IconTex, sampler_IconTex, iconUV).a * iconIn * _HasIcon;
+                col = lerp(col, half3(1, 1, 1), icon * badge);
 
                 // ---- 조명 (가독성을 위해 기본 밝기를 깔고 빛 반응을 더함)
                 float3 N = normalize(i.normalWS);

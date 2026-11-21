@@ -38,5 +38,7 @@ namespace CardShop.Core
         InstantSold,
         BinderBrowsed,
         WalletViewed,   // 손목 지갑이 보이게 손목을 돌림 (FIX C4)
+        InstantSoldZero, // 노멀 낱장 즉시 판매 → 매입가 0이라 안 팔림 (DEC-041)
+        DeliveryArrived, // 가구 택배 초인종 (DEC-040 U5)
     }
 }

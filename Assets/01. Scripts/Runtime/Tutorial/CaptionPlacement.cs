@@ -12,8 +12,13 @@ namespace CardShop.Tutorial
     {
         /// <summary>눈에서 (m)</summary>
         public const float Distance = 1.0f;
-        /// <summary>수평 정면보다 아래로 (도). 혼잣말(약 3°)보다 조금 낮게 — 손 · 물건을 덜 가리게 (11-19 2차)</summary>
-        public const float PitchDown = 10f;
+        /// <summary>수평 정면보다 아래로 (도). VR에서 눈이 편한 자리(수평 아래 0~30°) — 위로 두면 치켜떠야 해서 눈이 피곤함 (11-20)</summary>
+        public const float PitchDown = 12f;
+        /// <summary>
+        /// 정면에서 왼쪽으로 (도). 11-20 Play "카드 · 물건을 쥐면 자막이 가려짐 · 자막이 바인더를 가림" → 쥔 물건 · 보는 물건은
+        /// 가운데 ~ 오른손 쪽에 모이므로 자막은 왼쪽으로 비켜 둠 (판 폭 약 0.4m라 왼쪽 약 7~29°를 차지)
+        /// </summary>
+        public const float SideYaw = 18f;
         /// <summary>보는 방향에서 이만큼 넘게 벗어나면 "시야 밖" (도). Quest 시야 절반(약 45°)보다 조금 넓게</summary>
         public const float OutOfViewAngle = 50f;
         /// <summary>시야 밖이 이만큼 이어지면 다시 놓음 (초). 잠깐 둘러보는 것으로는 움직이지 않게</summary>
@@ -26,8 +31,8 @@ namespace CardShop.Tutorial
 
         /// <summary>
         /// 보는 방향 정면에 놓을 자리. 앞면(-Z)이 플레이어 쪽.
-        /// 높이: 수평 · 아래를 볼 때는 수평에서 PitchDown 아래 (계산대에서 손을 내려다볼 때 손을 가리지 않게),
-        /// 위를 볼 때만 시선보다 PitchDown 아래로 따라 올라감 (진열대 · 벽시계를 볼 때 시야 아래로 빠지지 않게).
+        /// 높이: 수평 · 아래를 볼 때는 수평에서 PitchDown 아래, 위를 볼 때만 시선보다 PitchDown 아래로 따라 올라감
+        /// (진열대 · 벽시계를 볼 때 시야 아래로 빠지지 않게). 좌우: 정면에서 왼쪽으로 SideYaw (쥔 물건 · 보는 물건을 비켜).
         /// </summary>
         public static Pose Front(Vector3 headPosition, Vector3 headForward)
         {
@@ -35,7 +40,7 @@ namespace CardShop.Tutorial
             if (flat.sqrMagnitude < 0.001f) flat = Vector3.forward; // 바로 위 · 아래를 볼 때
             float yaw = Quaternion.LookRotation(flat.normalized, Vector3.up).eulerAngles.y;
             float pitch = PitchFor(GazeDownAngle(headForward));
-            Vector3 dir = Quaternion.Euler(pitch, yaw, 0f) * Vector3.forward;
+            Vector3 dir = Quaternion.Euler(pitch, yaw - SideYaw, 0f) * Vector3.forward;
             return new Pose(headPosition + dir * Distance, Quaternion.LookRotation(dir, Vector3.up));
         }
 

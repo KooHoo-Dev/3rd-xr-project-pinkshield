@@ -1,0 +1,24 @@
+<svg viewBox="0 0 720 410" width="720" height="410" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, Malgun Gothic, sans-serif" font-size="13">
+<rect width="720" height="410" fill="#ffffff"/>
+<g transform="translate(10,14)">
+ <rect x="0" y="0" width="252" height="352" rx="14" fill="#f4f1ea" stroke="#333" stroke-width="1.5"/>
+ <rect x="11" y="11" width="230" height="330" fill="#e9f1ff" stroke="#5b8def" stroke-width="2"/>
+ <rect x="11" y="11" width="230" height="33" fill="#d9d9d9" opacity="0.85"/><text x="20" y="32" fill="#555">카드 이름 · 등급</text>
+ <rect x="11" y="225" width="230" height="116" fill="#d9d9d9" opacity="0.85"/><text x="20" y="247" fill="#555">설명</text><text x="20" y="329" fill="#555">가격</text>
+ <text x="126" y="125" text-anchor="middle" fill="#5b8def" font-weight="bold">그림 영역</text>
+ <text x="126" y="143" text-anchor="middle" fill="#5b8def">카드 전체를 채움</text>
+ <text x="126" y="374" text-anchor="middle" fill="#333">카드 63 × 88 mm</text>
+</g>
+<g transform="translate(360,10)">
+ <rect x="0" y="0" width="240" height="343" fill="#e9f1ff" stroke="#5b8def" stroke-width="2"/>
+ <rect x="0" y="0" width="240" height="34" fill="#d9d9d9" opacity="0.85"/><text x="120" y="22" text-anchor="middle" fill="#555">위 10% — 이름 (가려짐)</text>
+ <rect x="0" y="223" width="240" height="120" fill="#d9d9d9" opacity="0.85"/><text x="120" y="290" text-anchor="middle" fill="#555">아래 35% — 글자 (가려짐)</text>
+ <ellipse cx="120" cy="140" rx="92" ry="70" fill="#ffd3e2" stroke="#e0729a"/>
+ <text x="120" y="136" text-anchor="middle" fill="#b0446c" font-weight="bold">슬라임 얼굴과</text>
+ <text x="120" y="154" text-anchor="middle" fill="#b0446c" font-weight="bold">중요한 부분</text>
+ <line x1="248" y1="34" x2="248" y2="223" stroke="#e0729a" stroke-width="2"/>
+ <text x="254" y="132" fill="#b0446c" font-size="12">안전</text><text x="254" y="148" fill="#b0446c" font-size="12">띠</text>
+ <text x="120" y="368" text-anchor="middle" fill="#333" font-weight="bold">캔버스 2100 × 3000 px</text>
+ <text x="120" y="388" text-anchor="middle" fill="#777">레전더리는 프레임 위로 튀어나와도 됨</text>
+</g>
+</svg>

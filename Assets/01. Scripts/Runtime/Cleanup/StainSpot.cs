@@ -17,7 +17,12 @@ namespace CardShop.Cleanup
         const float ScrubRequired = 1.2f;   // 다 지우는 데 문지를 거리 (m, 약 2초)
         const float FloorLift = 0.004f;     // 바닥과 겹쳐 깜빡이지 않게
         const float MinShrink = 0.6f;       // 거의 다 지웠을 때 크기 비율
-        const float SoundGap = 0.35f;       // 쓱쓱 소리 간격 (초)
+        const float ScrubFadeIn = 0.08f;    // 문지르기 시작하면 이만큼(초) 만에 소리가 커짐
+        const float ScrubFadeOut = 0.25f;   // 멈추면 이만큼 만에 작아짐 (11-21 S4: 0.35초마다 새로 틀던 소리가 드릴처럼 들림 → 이어지는 한 줄)
+        const float ScrubHold = 0.12f;      // 마지막 문지름 뒤 이만큼은 계속 문지르는 중으로 봄 (프레임마다 끊기지 않게)
+        const float GlintPeriod = 3f;       // 반짝 간격 (초, 11-21 O2: 얼룩이 어디 있는지 잘 안 보임)
+        const float GlintSeconds = 0.45f;
+        const float GlintStrength = 0.45f;  // 흰빛 쪽으로 이만큼 밝아짐
         const float SlipPatienceSeconds = 3f; // 얼룩을 밟은 줄 손님 인내 시간 감소 (F6 ①)
         static readonly string[] SlipLines = { "으, 미끄러워!", "어머, 바닥이 왜 이래", "끈적끈적…" };
         static readonly Color[] Colors =
@@ -32,7 +37,8 @@ namespace CardShop.Cleanup
         MopStation station;
         SpriteRenderer look;
         Color baseColor;
-        float radius, remaining = 1f, nextSound;
+        float radius, remaining = 1f, lastScrubTime = -1f, glintPhase;
+        AudioSource scrubLoop;
         Vector3 lastHead;
         bool hasLast;
 
@@ -58,11 +64,14 @@ namespace CardShop.Cleanup
             spot.look.sprite = Blob();
             spot.baseColor = Colors[random.Range(0, Colors.Length)];
             spot.look.color = spot.baseColor;
+            spot.glintPhase = (float)random.NextDouble() * GlintPeriod; // 얼룩마다 반짝이는 때를 어긋나게
             return spot;
         }
 
         void Update()
         {
+            UpdateScrubSound();
+            if (!IsDone) Glint();
             if (!IsDone && (IsPaused == null || !IsPaused())) CheckSlips();
             if (IsDone || mop == null || !mop.IsHeld || (IsPaused != null && IsPaused())) { hasLast = false; return; }
             Vector3 head = mop.HeadPosition;
@@ -71,6 +80,33 @@ namespace CardShop.Cleanup
             if (scrubbed > 0f) Scrub(scrubbed, (head - lastHead) / dt);
             lastHead = head;
             hasLast = true;
+        }
+
+        // 문지르는 동안만 이어지는 걸레질 소리 (반복 클립 하나, 크기만 올리고 내림)
+        void UpdateScrubSound()
+        {
+            bool scrubbing = !IsDone && lastScrubTime >= 0f && Time.time - lastScrubTime < ScrubHold;
+            if (scrubLoop == null)
+            {
+                if (!scrubbing) return;
+                scrubLoop = Sfx.CreateLoop(SoundId.MopScrub, gameObject);
+                if (scrubLoop == null) return;
+            }
+            float target = scrubbing ? Sfx.LoopVolume(SoundId.MopScrub) : 0f;
+            float speed = Sfx.LoopVolume(SoundId.MopScrub) / (scrubbing ? ScrubFadeIn : ScrubFadeOut);
+            scrubLoop.volume = Mathf.MoveTowards(scrubLoop.volume, target, speed * Time.unscaledDeltaTime);
+            if (scrubLoop.volume > 0f && !scrubLoop.isPlaying) scrubLoop.Play();
+            else if (scrubLoop.volume <= 0f && scrubLoop.isPlaying) scrubLoop.Pause();
+        }
+
+        // 물기가 빛을 받은 것처럼 몇 초마다 한 번 밝아짐 (바닥 표시 · 화살표 없이 세상 속에서 찾게, DEC-033 원칙)
+        void Glint()
+        {
+            float t = (Time.time + glintPhase) % GlintPeriod;
+            float k = t < GlintSeconds ? Mathf.Sin(t / GlintSeconds * Mathf.PI) * GlintStrength : 0f;
+            Color c = Color.Lerp(baseColor, new Color(1f, 1f, 1f, baseColor.a), k);
+            c.a *= remaining;
+            look.color = c;
         }
 
         // 얼룩 위를 지나는 손님(쏟고 나가는 손님은 빼고)은 한 번 "미끄러워!" + 줄에 서 있으면 인내 시간 −3초 (F6 ①)
@@ -96,7 +132,7 @@ namespace CardShop.Cleanup
             look.color = c;
             transform.localScale = Vector3.one * (radius * 2f * Mathf.Lerp(MinShrink, 1f, remaining)); // 가장자리부터 작아짐
             if (station != null) station.Scrub(velocity);
-            if (Time.time >= nextSound) { Sfx.Play(SoundId.MopScrub, transform.position); nextSound = Time.time + SoundGap; }
+            lastScrubTime = Time.time;
             if (remaining > 0f) return;
 
             Sfx.Play(SoundId.StainClean, transform.position);

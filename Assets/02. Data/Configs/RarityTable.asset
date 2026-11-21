@@ -15,21 +15,26 @@ MonoBehaviour:
   entries:
   - basePrice: 1
     customerBuyChance: 0.8
+    buybackPrice: 0.2
     revealColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
     highlightInBox: 0
   - basePrice: 5
     customerBuyChance: 0.6
+    buybackPrice: 1
     revealColor: {r: 0.35, g: 0.65, b: 1, a: 1}
     highlightInBox: 1
   - basePrice: 20
     customerBuyChance: 0.35
+    buybackPrice: 5
     revealColor: {r: 0.7, g: 0.4, b: 1, a: 1}
     highlightInBox: 1
   - basePrice: 100
     customerBuyChance: 0.12
+    buybackPrice: 25
     revealColor: {r: 1, g: 0.45, b: 0.75, a: 1}
     highlightInBox: 1
   - basePrice: 500
     customerBuyChance: 0.03
+    buybackPrice: 100
     revealColor: {r: 1, g: 0.82, b: 0.25, a: 1}
     highlightInBox: 1

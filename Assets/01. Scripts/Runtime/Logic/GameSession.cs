@@ -16,6 +16,8 @@ namespace CardShop.Logic
         public List<string> SalesDisplay { get; } = new List<string>();
         /// <summary>방 진열장에 세운 카드 (E1). 보유 목록에서 빠져 있어 팔 수 없고, 최종 점수에는 카드 가치로 들어갑니다 (ShowcaseRules).</summary>
         public List<string> Showcase { get; } = new List<string>();
+        /// <summary>컴퓨터 3단계 슬라임마켓에 올린 카드 (없으면 null). 보유 목록에서 빠져 있음 (OnlineStallRules, DEC-040 U2)</summary>
+        public string OnlineStall { get; set; }
         /// <summary>방 업그레이드 단계 · 택배 · 쓴 돈 (E2)</summary>
         public UpgradeState Upgrades { get; } = new UpgradeState();
         public DayLedger Ledger { get; private set; } = new DayLedger();
@@ -34,7 +36,7 @@ namespace CardShop.Logic
             Day++;
             Previous = Ledger;
             Ledger = new DayLedger();
-            Upgrades.AdvanceDay(); // 어제 산 가구는 오늘 아침 택배로 도착
+            Upgrades.AdvanceDay(); // 어젯밤 안 연 택배 상자는 아침에 저절로 열림 (DEC-040 U5)
         }
     }
 
@@ -128,6 +130,12 @@ namespace CardShop.Logic
         public bool godPack;
         public bool legendaryPack;
         public readonly List<Sale> sales = new List<Sale>();
+        // "가구 덕분에" 정산 줄 (DEC-040, UpgradeCredits)
+        public int extraSlotSales;      // 바인더로 늘린 판매 칸에서 팔린 장수
+        public int extraSlotNet;        // 그 수령액
+        public int patienceSaved;       // 침대 덕분에 기다려 준 손님 (기본 인내 시간을 넘겨 계산)
+        public string onlineSaleCard;   // 어젯밤 슬라임마켓에서 팔린 카드 이름 (없으면 null)
+        public int onlineSaleNet;       // 그 수령액 (밤에 바로 지갑에 들어옴)
     }
 
     public sealed class SessionStats

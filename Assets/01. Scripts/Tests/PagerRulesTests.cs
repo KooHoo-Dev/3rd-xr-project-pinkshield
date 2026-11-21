@@ -20,6 +20,14 @@ namespace CardShop.Tests
         }
 
         [Test]
+        public void ThreePages_MiddleGoesBothWays() // DEC-042: 커뮤니티 · 마켓 · 판매 · 진열
+        {
+            Assert.AreEqual(2, PagerRules.AfterDrag(1, 3, -300f, 1000f));
+            Assert.AreEqual(0, PagerRules.AfterDrag(1, 3, 300f, 1000f));
+            Assert.AreEqual(2, PagerRules.AfterDrag(2, 3, -500f, 1000f));
+        }
+
+        [Test]
         public void StopsAtEnds()
         {
             Assert.AreEqual(1, PagerRules.AfterDrag(1, 2, -500f, 1000f));

@@ -1,0 +1,35 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>속성 아이콘 원본</title>
+<!-- 카드 앞면 속성 배지 아이콘 아틀라스 원본 (DEC-039).
+     순서: 0 불 · 1 물 · 2 땅 · 3 공기 · 4 무속성 · 5 필드 · 6 알. 칸 하나 128 x 128, 흰색 실루엣 + 투명 배경.
+     다시 만들기: Edge headless로 896 x 128, --default-background-color=00000000 스크린샷
+     → Assets/04. Art/Cards/Icons/element_icons.png
+     아바타 상징(불의 나라 불꽃 문장 · 물 부족 달 · 공기 유목민 세 갈래 소용돌이 등)과 닮지 않게: 공기는 깃털, 땅은 보석. -->
+<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}svg{display:block}</style></head><body>
+<svg width="896" height="128" viewBox="0 0 896 128" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <mask id="mFeather"><rect width="128" height="128" fill="#fff"/><path d="M34 100 C52 74 72 50 92 28" stroke="#000" stroke-width="5" fill="none" stroke-linecap="round"/>
+   <path d="M60 64 L46 56 M70 52 L58 42 M54 74 L66 80 M64 62 L78 68" stroke="#000" stroke-width="3.5" stroke-linecap="round"/></mask>
+  <mask id="mSlime"><rect width="128" height="128" fill="#fff"/><circle cx="48" cy="72" r="7" fill="#000"/><circle cx="80" cy="72" r="7" fill="#000"/>
+   <path d="M58 86 q3 4 6 0 q3 4 6 0" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/></mask>
+  <mask id="mDrop"><rect width="128" height="128" fill="#fff"/><ellipse cx="50" cy="84" rx="6" ry="12" transform="rotate(-20 50 84)" fill="#000"/></mask>
+  <mask id="mFire"><rect width="128" height="128" fill="#fff"/><path d="M64 70 C70 80 76 86 76 96 A12 12 0 0 1 52 96 C52 86 58 80 64 70 Z" fill="#000"/></mask>
+ </defs>
+ <g fill="#fff">
+  <!-- 0 불: 불꽃 -->
+  <g transform="translate(0 0)"><path mask="url(#mFire)" d="M64 10 C72 36 98 50 98 82 A34 34 0 0 1 30 82 C30 62 42 52 48 42 C52 54 58 60 62 62 C66 46 58 30 64 10 Z"/></g>
+  <!-- 1 물: 물방울 -->
+  <g transform="translate(128 0)"><path mask="url(#mDrop)" d="M64 12 C80 40 98 60 98 82 A34 34 0 0 1 30 82 C30 60 48 40 64 12 Z"/></g>
+  <!-- 2 땅: 보석 -->
+  <g transform="translate(256 0)"><polygon points="40,22 88,22 106,46 22,46"/><polygon points="22,52 106,52 64,110"/></g>
+  <!-- 3 공기: 깃털 -->
+  <g transform="translate(384 0)"><path mask="url(#mFeather)" d="M100 16 C64 18 34 46 30 92 L24 112 L36 102 C74 98 100 66 100 16 Z"/></g>
+  <!-- 4 무속성: 슬라임 돔 -->
+  <g transform="translate(512 0)"><path mask="url(#mSlime)" d="M16 102 C16 58 36 32 64 32 C92 32 112 58 112 102 C106 108 90 109 64 109 C38 109 22 108 16 102 Z"/></g>
+  <!-- 5 필드: 산과 해 -->
+  <g transform="translate(640 0)"><polygon points="8,106 50,40 72,74 86,56 120,106"/><circle cx="96" cy="30" r="13"/></g>
+  <!-- 6 알: 알 -->
+  <g transform="translate(768 0)"><path d="M64 12 C90 12 104 56 104 80 A40 40 0 0 1 24 80 C24 56 38 12 64 12 Z"/></g>
+ </g>
+</svg>
+</body></html>

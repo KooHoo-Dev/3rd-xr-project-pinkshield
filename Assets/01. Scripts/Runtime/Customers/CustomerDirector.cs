@@ -182,15 +182,18 @@ namespace CardShop.Customers
         public void CheerThiefCaught(float bonusSeconds)
         {
             checkout.Cheer(bonusSeconds);
-            Vector3? cheerAt = null;
+            Vector3 sum = Vector3.zero;
+            int count = 0;
             foreach (CustomerAgent a in agents)
             {
                 if (a.State == CustomerState.Leave || a.Bubble == null) continue;
-                if (cheerAt == null) cheerAt = a.Bubble.transform.position;
+                sum += a.Bubble.transform.position;
+                count++;
                 if (Chance(0.6f)) a.Bubble.Say(Pick(HeroLines), 2.2f);
             }
-            // 환호 "후~"는 가게 손님 쪽에서 (11-20 G6: 도둑 자리에서 나니 도둑이 환호하는 것 같았음). 손님이 없으면 플레이어 쪽
-            if (cheerAt != null) Sfx.Play(SoundId.ThiefCaughtCheer, cheerAt.Value);
+            // 환호 "후~"는 손님들 가운데에서 넓게 (11-20 G6: 도둑 자리에서 나니 도둑이 환호하는 것 같았음).
+            // 11-21 S1: 첫 손님 한 명 자리에서 내니 그 손님이 남자면 여자 "ooh"를 내는 것처럼 들림 → 여러 명 가운데 · 공간감 낮게
+            if (count > 0) Sfx.Play(SoundId.ThiefCaughtCheer, sum / count, 0.4f);
             else Sfx.Play(SoundId.ThiefCaughtCheer);
         }
 
@@ -265,7 +268,10 @@ namespace CardShop.Customers
             lines ??= new CustomerLines(lineSet != null ? lineSet.lines : null, context != null ? context.Random : null);
             agent.Bubble.Say(lines.Pick(moment, cardName), lineSet != null ? lineSet.bubbleSeconds : 2.8f);
             // 말풍선과 함께 짧은 목소리 (오 · 와우 · 재촉 · 화남, 성별 · 나이별) — 칸이 모두 비면 조용
-            Sfx.PlayFirst(CustomerVoices.Candidates(moment, agent.IsFemale, agent.IsYoung), agent.Bubble.transform.position, agent.VoiceSeed);
+            string played = Sfx.PlayFirst(CustomerVoices.Candidates(moment, agent.IsFemale, agent.IsYoung), agent.Bubble.transform.position, agent.VoiceSeed);
+            // 11-21 피드백 S1: 남자가 여자 소리를 내면 logcat 이 줄로 모델을 찾아 로스터 성별을 고침
+            if (Debug.isDebugBuild && played != null)
+                Debug.Log($"[Voice] {agent.name} {(agent.IsFemale ? "여자" : "남자")}{(agent.IsYoung ? " 젊음" : "")} {moment} → {played}");
         }
 
         void Remove(CustomerAgent agent)

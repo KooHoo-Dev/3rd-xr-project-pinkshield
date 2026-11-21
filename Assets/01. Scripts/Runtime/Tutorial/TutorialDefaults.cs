@@ -36,6 +36,12 @@ namespace CardShop.Tutorial
         public const string BedButton = "bed-button";
         public const string SalesPanel = "sales-panel";
         public const string Community = "community-screen";
+        // 경제 · 가구 튜토리얼 (13장): 집에 그때그때 생기는 물건 (TutorialTargets.MarkDynamic)
+        public const string DeliveryBox = "delivery-box";
+        public const string Showcase = "showcase";
+        public const string DecorPoster = "poster";
+        public const string DecorLamp = "lamp";
+        public const string DecorAirCon = "aircon";
 
         /// <summary>첫 계산 정지 단계 key (끝나기 전이면 첫 손님 물건을 1개로 고정, 9장 Q2)</summary>
         public const string PayHoldKey = "pay-hold";
@@ -43,7 +49,15 @@ namespace CardShop.Tutorial
         /// <summary>기다림 · 정지 단계의 안전 시간 (초). 신호가 끝내 오지 않아도 진행이 영영 멈추지 않게 (Intro는 이게 없으면 출시 빌드에서 못 넘어감)</summary>
         public const float SafetySeconds = 120f;
 
-        public static List<TutorialStep> Steps() => new List<TutorialStep>
+        /// <summary>기본 단계 + 경제 · 가구 단계 (TutorialEconomyDefaults, 튜토리얼_설계 13장)</summary>
+        public static List<TutorialStep> Steps()
+        {
+            List<TutorialStep> steps = BaseSteps();
+            steps.AddRange(TutorialEconomyDefaults.Steps());
+            return steps;
+        }
+
+        static List<TutorialStep> BaseSteps() => new List<TutorialStep>
         {
             // ---------------------------------------------------------------- Intro (1일차 출근, 시간 없음)
             Say("intro-hello", GamePhaseId.Intro, "어서 와, 알바야! 오늘부터 7일이야.\n잘 버티면 정직원 시켜 줄게!", 4.5f, day: 1),
@@ -77,7 +91,7 @@ namespace CardShop.Tutorial
 
             // 청소 (처음 생길 때 정지, DEC-028)
             On(Hold("trash-1", TutorialSignal.TrashBinned, "누가 쓰레기를 버렸네…\n집어서 쓰레기통 위에서 놓아.",
-                "멀면 레이저로 잡고 왼손 트리거를 꾹 → 당겨져!", Trash, TrashBin), TutorialSignal.TrashSpawned),
+                "멀면 레이저로 잡고 트리거를 꾹 → 당겨져!", Trash, TrashBin), TutorialSignal.TrashSpawned),
             Say("trash-done", GamePhaseId.Business, "깨끗! 치운 만큼 알바비 +{cleanupBonus}야.", 3.5f, startOn: TutorialSignal.TrashBinned),
             Say("closing", GamePhaseId.Business, "문 닫았어! 남은 손님 계산하고\n{closingCleanupSeconds}초 안에 청소 마무리!", 5f,
                 day: 1, startOn: TutorialSignal.BusinessClosing),
@@ -92,7 +106,7 @@ namespace CardShop.Tutorial
             On(Hold("stain-1", TutorialSignal.StainCleaned, "음료를 쏟았네! 오른쪽 대걸레로\n얼룩 위를 쓱쓱 문질러.",
                 "대걸레를 그립으로 잡고 바닥에 대고 문질러!", Broom, Stain), TutorialSignal.StainSpawned),
             // 판매 등록 카드 첫 손님: 읽는 동안만 멈춤, 계산은 평소처럼
-            On(Hold("listed-1", TutorialSignal.None, "판매 등록한 카드를 사 가는 손님이야!\n찍어서 팔면 카드 값이 들어와.",
+            On(Hold("listed-1", TutorialSignal.None, "판매 등록 카드 손님이야! 찍어서 팔면\n바로 판 값보다 훨씬 많이 받아.",
                 null, ItemToScan), TutorialSignal.ListedCardCheckout, seconds: 4.5f),
 
             // 3일차부터: 첫 도둑
@@ -136,18 +150,20 @@ namespace CardShop.Tutorial
             new TutorialStep
             {
                 key = "home-binder", phase = GamePhaseId.Home, doneOn = TutorialSignal.BinderBrowsed, speaker = TutorialSpeaker.Self,
-                seconds = 4f, timeout = 20f, line = "오늘 뽑은 카드, 바인더에 들어왔겠지?\n책상으로 가 보자.", targets = new[] { Binder },
+                seconds = 4f, timeout = 20f, line = "오늘 뽑은 카드, 바인더에 들어왔겠지?\n책상 위 바인더부터 보자.", targets = new[] { Binder },
             },
-            Then(Self("home-bed", "★ 표시는 내일 잘 팔리는 속성이야.\n이제 불 끄고 자자.", 5f, BedButton), "home-binder"),
-            Self("home-instant", "급하면 즉시 판매도 돼.\n대신 값은 좀 덜 받아.", 5f, SalesPanel, fromDay: 2),
-            Then(Self("home-community", "컴퓨터로 내일 인기 속성을\n미리 볼 수 있었지!", 5f, Community, fromDay: 2), "home-instant"),
-            // 모니터 두 번째 쪽 = 슬라임마켓 (11-20 J1 Q7)
-            Then(Self("home-market", "모니터 옆 버튼을 누르거나 화면을 잡고\n옆으로 밀면 슬라임마켓이야!", 5f, Community, fromDay: 2), "home-community"),
+            Then(Self("home-bed", "★은 인기 1순위, ☆은 2순위야.\n이제 불 끄고 자자.", 5f, BedButton), "home-binder"),
+            // 13-2: 즉시 판매 = 매입가(헐값)임을 숫자로 (DEC-041). 노멀 묶음 판매는 home-bulk-zero가 안전망
+            Self("home-buyback", "바인더에서 고르면 모니터가 판매 쪽으로!\n바로 팔면 매입가라 헐값이야.", 5f, SalesPanel, fromDay: 2),
+            Then(Self("home-community", "커뮤니티에 인기 1순위 · 2순위가 떠.\n2순위는 1순위의 절반쯤 올라.", 5f, Community, fromDay: 2), "home-buyback"),
+            // 모니터 두 번째 쪽 = 슬라임 홈쇼핑 (11-20 J1 Q7), 세 번째 = 판매 · 진열 (DEC-042)
+            // 13-6 T5: 2일차 집 안내가 몰려 3일차로 옮김. 가구는 그날 밤 택배 (DEC-040 U5)
+            Self("home-market", "모니터를 옆으로 밀면 슬라임 홈쇼핑.\n가구를 사면 오늘 밤 바로 와!", 5f, Community, fromDay: 3),
             new TutorialStep
             {
                 key = "home-sales", phase = GamePhaseId.Home, fromDay = 2, after = "home-community", startOn = TutorialSignal.DisplayableCardOwned,
                 doneOn = TutorialSignal.SalesRegistered, speaker = TutorialSpeaker.Self, seconds = 5f, timeout = 20f,
-                line = "수퍼레어 이상은 판매 등록하면\n내일 손님이 사 갈지도.", targets = new[] { SalesPanel },
+                line = "수퍼레어 이상은 판매 등록!\n내일 가게에서 제값에 팔려.", targets = new[] { SalesPanel },
             },
         };
 
@@ -157,7 +173,7 @@ namespace CardShop.Tutorial
             "첫날 환영해!\n알바 수칙은 뒤쪽 벽에\n붙여 놨어. — 사장",
             "손님들이 팩 꽂이를 흐트러뜨려.\n떨어진 팩은 빈 칸에 꽂아 줘.\n— 사장",
             "요즘 복면 쓴 녀석이\n무료 팩을 노린대.\n대걸레는 카운터 옆! — 사장",
-            "",
+            "좋은 카드는 바로 팔지 말고\n판매 등록! 가게가 제값이야.\n— 사장", // 4일차 (튜토리얼_설계 13-2)
             "주말이라 손님이 많을 거야.\n계산은 빠르게! — 사장",
             "",
             "오늘이 마지막 날.\n끝나면 7일 평가 있다! — 사장",

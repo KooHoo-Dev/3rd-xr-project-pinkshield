@@ -40,14 +40,16 @@ namespace CardShop.Core
         public PackRoller PackRoller { get; private set; }
         public PackOpeningService PackOpening { get; private set; }
         public SalesRules Sales { get; private set; }
+        /// <summary>컴퓨터 3단계 슬라임마켓 (DEC-040 U2)</summary>
+        public OnlineStallRules OnlineStall { get; private set; }
         public ScoreRules ScoreRules { get; private set; }
         /// <summary>방 업그레이드 판단 (Resources/UpgradeCatalog — 씬에 연결하지 않아도 됨, 집_업그레이드_설계)</summary>
         public UpgradeRules Upgrades { get; private set; }
-        /// <summary>새 게임마다 다시 뽑는 일차별 인기 속성 일정.</summary>
-        public PopularElementSchedule PopularElements { get; private set; }
+        /// <summary>새 게임마다 다시 뽑는 일차별 시세 일정 (1순위 · 2순위 인기 속성과 강도, DEC-041).</summary>
+        public MarketSchedule Market { get; private set; }
 
-        /// <summary>오늘의 인기 속성.</summary>
-        public CardElement PopularToday => PopularElements.For(Session.Day);
+        /// <summary>오늘의 시세.</summary>
+        public MarketDay MarketToday => Market.For(Session.Day);
 
         void Awake()
         {
@@ -65,6 +67,7 @@ namespace CardShop.Core
             PackRoller = new PackRoller(packOdds, cardDatabase, Random);
             PackOpening = new PackOpeningService(() => Session, PackRoller, economy);
             Sales = new SalesRules(economy, rarityTable, EconomyRules, cardDatabase, Random, Upgrades);
+            OnlineStall = new OnlineStallRules(economy, rarityTable, EconomyRules, cardDatabase, Random);
             ScoreRules = new ScoreRules(score, rarityTable, cardDatabase);
             StartNewSession();
         }
@@ -78,7 +81,7 @@ namespace CardShop.Core
         public void StartNewSession()
         {
             Session = new GameSession(economy.startingMoney);
-            PopularElements = new PopularElementSchedule(campaign.DayCount, economy.popularCycleDays, Random);
+            Market = new MarketSchedule(campaign.DayCount, economy, Random);
             Events.RaiseSessionStarted(Session);
         }
     }

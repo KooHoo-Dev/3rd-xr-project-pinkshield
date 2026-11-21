@@ -15,9 +15,9 @@ namespace CardShop.Presentation
     /// 자리는 씬의 CardCaseAnchor(있으면) → 없으면 모니터(커뮤니티 화면) 위.
     ///
     /// 손으로 하는 일:
-    /// - 꺼내기: 진열 패널 [진열장에 세우기]를 누르면 그 카드가 바인더 위에 떠오름(PullOut). 집어서 보관함 칸 근처에서 놓으면 꽂힘(진열 확정).
-    ///   다른 곳에 놓으면 바인더 위로 돌아가 기다림. 집을 나가면 사라짐(데이터는 꽂힐 때만 바뀜).
-    /// - 옮기기 · 내리기: 꽂힌 카드를 쥐고 다른 칸에 놓으면 그 칸으로, 바인더 위에 놓으면 진열을 내림(보유로). 그 밖의 곳이면 원래 칸으로(Q7).
+    /// - 세우기: 진열 패널 [진열장에 세우기]를 누르면 바로 첫 빈 칸에 꽂힘(Place, 데이터 확정) — 바인더 위에서 칸으로 날아감.
+    ///   (11-20 플레이 뒤 DEC-036: 예전에는 바인더 위에 띄워 손으로 꽂게 했음)
+    /// - 옮기기 · 내리기 (손): 꽂힌 카드를 쥐고 다른 칸에 놓으면 그 칸으로, 바인더 위에 놓으면 진열을 내림(보유로). 그 밖의 곳이면 원래 칸으로(Q7).
     /// 칸 판정은 소켓 대신 거리(종이봉투 · 쓰레기통과 같은 방식). 바인더에서 그립으로 바로 꺼내기(J5-c)는 아직 없음.
     /// </summary>
     public sealed class CardCase : MonoBehaviour
@@ -29,7 +29,7 @@ namespace CardShop.Presentation
         const float TiltDegrees = 8f;        // 홈에 꽂혀 살짝 뒤로 기댐
         const float ReturnSeconds = 0.4f;
         const float SlotSnap = 0.08f;        // 칸 가운데에서 이 거리 안에서 놓으면 그 칸
-        const float CaseSnap = 0.25f;        // 틀 가운데에서 이 거리 안이면 (칸을 못 맞춰도) 첫 빈 칸
+        const float FlySeconds = 0.5f;       // [진열장에 세우기] 뒤 바인더 → 칸으로 날아가는 시간
         const float BinderDrop = 0.3f;       // 바인더에서 이 거리 안에서 놓으면 진열 내림
         const float AboveMonitor = 0.05f;    // 모니터 위 끝과 틀 아래 끝 사이 (집_컴퓨터_화면_설계와 겹치지 않게)
         static readonly Color Wood = new Color(0.36f, 0.24f, 0.16f);
@@ -46,8 +46,6 @@ namespace CardShop.Presentation
         Light spot;
         readonly List<CardRevealView> views = new List<CardRevealView>();
         readonly List<string> shown = new List<string>();
-        CardRevealView loose;
-        string looseId;
 
         public static CardCase Create(Transform homeInterior, UpgradeCatalog catalog, BinderView binder)
         {
@@ -62,8 +60,6 @@ namespace CardShop.Presentation
         void Awake() => Instance = this;
 
         void OnEnable() => ctx = GameContext.Instance;
-
-        void OnDisable() => HideLoose(); // 집을 나가면 꺼낸 카드는 사라짐 (집 실내가 꺼짐)
 
         void OnDestroy() { if (Instance == this) Instance = null; }
 
@@ -107,6 +103,8 @@ namespace CardShop.Presentation
             spot.range = 1.2f;
             spot.shadows = LightShadows.None;
             lightGo.SetActive(false);
+
+            gameObject.AddComponent<ShowcaseSetGlow>().Setup(src != null ? src.sharedMaterial : null); // 진열장 세트 빛판 (DEC-040 U1)
         }
 
         // 모니터(커뮤니티 화면 글자) 위, 벽 쪽. 화면이 보는 쪽(-Z)이 방 쪽
@@ -125,6 +123,11 @@ namespace CardShop.Presentation
             RuntimeShapes.Create(PrimitiveType.Cube, name, transform, local, size, mat);
 
         static float RowY(int row) => (Rows - 1) / 2f * RowGap - row * RowGap;
+        /// <summary>칸 가운데 (틀 로컬). ShowcaseSetGlow가 세트 칸 뒤에 빛판을 놓을 때 씀</summary>
+        public static Vector3 SlotLocalPosition(int index) => SlotLocal(index);
+        public const float SlotWidth = Spacing - 0.012f;
+        public static float SlotHeight => CardView.Height * CardScale + 0.01f;
+
         static Vector3 SlotLocal(int index) => new Vector3((index % PerRow - (PerRow - 1) / 2f) * Spacing, RowY(Mathf.Min(index / PerRow, Rows - 1)), 0.05f);
 
         /// <summary>칸 번호 → 카드 자리. 위 줄부터 왼쪽 → 오른쪽, 앞면이 방을 보고 살짝 뒤로 기댐.</summary>
@@ -214,50 +217,34 @@ namespace CardShop.Presentation
             view.FlyTo(pos, rot, ReturnSeconds, CardScale);
         }
 
-        // ------------------------------------------------------------------ 꺼내기 (진열 패널 버튼)
+        // ------------------------------------------------------------------ 세우기 (진열 패널 버튼, 11-20 플레이 뒤 DEC-036)
 
-        /// <summary>바인더 위에 그 카드를 띄워 손으로 꽂게 함. 칸이 없거나 보유가 없으면 그 이유</summary>
-        public ShowcaseResult PullOut(CardData card)
+        /// <summary>
+        /// 그 카드를 바로 첫 빈 칸에 꽂습니다(데이터는 지금 확정). 카드가 바인더 위에서 그 칸으로 날아가고 소리 · 진동.
+        /// 예전에는 바인더 위에 띄워 손으로 꽂게 했지만, 안 꽂고 집을 나가면 사라져 "놓아도 안 보임 · 매일 풀림"이 됐음 (BUG-023).
+        /// </summary>
+        public ShowcaseResult Place(CardData card)
         {
             if (card == null || ctx == null || ctx.Session == null) return ShowcaseResult.NotOwned;
             GameSession s = ctx.Session;
-            if (!ShowcaseRules.HasRoom(s, Mathf.Min(Capacity, MaxSlots))) return ShowcaseResult.Full;
-            if (s.Collection.CountOf(card.id) <= 0) return ShowcaseResult.NotOwned;
-            if (loose == null)
-            {
-                loose = CreateView("LooseCard");
-                if (loose == null) return ShowcaseResult.NotOwned;
-                loose.GrabEnded += OnLooseReleased;
-            }
-            looseId = card.id;
-            LoosePose(out Vector3 pos, out Quaternion rot);
-            loose.Show(card, false, pos, rot, CardScale);
-            return ShowcaseResult.Ok;
+            ShowcaseResult result = ShowcaseRules.TryAdd(s, card.id, Mathf.Min(Capacity, MaxSlots));
+            if (result != ShowcaseResult.Ok || !built) return result; // 틀이 아직 없으면 LateUpdate가 그냥 세움
+
+            int index = s.Showcase.Count - 1;
+            ShowAt(index, card.id); // shown에 적어 LateUpdate가 다시 세우지 않게
+            if (index >= views.Count || !views[index].gameObject.activeSelf) return result;
+            CardRevealView view = views[index];
+            BinderPose(out Vector3 from, out Quaternion fromRot);
+            view.Show(card, false, from, fromRot, CardScale);
+            SlotPose(index, out Vector3 pos, out Quaternion rot);
+            view.FlyTo(pos, rot, FlySeconds, CardScale, arcHeight: 0.15f);
+            Sfx.Play(SoundId.RackInsert, pos);
+            Buzz(0.4f);
+            return result;
         }
 
-        void OnLooseReleased(CardRevealView view)
-        {
-            GameSession s = ctx != null ? ctx.Session : null;
-            if (s == null || looseId == null || !isActiveAndEnabled) return;
-            Vector3 p = view.transform.position;
-            int capacity = Mathf.Min(Capacity, MaxSlots);
-            int slot = NearestSlot(p, SlotSnap);
-            bool inCase = slot >= 0 || Vector3.Distance(p, transform.position) <= CaseSnap;
-            if (inCase && ShowcaseRules.TryAdd(s, looseId, capacity) == ShowcaseResult.Ok)
-            {
-                if (slot >= 0) ShowcaseRules.MoveTo(s, s.Showcase.Count - 1, slot);
-                Sfx.Play(SoundId.RackInsert, p);
-                Buzz(0.4f);
-                shown.Clear();
-                for (int i = 0; i < views.Count; i++) views[i].Hide();
-                HideLoose();
-                return;
-            }
-            LoosePose(out Vector3 pos, out Quaternion rot);
-            view.FlyTo(pos, rot, ReturnSeconds, CardScale); // 꽂히지 않으면 바인더 위로 돌아가 기다림
-        }
-
-        void LoosePose(out Vector3 position, out Quaternion rotation)
+        // 날아가기 시작하는 자리: 바인더 위
+        void BinderPose(out Vector3 position, out Quaternion rotation)
         {
             Transform b = binder != null ? binder.transform : transform;
             position = b.position + Vector3.up * 0.3f;
@@ -265,12 +252,6 @@ namespace CardShop.Presentation
             Vector3 toEye = cam != null ? cam.transform.position - position : -b.forward;
             toEye.y = 0f;
             rotation = Quaternion.LookRotation(toEye.sqrMagnitude > 0.0001f ? -toEye : Vector3.forward, Vector3.up);
-        }
-
-        void HideLoose()
-        {
-            if (loose != null) loose.Hide();
-            looseId = null;
         }
 
         // ------------------------------------------------------------------ 판정

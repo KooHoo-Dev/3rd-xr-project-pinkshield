@@ -79,6 +79,8 @@ namespace CardShop.Customers
             agent.IsFemale = entry.gender == CustomerGender.Female;
             agent.IsYoung = entry.age == CustomerAge.Young;
             agent.VoiceSeed = random.Range(0, 1000);
+            agent.MaskOffset = entry.maskOffset;
+            agent.MaskScale = entry.maskScale;
             agent.Bubble = SpeechBubble.Create(go.transform, HumanoidHeight.Head(animator), bubbleFont());
             agent.Bubble.IsPaused = isPaused;
             return agent;

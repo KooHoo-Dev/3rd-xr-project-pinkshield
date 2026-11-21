@@ -18,13 +18,14 @@ namespace CardShop.UI
         /// <param name="text">말풍선 글자 (이 오브젝트에 붙음)</param>
         /// <param name="padding">글자 둘레 여백 (m)</param>
         /// <param name="cornerM">모서리 반지름 (m)</param>
+        /// <param name="nameTagFontSize">이름표 글자 크기 (TMP 3D 단위). 말풍선 글자와 따로 정함 — 이름표 판은 이 글자에 맞춰짐</param>
         /// <param name="sortBase">그리는 순서 시작 값. 판 0 · 테두리 1 · 글자 2 · 이름표 3~5를 더함</param>
-        public static PaperBubble Attach(TextMeshPro text, Vector2 padding, float cornerM, int sortBase = 0)
+        public static PaperBubble Attach(TextMeshPro text, Vector2 padding, float cornerM, float nameTagFontSize, int sortBase = 0)
         {
             var bubble = text.gameObject.AddComponent<PaperBubble>();
             bubble.text = text;
             bubble.plate = TextPlate.Attach(text, UiTheme.Paper, padding, cornerM, UiTheme.BossLine, FrameM, false, sortBase);
-            bubble.nameTag = NameTag.Create(text.transform, text.fontSize * 0.7f, sortBase + 3);
+            bubble.nameTag = NameTag.Create(text.transform, nameTagFontSize, sortBase + 3);
             return bubble;
         }
 
@@ -32,12 +33,20 @@ namespace CardShop.UI
         public void Show(BubbleStyle style, string richText)
         {
             text.color = UiTheme.Ink;
-            text.text = richText;
-            plate.SetStyle(UiTheme.Paper, style.Line, style.Dashed);
-            nameTag.Set(style.Label, style.Line);
+            text.fontStyle |= FontStyles.Bold; // 말풍선 글자는 모두 굵게 (11-20 피드백: 예전처럼). UiFonts가 굵기를 지워도 보일 때마다 다시
+            text.text = EmphasisByColor(richText);
+            plate.SetStyle(style.Fill, style.Line, style.Dashed);
+            nameTag.Set(style.Label, style.TagFill, style.Line);
             plate.Fit();
             nameTag.PinTo(plate.Area);
         }
+
+        /// <summary>강조 색 (진한 분홍): 굵기는 모두 같게 두고 강조는 색으로만 (11-20 피드백 "굵기가 들쭉날쭉")</summary>
+        public const string Emphasis = "#D2407F";
+
+        /// <summary>&lt;b&gt;강조&lt;/b&gt; → 강조 색. 모든 글자가 이미 굵어서 &lt;b&gt;를 더하면 그 부분만 두 번 부풀어 들쭉날쭉해 보임</summary>
+        public static string EmphasisByColor(string rich) =>
+            string.IsNullOrEmpty(rich) ? rich : rich.Replace("<b>", $"<color={Emphasis}>").Replace("</b>", "</color>");
 
         /// <summary>글자 · 판 · 이름표를 함께 (0~1)</summary>
         public void SetAlpha(float a)

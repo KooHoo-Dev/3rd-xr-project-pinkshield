@@ -34,7 +34,9 @@ namespace CardShop.EditorTools
             DataPaths.EnsureFolder("Assets/03. Prefabs/Packs");
 
             Material front = EnsureMaterial("PackFront", new Color(1f, 0.55f, 0.72f));
-            Material back = EnsureMaterial("PackBack", new Color(0.36f, 0.27f, 0.55f));
+            // 11-21 V1: 앞면 = MALLANG 팩 그림(PackFront 재질에 그림이 들어 있음), 뒷면 = 카드 뒷면 그림(PackBackArt).
+            // PackBack(그림 없는 보라)은 상자 띠 등에서 계속 씀
+            Material back = AssetDatabase.LoadAssetAtPath<Material>($"{MatDir}/PackBackArt.mat") ?? EnsureMaterial("PackBack", new Color(0.36f, 0.27f, 0.55f));
             Material body = EnsureMaterial("PackBody", new Color(0.92f, 0.9f, 0.95f));
             Material seal = EnsureMaterial("PackSeal", new Color(0.78f, 0.74f, 0.9f)); // 호일 압착 띠
 
@@ -56,7 +58,7 @@ namespace CardShop.EditorTools
             Placer.Prim(visual, PrimitiveType.Cube, "Body", Vector3.zero, new Vector3(W, bodyH, T), body);
             Quad(visual, "Front", new Vector3(0f, 0f, -T / 2f - 0.0002f), new Vector2(W * 0.94f, bodyH * 0.96f), front, false);
             Quad(visual, "Back", new Vector3(0f, 0f, T / 2f + 0.0002f), new Vector2(W * 0.94f, bodyH * 0.96f), back, true);
-            Label(visual);
+            // 앞면 그림에 MALLANG · 슬라임카드 5장이 있어 "SLIME PACK" 글자는 넣지 않음 (11-21 V1)
 
             // 위아래 압착 띠: 몸통보다 얇고, 가로 줄무늬(톱니)가 있음. 모든 팩 공통 디자인(접힘 단서와는 무관)
             Material crimp = EnsureMaterial("PackCrimp", new Color(0.25f, 0.18f, 0.4f));
@@ -131,24 +133,6 @@ namespace CardShop.EditorTools
             EditorUtility.CopySerialized(mesh, existing);
             Object.DestroyImmediate(mesh);
             return existing;
-        }
-
-        static void Label(Transform parent)
-        {
-            var go = new GameObject("Label", typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var text = go.AddComponent<TextMeshPro>();
-            var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
-            if (font != null) text.font = font;
-            text.text = "SLIME\nPACK";
-            text.fontStyle = FontStyles.Bold;
-            text.alignment = TextAlignmentOptions.Center;
-            text.fontSize = 0.22f;
-            text.color = Color.white;
-            text.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
-            var rt = (RectTransform)go.transform;
-            rt.sizeDelta = new Vector2(W * 0.9f, 0.05f);
-            rt.localPosition = new Vector3(0f, -0.01f, -T / 2f - 0.0006f);
         }
 
         // Unity Quad는 -Z 쪽에서 보입니다. 뒷면용은 180도 돌립니다.

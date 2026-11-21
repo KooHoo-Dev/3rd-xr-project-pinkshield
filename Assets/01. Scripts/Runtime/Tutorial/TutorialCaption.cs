@@ -23,6 +23,7 @@ namespace CardShop.Tutorial
         const float DoneSeconds = 0.6f;       // ✓를 보여 주는 시간
         const float ResumeSeconds = 1.5f;     // "▶ 다시 시작!"을 보여 주는 시간
         const float FontSize = 0.32f;         // 11-19 2차: 0.42는 시야를 너무 덮어 줄임
+        const float NameTagFontSize = 0.256f; // 이름표 글자: 말풍선 글자와 따로 (11-20: 글자의 80%)
         const float Width = 0.75f;
         const int SortBase = 100;             // 다른 3D 글자 판(알림 쪽지 등)보다 위에
         // 종이 위에서 읽히는 진한 색 (UiSkin.PaperColorFor와 같은 계열)
@@ -42,6 +43,12 @@ namespace CardShop.Tutorial
         GameFlow flow;
         System.Action afterDone; // ✓ 보여 주는 동안 들어온 다음 Show / Hide
 
+        /// <summary>자막이 지금 떠 있는가 (떠 있는 동안 알림 쪽지는 쉼 — 안내는 한 곳에서 한 번에 하나, 11-20)</summary>
+        public static bool IsShowing { get; private set; }
+
+        void OnEnable() => IsShowing = true;
+        void OnDisable() => IsShowing = false;
+
         public static TutorialCaption Create(Transform parent, TMP_FontAsset font)
         {
             var go = new GameObject("TutorialCaption", typeof(RectTransform));
@@ -55,7 +62,7 @@ namespace CardShop.Tutorial
             c.text.richText = true;
             ((RectTransform)go.transform).sizeDelta = new Vector2(Width, 0.2f);
             // 종이 말풍선 + 이름표 (UI_개편_설계 9번 판). 맨 위에 그리기: 글자 · 판 · 이름표 모두 깊이 검사를 끄고 투명 물체보다 나중에
-            c.paper = PaperBubble.Attach(c.text, new Vector2(0.035f, 0.022f), 0.02f, SortBase);
+            c.paper = PaperBubble.Attach(c.text, new Vector2(0.035f, 0.022f), 0.02f, NameTagFontSize, SortBase);
             c.paper.DrawOnTop();
             go.SetActive(false);
             return c;
@@ -69,6 +76,7 @@ namespace CardShop.Tutorial
             body = message;
             task = taskLine;
             Redraw(false);
+            paper.DrawOnTop(); // 글꼴이 나중에 바뀌면(UiFonts) 글자 재질이 새로 붙어 "맨 위"가 풀리므로 보일 때마다 다시
             shownFor = 0f;
             gameObject.SetActive(true);
             Reposition();
@@ -128,12 +136,14 @@ namespace CardShop.Tutorial
         void Redraw(bool done)
         {
             // 말하는 사람은 이름표가 보여 주므로, 첫 줄은 정지 상태가 있을 때만
-            string state = held ? $"<size=60%><color={Hold}>[시간 멈춤] 따라 해 보세요</color></size>\n"
-                         : resumedUntil >= 0f ? $"<size=60%><color={Done}>▶ 다시 시작!</color></size>\n" : "";
+            // 상태 줄은 조금 작게(75%, 예전 60%는 너무 작고 가늘어 보였음), 굵기는 본문과 같음
+            string state = held ? $"<size=75%><color={Hold}>[시간 멈춤] 따라 해 보세요</color></size>\n"
+                         : resumedUntil >= 0f ? $"<size=75%><color={Done}>▶ 다시 시작!</color></size>\n" : "";
             string s = state + body;
+            // 할 일 줄: 본문과 같은 크기 · 굵기, 색으로만 구분 (11-20: 연노랑 <mark> 칸이 글자를 덮어 흐리고 가늘어 보였음)
             if (!string.IsNullOrEmpty(task))
-                s += done ? $"\n<size=85%><color={Done}>✓ 완료!</color></size>"
-                          : $"\n<size=85%><color={Task}>▶ {task}</color></size>";
+                s += done ? $"\n<color={Done}>✓ 완료!</color>"
+                          : $"\n<color={Task}>▶ {task}</color>";
             paper.Show(speaker == TutorialSpeaker.Boss ? BubbleStyle.Boss : BubbleStyle.Self, s);
         }
 

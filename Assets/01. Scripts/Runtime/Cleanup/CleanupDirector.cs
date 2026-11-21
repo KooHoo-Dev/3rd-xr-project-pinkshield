@@ -3,6 +3,7 @@ using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Customers;
 using CardShop.Logic;
+using CardShop.Presentation;
 using UnityEngine;
 
 namespace CardShop.Cleanup
@@ -106,6 +107,13 @@ namespace CardShop.Cleanup
                 _ => null,
             };
             if (spot == null) return;
+            // 생기는 순간 그 자리에서 소리 → 고개를 돌려 찾을 수 있게 (11-21 피드백 S5 · O2 "어디 있는지 잘 안 보임")
+            Sfx.Play(kind switch
+            {
+                CleanupKinds.Trash => SoundId.TrashFall,
+                CleanupKinds.MessyPack => SoundId.PackFall,
+                _ => SoundId.LiquidSpill,
+            }, spot.transform.position);
             spot.Completed += OnCompleted;
             active.Add(spot);
             spawnedToday++;

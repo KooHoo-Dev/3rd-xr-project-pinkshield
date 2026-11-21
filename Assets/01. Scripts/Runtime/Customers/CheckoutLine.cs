@@ -128,6 +128,11 @@ namespace CardShop.Customers
             agent.State = CustomerState.Leave; // 인사하는 동안은 맨 앞 칸을 계속 차지 (다음 손님이 겹쳐 들어오지 않게)
             GameContext ctx = hooks.Context();
 
+            // 침대 덕분에 기다려 준 손님 (기본 인내 시간은 넘겼지만 늘어난 시간 안에 계산, "가구 덕분에" 줄)
+            float rested = ctx.Upgrades != null ? ctx.Upgrades.PatienceMultiplier(ctx.Session.Upgrades) : 1f;
+            float basePatience = PatienceRules.Seconds(ctx.Campaign.customerPatienceSeconds, ctx.Campaign.patiencePerExtraItemSeconds, itemCount, true);
+            if (UpgradeCredits.SavedByBed(agent.QueueSeconds, basePatience, rested)) ctx.Session.Ledger.patienceSaved++;
+
             if (bought != null)
             {
                 ctx.Events.RaiseNotice($"손님이 판매 등록한 「{bought.displayName}」을(를) 샀어요! (정산 때 +{net})");

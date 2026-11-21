@@ -34,7 +34,7 @@ namespace CardShop.Customers
         [Tooltip("도둑이 팩을 집으려고 서는 자리. forward = 팩 쪽")]
         [SerializeField] Transform stealSpot;
         [SerializeField] Broom broom;
-        [Tooltip("도둑 머리에 씌우는 복면 원본 (꺼 둠)")]
+        [Tooltip("도둑 머리에 씌우는 복면 프리팹 (ThiefMask.prefab · 원점 = 머리 가운데, +Z = 얼굴 앞)")]
         [SerializeField] GameObject maskTemplate;
         [Tooltip("인도 가운데 z (도둑이 문을 나와 옆으로 달리는 줄)")]
         [SerializeField] float sidewalkZ = 6.4f;

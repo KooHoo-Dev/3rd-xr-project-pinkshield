@@ -11,7 +11,34 @@ namespace CardShop.Tests
         static readonly Dictionary<string, string> Values = new Dictionary<string, string>
         {
             ["packPrice"] = "10", ["boxPrice"] = "90", ["cleanupBonus"] = "5", ["cleanupPenalty"] = "3", ["closingCleanupSeconds"] = "30",
+            // 경제 · 가구 (튜토리얼_설계 13-4): 바뀌는 값은 가장 긴 예시로 줄 길이를 검사
+            ["normalBulkCount"] = "5", ["normalBulkPrice"] = "$1", ["setBonus"] = "60", ["maxSets"] = "3",
+            ["pickedShopPrice"] = "$1,350", ["pickedBuyback"] = "$100", ["top1Element"] = "무속성", ["top1Strength"] = "역대급",
+            ["fallElement"] = "무속성", ["setElement"] = "무속성", ["decorCount"] = "5",
         };
+
+        [Test]
+        public void EconomySteps_AreAllSay_NoNewHolds()
+        {
+            foreach (TutorialStep s in TutorialEconomyDefaults.Steps())
+                Assert.AreEqual(TutorialStepKind.Say, s.kind, $"{s.key}: 경제 · 가구 안내는 말로만 (13-6 T1)");
+        }
+
+        [Test]
+        public void HomeStrength_SkippedWhenSurgeAlreadySeen()
+        {
+            var p = new TutorialProgress(TutorialDefaults.Steps());
+            p.SetContext(GamePhaseId.Home, 5);
+            p.Notify(TutorialSignal.MarketSurgeToday); // 이번 판에 급등을 겪음 (TutorialEconomyWatch가 집에서도 보냄)
+            p.Notify(TutorialSignal.PhaseEntered);
+            var shown = new List<string>();
+            for (int i = 0; i < 120; i++)
+            {
+                if (p.Active != null && !shown.Contains(p.Active.key)) shown.Add(p.Active.key);
+                p.Tick(1f);
+            }
+            CollectionAssert.DoesNotContain(shown, "home-strength", "급등을 이미 봤으면 대비책 안내 생략");
+        }
 
         [Test]
         public void Defaults_HaveNoStructureProblems()

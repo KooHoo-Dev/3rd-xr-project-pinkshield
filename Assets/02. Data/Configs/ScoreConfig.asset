@@ -13,15 +13,17 @@ MonoBehaviour:
   m_Name: ScoreConfig
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cards.ScoreConfig
   pointsPerCollected: 10
+  pointsPerFurniturePiece: 30
+  pointsPerShowcaseSet: 60
   ranks:
   - name: S
-    minScore: 2800
+    minScore: 1800
     isSuccess: 1
   - name: A
-    minScore: 2200
+    minScore: 1300
     isSuccess: 1
   - name: B
-    minScore: 1500
+    minScore: 900
     isSuccess: 1
   - name: C
     minScore: 0

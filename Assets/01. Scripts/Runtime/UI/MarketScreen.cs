@@ -9,8 +9,8 @@ using UnityEngine.UI;
 namespace CardShop.UI
 {
     /// <summary>
-    /// 슬라임마켓: 방 업그레이드 상점 화면 (집_업그레이드_설계 3장 E2). 컴퓨터 모니터의 두 번째 쪽(HomeComputer, 11-20 J1), 분야마다 상품 카드 1장
-    /// (이름 · 단계 점 · 다음 효과 · 가격 띠 버튼 · 상태 리본, 11-20 F8). 사면 다음 날 아침 택배 상자로 오고(DEC-031 Q3), 쓴 돈은 최종 점수의 가구 값(Q2).
+    /// 슬라임 홈쇼핑: 방 업그레이드 상점 화면 (집_업그레이드_설계 3장 E2). 컴퓨터 모니터의 두 번째 쪽(HomeComputer, 11-20 J1), 분야마다 상품 카드 1장
+    /// (이름 · 단계 점 · 다음 효과 · 가격 띠 버튼 · 상태 리본, 11-20 F8). 사면 그날 밤 택배 상자로 오고(DEC-040 U5), 쓴 돈은 최종 점수의 가구 값(Q2).
     /// 실수로 사지 않게 한 번 누르면 "한 번 더 누르면 사요", ConfirmSeconds 안에 한 번 더 누르면 삽니다(판매 패널 모두 팔기와 같은 방식).
     /// 규칙은 순수 C# UpgradeRules. 씬을 다시 빌드하지 않도록 HomeUpgradeInstaller가 런타임에 만듭니다.
     /// </summary>
@@ -32,6 +32,14 @@ namespace CardShop.UI
         static readonly Color ArrivedColor = new Color(0.62f, 0.32f, 0.5f, 1f);
         static readonly Color DoneColor = new Color(0.27f, 0.45f, 0.33f, 1f);
         static readonly Color PoorColor = new Color(0.3f, 0.28f, 0.34f, 1f);
+        // 밝은 SlimeOS 창 (UI 개편 샘플 8번): 상품 칸 = 크림 + 잉크 테, 상태는 색 대신 리본 문구 위주
+        // (11-20 눈 편한 색: 밝은 크림 칸 → 어두운 보라 칸, 상태는 칸 색을 조금만 다르게 + 리본 문구)
+        static readonly Color LightCard = UiTheme.OsCard;
+        static readonly Color LightOrdered = new Color(0.22f, 0.29f, 0.33f);
+        static readonly Color LightArrived = new Color(0.33f, 0.22f, 0.33f);
+        static readonly Color LightDone = new Color(0.2f, 0.19f, 0.27f);
+        static readonly Color LightPoor = new Color(0.21f, 0.2f, 0.28f);
+        bool lightCards;
         TMP_Text statusLabel, messageLabel;
         string message = "";
         int armed = -1;            // 확인을 기다리는 줄
@@ -47,7 +55,7 @@ namespace CardShop.UI
 
             Transform c = content.transform;
             WorldUiKit.AddPanel(c, 12f);
-            WorldUiKit.AddText(c, "Title", "슬라임마켓  <size=70%>방 꾸미기 · 산 물건은 다음 날 택배로 와요</size>",
+            WorldUiKit.AddText(c, "Title", "슬라임 홈쇼핑  <size=70%>방 가구 주문 · 사면 오늘 밤 택배로 와요</size>",
                 new Vector2(0.03f, 0.9f), new Vector2(0.97f, 0.975f), 34f, UiTheme.Gold, font);
 
             // 상품 카드 격자 (11-20 F8: 글자 줄 목록이 허접해 보임 → 쇼핑앱처럼 4열 카드 + 가격 띠 버튼 + 상태 리본)
@@ -94,6 +102,26 @@ namespace CardShop.UI
             return screen;
         }
 
+        /// <summary>밝은 창(SlimeOS)에 놓였을 때 부름: 상품 칸을 크림 + 잉크 테로, 글자 색을 밝은 바탕용으로</summary>
+        public void UseLightCards()
+        {
+            if (lightCards || !Application.isPlaying) return;
+            lightCards = true;
+            foreach (Image back in cardBacks)
+            {
+                back.sprite = UiSprites.Rounded();
+                back.type = Image.Type.Sliced;
+                back.pixelsPerUnitMultiplier = UiSprites.Radius / 8f;
+                Image rim = WorldUiKit.AddImage(back.transform, "Rim", Vector2.zero, Vector2.one, UiTheme.OsCardLine);
+                rim.raycastTarget = false;
+                rim.sprite = UiSprites.Frame(3);
+                rim.type = Image.Type.Sliced;
+                rim.pixelsPerUnitMultiplier = UiSprites.Radius / 8f;
+                rim.transform.SetAsFirstSibling();
+            }
+            Refresh();
+        }
+
         protected override void OnEnable()
         {
             if (buyButtons == null) return; // Create가 설정을 넣기 전
@@ -121,11 +149,15 @@ namespace CardShop.UI
         // 확인 시간이 지나면 "한 번 더" 안내를 지움
         void Update()
         {
+            // 초인종이 울리면(기다리는 택배 수가 바뀌면) 리본을 "배송 중" → "택배 도착!"으로
+            if (RoomUpgradeView.WaitingCount != drawnWaiting) { drawnWaiting = RoomUpgradeView.WaitingCount; Refresh(); }
             if (armed < 0 || Time.unscaledTime <= armedUntil) return;
             armed = -1;
             message = "";
             Refresh();
         }
+
+        int drawnWaiting;
 
         void OnBuyClicked(int index)
         {
@@ -154,7 +186,7 @@ namespace CardShop.UI
                 armed = -1;
                 if (rules.TryBuy(s, kind, out int price) == BuyResult.Ok)
                 {
-                    message = $"{name} 주문 완료 {MoneyText.Signed(-price)} · 내일 아침 택배로 와요";
+                    message = $"{name} 주문 완료 {MoneyText.Signed(-price)} · 곧 택배가 와요 (효과는 내일부터)"; // 그날 밤 택배 (DEC-040 U5)
                     Sfx.Play(SoundId.PosPay, transform.position);
                 }
             }
@@ -185,26 +217,36 @@ namespace CardShop.UI
                 UpgradeCatalog.Track track = rules.Catalog.Get(kind);
                 int level = s.Upgrades.LevelOf(kind), max = rules.MaxLevel(kind);
                 UpgradeStatus status = s.Upgrades.StatusOf(kind);
+                if (status == UpgradeStatus.Arrived && RoomUpgradeView.OnTheWay(kind)) status = UpgradeStatus.Ordered; // 초인종 전엔 "배송 중"
                 UpgradeCatalog.Level next = rules.NextLevel(s.Upgrades, kind);
                 bool decor = UpgradeRules.IsDecor(kind); // 꾸미기는 단계 없이 "있음 / 없음"
                 string trackName = track != null ? track.displayName : kind.ToString();
                 // 상품 카드: 이름 · 단계 점(●●○) · 다음 효과 / 위 리본 = 상태 / 바탕색 = 상태 · 살 수 있는지 (F8)
-                string dots = decor ? "" : "\n<size=85%><color=#FFD27F>" + new string('●', level) + new string('○', Mathf.Max(0, max - level)) + "</color></size>";
+                string dotColor = lightCards ? "#E2BE6A" : "#FFD27F", effectColor = lightCards ? "#B9B0CC" : "#E2DBF5"; // SlimeOS 창이면 눈 편한 색
+                string dots = decor ? "" : $"\n<size=85%><color={dotColor}>" + new string('●', level) + new string('○', Mathf.Max(0, max - level)) + "</color></size>";
                 string effect = next != null ? next.effect : decor ? "방에 있어요" : "모두 업그레이드했어요";
-                rowLabels[i].text = $"<b>{trackName}</b>{dots}\n<size=80%><color=#E2DBF5>{effect}</color></size>";
+                rowLabels[i].text = $"<b>{trackName}</b>{dots}\n<size=80%><color={effectColor}>{effect}</color></size>";
                 bool poor = next != null && s.Wallet.Money < next.price;
-                ribbons[i].text =
-                    status == UpgradeStatus.Ordered ? "<color=#9FDCFF>배송 중 · 내일 아침</color>" :
-                    status == UpgradeStatus.Arrived ? "<color=#FFB3D9>택배 도착! 방 상자를 열어요</color>" :
-                    next == null ? "<color=#9CE59C>완료</color>" :
-                    poor ? "<color=#B9B3C8>돈이 모자라요</color>" : "";
-                cardBacks[i].color = status == UpgradeStatus.Ordered ? OrderedColor : status == UpgradeStatus.Arrived ? ArrivedColor
-                    : next == null ? DoneColor : poor ? PoorColor : CardColor;
+                ribbons[i].text = lightCards
+                    ? (status == UpgradeStatus.Ordered ? "<color=#7FD6B0>배송 중</color>" :
+                       status == UpgradeStatus.Arrived ? "<color=#F29BC4>택배 도착! 문앞에 상자를 열어요</color>" :
+                       next == null ? "<color=#B9B0CC>완료</color>" :
+                       poor ? "<color=#9F96B5>돈이 모자라요</color>" : "")
+                    : (status == UpgradeStatus.Ordered ? "<color=#9FDCFF>배송 중</color>" :
+                       status == UpgradeStatus.Arrived ? "<color=#FFB3D9>택배 도착! 문앞에 상자를 열어요</color>" :
+                       next == null ? "<color=#9CE59C>완료</color>" :
+                       poor ? "<color=#B9B3C8>돈이 모자라요</color>" : "");
+                cardBacks[i].color = lightCards
+                    ? (status == UpgradeStatus.Ordered ? LightOrdered : status == UpgradeStatus.Arrived ? LightArrived
+                       : next == null ? LightDone : poor ? LightPoor : LightCard)
+                    : (status == UpgradeStatus.Ordered ? OrderedColor : status == UpgradeStatus.Arrived ? ArrivedColor
+                       : next == null ? DoneColor : poor ? PoorColor : CardColor);
 
                 TMP_Text label = buyButtons[i].GetComponentInChildren<TMP_Text>();
                 bool canOrder = status == UpgradeStatus.None && next != null;
                 label.text = !canOrder ? (next == null ? "완료" : "주문함") : armedValid && armed == i ? "한 번 더!" : MoneyText.Format(next.price);
                 buyButtons[i].interactable = canOrder;
+                if (lightCards) UiSkin.StyleButton(buyButtons[i], canOrder && !poor ? UiButtonKind.Primary : UiButtonKind.Normal); // 살 수 있는 것만 분홍
             }
 
             statusLabel.text = $"내 자산 {MoneyText.Format(s.Wallet.Money)}   ·   가구 값 {MoneyText.Format(UpgradeRules.FurnitureValue(s.Upgrades))} (최종 점수에 그대로 들어가요)";

@@ -21,6 +21,9 @@ namespace CardShop.UI
         TMP_Text body;
         RectTransform stamp;
         TMP_Text stampLabel;
+        Image stampImage;
+        Sprite ringSprite;
+        Image.Type ringType;
         Coroutine routine;
 
         /// <param name="panel">판 Content (도장을 붙일 곳)</param>
@@ -28,6 +31,9 @@ namespace CardShop.UI
         {
             body = bodyText;
             stamp = MakeStamp(panel, font, out stampLabel);
+            stampImage = stamp.GetComponent<Image>();
+            ringSprite = stampImage.sprite;
+            ringType = stampImage.type;
             stamp.gameObject.SetActive(false);
             return this;
         }
@@ -38,7 +44,25 @@ namespace CardShop.UI
             if (body == null) return;
             if (routine != null) StopCoroutine(routine);
             stampLabel.text = stampWord;
+            ApplyArt(stampWord);
             routine = StartCoroutine(Run());
+        }
+
+        // 슬라임 얼굴 그림이 있으면 그림(등급별 잉크 색) + 문구는 그림 아래 작게 (F2). 없으면 분홍 고리 + 가운데 글자
+        void ApplyArt(string word)
+        {
+            Sprite art = StampArt.SpriteFor(word);
+            Color ink = art != null ? StampArt.InkFor(word) : UiTheme.Stamp;
+            stampImage.sprite = art != null ? art : ringSprite;
+            stampImage.type = art != null ? Image.Type.Simple : ringType;
+            stampImage.preserveAspect = art != null;
+            stampImage.color = ink;
+            stampLabel.color = ink;
+            var label = (RectTransform)stampLabel.transform;
+            label.anchorMin = art != null ? new Vector2(-0.1f, -0.32f) : new Vector2(0.1f, 0.1f);
+            label.anchorMax = art != null ? new Vector2(1.1f, -0.04f) : new Vector2(0.9f, 0.9f);
+            label.offsetMin = label.offsetMax = Vector2.zero;
+            stampLabel.fontSizeMax = art != null ? 24f : 34f;
         }
 
         void OnDisable()
@@ -75,7 +99,7 @@ namespace CardShop.UI
             routine = null;
         }
 
-        // 오른쪽 아래 구석, [확인] 버튼(가로 25~75%) 오른쪽. 분홍 고리 + 글자, 살짝 기울임
+        // 오른쪽 아래 구석, [확인] 버튼(가로 25~75%) 오른쪽. 분홍 고리 + 글자, 살짝 기울임 (그림이 있으면 Print 때 ApplyArt가 바꿈)
         static RectTransform MakeStamp(Transform panel, TMP_FontAsset font, out TMP_Text label)
         {
             Image ring = WorldUiKit.AddImage(panel, "Stamp", new Vector2(0.86f, 0.11f), new Vector2(0.86f, 0.11f), UiTheme.Stamp);

@@ -9,7 +9,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 namespace CardShop.Presentation
 {
     /// <summary>
-    /// 방에 도착한 택배 상자 하나 (DEC-031 Q3: 다음 날 아침 택배 → 잡아서 열면 가구가 바뀜).
+    /// 방에 도착한 택배 상자 하나 (DEC-040 U5: 사면 그날 밤 택배 → 잡아서 열면 가구가 바뀜).
     /// 잡는 순간(레이 · 손) 상자가 통통 튀며 작아져 사라지고 Opened를 알립니다. 위에 무엇이 들었는지 글자로 띄웁니다.
     /// 만들고 지우는 것은 RoomUpgradeView가 합니다.
     /// </summary>

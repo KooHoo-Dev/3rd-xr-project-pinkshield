@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CardShop.Cards;
 using CardShop.Core;
 using CardShop.Logic;
@@ -5,110 +6,153 @@ using CardShop.Presentation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace CardShop.UI
 {
     /// <summary>
-    /// 집 컴퓨터 모니터 한 대에 [커뮤니티 · 슬라임마켓] 두 쪽 (집_컴퓨터_화면_설계 J1, Q2 · Q3 · Q5 추천안).
-    /// 오른쪽 벽에 따로 있던 슬라임마켓을 모니터 앞으로 옮기고, 모니터 양옆 [◀ 커뮤니티] · [슬라임마켓 ▶] 버튼이나
-    /// 레이로 화면을 잡고 좌우로 끌어(ScreenSwipeArea → PagerRules) 넘깁니다. 넘길 때 0.25초 옆으로 미끄러지고 딸깍 + 약한 진동.
-    /// 집에 오면 늘 커뮤니티 쪽부터. 커뮤니티 화면은 씬의 3D 글자(CommunityScreen)를 그대로 쓰고, 숨길 때는 크기를 0으로,
-    /// 마켓(캔버스)은 CanvasGroup으로 숨깁니다 — HomePanel이 집 페이즈마다 content를 켜고 끄므로 그 위에서 따로 감춤.
-    /// 안 한 것(아침 검토): 책상 앞 손으로 직접 밀기(J1-c), 상품 카드 격자 · 그림(F8), ComputerScreenAnchor(Q9).
+    /// 집 컴퓨터 모니터 = "SlimeOS" 하늘색 바탕화면 + 쪽마다 창 하나 [커뮤니티 · 슬라임 홈쇼핑 · 판매 · 진열]
+    /// (집_컴퓨터_화면_설계 J1, 집_책상_하나로_설계 DEC-042, UI_개편_설계 8번 레트로 OS 창).
+    /// 아래 작업 표시줄 탭 · 모니터 양옆 [◀] [▶] 버튼 · 레이로 화면을 잡고 좌우로 끌기(ScreenSwipeArea → PagerRules)로 넘깁니다.
+    /// 넘길 때 0.25초 옆으로 미끄러지고 딸깍 + 약한 진동. 집에 오면 늘 커뮤니티 쪽부터.
+    /// 쪽마다 숨기는 방법은 IComputerPage(CanvasPage)가, 창 모양은 SlimeOsWindow가 맡고, 이 클래스는 쪽 번호 · 넘김 · 화면 틀만.
+    /// 판매 · 진열 쪽은 SalesShowcasePage가 AddPage로 붙입니다.
     /// </summary>
     public sealed class HomeComputer : PhaseListener
     {
-        const int PageCount = 2;
+        public const int CommunityPageIndex = 0;
+        // 모니터 1300 × 900mm: 아래 작업 표시줄, 그 위에 창 하나
+        public const float ScreenW = 1300f, ScreenH = 900f;
+        public const float WindowW = 1260f, WindowH = ScreenH - ComputerTaskbar.HeightPx - 36f;
         const float SlideSeconds = 0.25f;
         const float SlideDistance = 0.35f; // m
+        const float ButtonSide = 0.78f;    // 모니터 가운데에서 옆 버튼까지 (m)
 
+        readonly List<IComputerPage> pages = new List<IComputerPage>();
+        readonly List<string> names = new List<string>();
         Transform community;
-        Vector3 communityPos, communityScale;
-        RectTransform market;
-        CanvasGroup marketGroup;
-        Vector3 marketPos;
-        GameObject sideButtons, communitySwipe;
+        GameObject chrome; // 집에서만 보이는 바탕화면 · 작업 표시줄 · 옆 버튼
+        ComputerTaskbar taskbar;
         Button prevButton, nextButton;
-        int page;
+        TMP_Text prevLabel, nextLabel;
+        int page, fromPage;
         float slideT = 1f;
         int slideDir;
 
-        /// <summary>모니터에 마켓을 붙입니다. 커뮤니티 화면이 없으면 false (호출한 쪽이 예전처럼 벽에 둠)</summary>
-        public static bool Create(UpgradeCatalog catalog, TMP_FontAsset font)
+        /// <summary>모니터 화면이 놓인 부모 · 가운데 자리 · 방향 (쪽을 붙일 때 씀). 화면은 -Z 쪽을 봄</summary>
+        public Transform ScreenParent => community.parent;
+        public Vector3 ScreenCenter { get; private set; }
+        public Quaternion ScreenRotation { get; private set; }
+        /// <summary>창 가운데 (위 여백 18mm, 아래 작업 표시줄). 화면 앞으로 depth(m)만큼</summary>
+        public Vector3 WindowCenter(float depth) =>
+            ScreenCenter + ScreenRotation * new Vector3(0f, (ScreenH * 0.5f - 18f - WindowH * 0.5f) * 0.001f, 0f) + ScreenRotation * Vector3.back * depth;
+        public int CurrentPage => page;
+        public bool IsHome => CurrentPhase == GamePhaseId.Home;
+
+        /// <summary>모니터에 바탕화면 · 커뮤니티 · 마켓 창을 만듭니다. 커뮤니티 화면이 없으면 null (호출한 쪽이 마켓을 예전처럼 벽에 둠)</summary>
+        public static HomeComputer Create(UpgradeCatalog catalog, TMP_FontAsset font)
         {
             var screen = FindAnyObjectByType<CommunityScreen>(FindObjectsInactive.Include);
-            if (screen == null) return false;
-            Transform root = screen.transform;
+            if (screen == null) return null;
             var go = new GameObject("HomeComputer");
-            go.transform.SetParent(root.parent, false);
+            go.transform.SetParent(screen.transform.parent, false);
             var pc = go.AddComponent<HomeComputer>();
-            pc.Build(root, catalog, font);
-            return true;
+            pc.Build(screen, catalog, font);
+            return pc;
         }
 
-        void Build(Transform communityRoot, UpgradeCatalog catalog, TMP_FontAsset font)
+        void Build(CommunityScreen screen, UpgradeCatalog catalog, TMP_FontAsset font)
         {
-            community = communityRoot;
-            communityPos = community.localPosition;
-            communityScale = community.localScale;
-            Quaternion rot = community.localRotation;
-            float yaw = rot.eulerAngles.y - 180f; // MarketScreen.Create는 yaw + 180으로 앞면(-Z)을 돌림
-
-            // 마켓: 모니터 앞, 커뮤니티 글자보다 1cm 앞
+            community = screen.transform;
+            ScreenCenter = community.localPosition;
+            ScreenRotation = community.localRotation;
+            Quaternion rot = ScreenRotation;
             Vector3 forward = rot * Vector3.back; // 화면이 보는 쪽 (-Z)
-            marketPos = communityPos + forward * 0.01f;
-            MarketScreen screen = MarketScreen.Create(community.parent, marketPos, yaw, catalog, font);
-            market = (RectTransform)screen.transform;
-            marketGroup = market.gameObject.AddComponent<CanvasGroup>();
-            market.gameObject.AddComponent<ScreenSwipeArea>().Swiped += OnSwiped;
-            // 마켓 바탕 · 카드는 레이를 받지 않으므로, 빈 곳에서 시작한 끌기도 받게 맨 뒤에 투명 판 (버튼은 그 앞이라 그대로 눌림)
-            if (market.childCount > 0)
-            {
-                Image hit = WorldUiKit.AddImage(market.GetChild(0), "SwipeHit", Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
-                hit.transform.SetAsFirstSibling();
-            }
 
-            // 커뮤니티 쪽 끌기 판: 글자 앞의 투명 판 (모니터 크기)
-            RectTransform swipe = WorldUiKit.CreateCanvas("CommunitySwipe", community.parent, 1300f, 900f, out GameObject swipeContent);
-            swipe.localPosition = communityPos + forward * 0.005f;
-            swipe.localRotation = rot;
-            WorldUiKit.AddImage(swipeContent.transform, "Hit", Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
-            swipe.gameObject.AddComponent<ScreenSwipeArea>().Swiped += OnSwiped;
-            communitySwipe = swipe.gameObject;
+            chrome = new GameObject("SlimeOsChrome");
+            chrome.transform.SetParent(community.parent, false);
 
-            // 모니터 양옆 버튼 (탭 겸 화살표)
-            sideButtons = new GameObject("PageButtons");
-            sideButtons.transform.SetParent(community.parent, false);
-            prevButton = SideButton(rot, forward, -0.78f, "◀\n커뮤\n니티", font, () => GoTo(0));
-            nextButton = SideButton(rot, forward, 0.78f, "슬라\n임\n마켓\n▶", font, () => GoTo(1));
+            // 바탕화면 (창 뒤)
+            RectTransform desk = WorldUiKit.CreateCanvas("SlimeOsDesktop", chrome.transform, ScreenW, ScreenH, out GameObject deskContent);
+            desk.localPosition = ScreenCenter + forward * 0.002f;
+            desk.localRotation = rot;
+            WorldUiKit.AddImage(deskContent.transform, "Wallpaper", Vector2.zero, Vector2.one, UiTheme.OsDesktop).raycastTarget = false;
+            TMP_Text mark = WorldUiKit.AddText(deskContent.transform, "Mark", "SlimeOS", new Vector2(0f, 0.4f), new Vector2(1f, 0.6f), 120f, new Color(1f, 1f, 1f, 0.07f), font);
+            mark.alignment = TextAlignmentOptions.Center;
+
+            // 작업 표시줄 (화면 아래)
+            Vector3 barPos = ScreenCenter + rot * new Vector3(0f, -(ScreenH - ComputerTaskbar.HeightPx) * 0.0005f + 0.004f, 0f) + forward * 0.014f;
+            taskbar = ComputerTaskbar.Create(chrome.transform, barPos, rot, ScreenW - 16f, font);
+
+            // 1쪽: 커뮤니티 창 (씬의 3D 글자 대신)
+            RectTransform communityWindow = CommunityWindow.Create(this, screen, font);
+            AddSwipe(communityWindow);
+            AddPage(new CanvasPage(communityWindow), "커뮤니티");
+
+            // 2쪽: 슬라임 홈쇼핑 창
+            float yaw = rot.eulerAngles.y - 180f; // MarketScreen.Create는 yaw + 180으로 앞면(-Z)을 돌림
+            MarketScreen market = MarketScreen.Create(community.parent, WindowCenter(0.01f), yaw, catalog, font);
+            var marketRt = (RectTransform)market.transform;
+            marketRt.sizeDelta = new Vector2(WindowW, WindowH); // 안의 칸은 비율로 놓여 창 크기를 따라감
+            if (marketRt.childCount > 0) SlimeOsWindow.Apply(marketRt.GetChild(0), null, font);
+            market.UseLightCards(); // 밝은 창에 맞는 상품 칸 (크림 + 잉크 테)
+            AddSwipe(marketRt);
+            AddPage(new CanvasPage(marketRt), "홈쇼핑");
+
+            // 모니터 양옆 버튼: 이전 · 다음 쪽 (이름은 갈 쪽)
+            prevButton = SideButton(-ButtonSide, font, () => GoTo(page - 1), out prevLabel);
+            nextButton = SideButton(ButtonSide, font, () => GoTo(page + 1), out nextLabel);
             Refresh(); // AddComponent 때(OnEnable)는 아직 화면이 없어 첫 갱신이 비었음
         }
 
-        Button SideButton(Quaternion rot, Vector3 forward, float side, string text, TMP_FontAsset font, UnityEngine.Events.UnityAction onClick)
+        /// <summary>창 크기 캔버스를 모니터 앞에 만듦 (쪽 하나의 창)</summary>
+        public RectTransform CreateWindowCanvas(string name, float depth, out GameObject content)
         {
-            RectTransform rt = WorldUiKit.CreateCanvas("Page_" + (side < 0 ? "Prev" : "Next"), sideButtons.transform, 160f, 420f, out GameObject content);
-            rt.localPosition = communityPos + rot * new Vector3(side, 0f, 0f) + forward * 0.01f;
+            RectTransform rt = WorldUiKit.CreateCanvas(name, community.parent, WindowW, WindowH, out content);
+            rt.localPosition = WindowCenter(depth);
+            rt.localRotation = ScreenRotation;
+            return rt;
+        }
+
+        /// <summary>쪽을 뒤에 붙이고 번호를 돌려줌. name은 작업 표시줄 탭 · 옆 버튼에 쓰임</summary>
+        public int AddPage(IComputerPage p, string name)
+        {
+            pages.Add(p);
+            names.Add(name);
+            int index = pages.Count - 1;
+            if (taskbar != null) taskbar.AddTab(name, () => GoTo(index));
+            ApplyPage(true);
+            return index;
+        }
+
+        /// <summary>이 캔버스 위에서 레이로 잡고 끌면 쪽을 넘김</summary>
+        public void AddSwipe(RectTransform canvas) => canvas.gameObject.AddComponent<ScreenSwipeArea>().Swiped += OnSwiped;
+
+        Button SideButton(float side, TMP_FontAsset font, UnityEngine.Events.UnityAction onClick, out TMP_Text label)
+        {
+            Quaternion rot = ScreenRotation;
+            RectTransform rt = WorldUiKit.CreateCanvas("Page_" + (side < 0 ? "Prev" : "Next"), chrome.transform, 160f, 420f, out GameObject content);
+            rt.localPosition = ScreenCenter + rot * new Vector3(side, 0f, 0f) + rot * Vector3.back * 0.01f;
             rt.localRotation = rot;
-            Button b = WorldUiKit.AddButton(content.transform, text, Vector2.zero, Vector2.one, font);
+            Button b = WorldUiKit.AddButton(content.transform, "", Vector2.zero, Vector2.one, font);
             b.onClick.AddListener(onClick);
-            TMP_Text label = b.GetComponentInChildren<TMP_Text>(true);
+            label = b.GetComponentInChildren<TMP_Text>(true);
             if (label != null) label.fontSize = 34f;
             return b;
         }
 
         void OnSwiped(float dx, float width)
         {
-            int next = PagerRules.AfterDrag(page, PageCount, dx, width);
+            int next = PagerRules.AfterDrag(page, pages.Count, dx, width);
             if (next != page) GoTo(next);
         }
 
-        /// <summary>쪽으로 넘김 (0 = 커뮤니티, 1 = 슬라임마켓)</summary>
+        /// <summary>쪽으로 넘김 (0 = 커뮤니티, 1 = 슬라임 홈쇼핑, 그 뒤는 AddPage 순서)</summary>
         public void GoTo(int target)
         {
-            target = PagerRules.Clamp(target, PageCount);
+            target = PagerRules.Clamp(target, pages.Count);
             if (target == page) return;
             slideDir = target > page ? 1 : -1;
+            fromPage = page;
             page = target;
             slideT = 0f;
             Sfx.Play(SoundId.UiClick);
@@ -118,38 +162,56 @@ namespace CardShop.UI
 
         protected override void Refresh()
         {
-            bool home = CurrentPhase == GamePhaseId.Home;
-            if (sideButtons != null) sideButtons.SetActive(home);
-            if (home && page != 0) { page = 0; slideT = 1f; } // 집에 오면 커뮤니티부터 (Q5)
+            bool home = IsHome;
+            if (chrome != null) chrome.SetActive(home);
+            if (home && page != CommunityPageIndex) { page = CommunityPageIndex; slideT = 1f; } // 집에 오면 커뮤니티부터 (Q5)
+            if (taskbar != null && Context != null && Context.Session != null) taskbar.SetClock($"{MoneyText.Format(Context.Session.Wallet.Money)} · {Context.Session.Day}일차 밤");
             ApplyPage(true);
         }
 
+        int clockMoney = int.MinValue;
+
         void Update()
         {
+            // 작업 표시줄 「$돈 · N일차 밤」: 마켓에서 사면 돈이 바뀌므로 바뀔 때만 다시 씀
+            if (taskbar != null && IsHome && Context != null && Context.Session != null && Context.Session.Wallet.Money != clockMoney)
+            {
+                clockMoney = Context.Session.Wallet.Money;
+                taskbar.SetClock($"{MoneyText.Format(clockMoney)} · {Context.Session.Day}일차 밤");
+            }
             if (slideT >= 1f) return;
             slideT = Mathf.Min(1f, slideT + Time.unscaledDeltaTime / SlideSeconds);
             ApplyPage(false);
         }
 
-        // 지금 쪽은 가운데로 미끄러져 들어오고, 다른 쪽은 반대로 나가며 사라짐
+        // 지금 쪽은 가운데로 미끄러져 들어오고, 떠나는 쪽은 반대로 나가며 사라짐. 나머지는 숨김
         void ApplyPage(bool instant)
         {
-            if (community == null || market == null) return;
-            float t = instant ? 1f : 1f - (1f - slideT) * (1f - slideT);
-            Vector3 right = community.localRotation * Vector3.right;
-            float inFrom = slideDir * SlideDistance * (1f - t);
-            bool onCommunity = page == 0;
+            if (community == null || pages.Count == 0) return;
+            if (instant) slideT = 1f;
+            float t = 1f - (1f - slideT) * (1f - slideT);
+            Vector3 right = ScreenRotation * Vector3.right;
+            bool home = IsHome;
 
-            community.localPosition = communityPos + right * (onCommunity ? inFrom : -slideDir * SlideDistance * t);
-            float cs = onCommunity ? t : 1f - t;
-            community.localScale = communityScale * (instant ? (onCommunity ? 1f : 0f) : Mathf.Max(0.0001f, cs));
+            for (int i = 0; i < pages.Count; i++)
+            {
+                if (i == page) pages[i].Show(t, right * (slideDir * SlideDistance * (1f - t)), home);
+                else if (i == fromPage && t < 1f) pages[i].Show(1f - t, right * (-slideDir * SlideDistance * t), false);
+                else pages[i].Show(0f, Vector3.zero, false);
+            }
 
-            market.localPosition = marketPos + right * (onCommunity ? -slideDir * SlideDistance * t : inFrom);
-            marketGroup.alpha = instant ? (onCommunity ? 0f : 1f) : (onCommunity ? 1f - t : t);
-            marketGroup.blocksRaycasts = marketGroup.interactable = !onCommunity;
-            if (communitySwipe != null) communitySwipe.SetActive(onCommunity && CurrentPhase == GamePhaseId.Home);
-            if (prevButton != null) prevButton.interactable = !onCommunity;
-            if (nextButton != null) nextButton.interactable = onCommunity;
+            SetSide(prevButton, prevLabel, page - 1, "◀\n", "");
+            SetSide(nextButton, nextLabel, page + 1, "", "\n▶");
+            if (taskbar != null) taskbar.SetCurrent(page);
+        }
+
+        void SetSide(Button b, TMP_Text label, int target, string before, string after)
+        {
+            if (b == null) return;
+            bool has = target >= 0 && target < pages.Count;
+            b.interactable = has;
+            // 옆 버튼은 좁아서 세로로 한 글자씩 (예: "판\n매\n·\n진\n열")
+            if (label != null) label.text = has ? before + string.Join("\n", names[target].Replace(" ", "").ToCharArray()) + after : "";
         }
     }
 }

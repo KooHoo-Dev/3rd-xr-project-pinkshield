@@ -118,11 +118,11 @@ namespace CardShop.Presentation
                 case GamePhaseId.Home when ctx != null:
                     // 4차 기기 피드백: 한 문장뿐이던 퇴근 메시지를 오늘 일 · 카드팩 결과에 따라 두 줄로
                     parsedEvening ??= EveningLines.Parse(eveningLines != null ? eveningLines.lines : null);
-                    return EveningLines.For(ctx.Session.Day, ctx.Session.Ledger, parsedEvening);
+                    return EveningLines.For(ctx.Session.Day, ctx.Session.Ledger, parsedEvening, ctx.Session.SalesDisplay.Count);
                 case GamePhaseId.Home: return "퇴근, 이제 쉴 시간이다.";
                 case GamePhaseId.Business when ctx != null && ctx.Session.Previous != null: // 1일차는 '어제'가 없으니 아침 대사 없음
                     parsedLines ??= MorningLines.Parse(morningLines != null ? morningLines.lines : null);
-                    return MorningLines.For(ctx.Session.Day, ctx.Campaign.DayCount, ctx.Session.Previous, parsedLines, ctx.Session.Endless.Active);
+                    return MorningLines.For(ctx.Session.Day, ctx.Campaign.DayCount, ctx.Session.Previous, parsedLines, ctx.Session.Endless.Active, ctx.Session.SalesDisplay.Count);
                 default: return null;
             }
         }
