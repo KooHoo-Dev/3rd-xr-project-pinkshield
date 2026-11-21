@@ -32,16 +32,19 @@ namespace CardShop.Customers
             head != null ? head.position.y - thief.transform.position.y + 0.15f : 1.7f;
 
         /// <summary>복면 원본을 복제해 머리 뼈에 붙임 (지금 몸이 보는 쪽이 앞).</summary>
-        /// <param name="headOffset">복면 가운데를 머리 뼈에서 이만큼 위로 (m, 손님 키 배율 전)</param>
+        /// <param name="headOffset">모델마다 잰 값이 없을 때: 복면 가운데를 머리 뼈에서 이만큼 위로 (m, 손님 키 배율 전)</param>
         public static void WearMask(CustomerAgent thief, Transform head, GameObject template, float headOffset, float height)
         {
             if (template == null) return;
             GameObject mask = Object.Instantiate(template);
             mask.name = "ThiefMask";
             float scale = thief.transform.lossyScale.x;
-            mask.transform.localScale = template.transform.localScale * scale;
+            // 11-21 V2: 머리 뼈 자리 · 머리 크기가 모델마다 달라 한 값으로는 어긋남 → 로스터에 구워 둔 모델별 값
+            bool fitted = thief.MaskScale > 0f;
+            mask.transform.localScale = template.transform.localScale * scale * (fitted ? thief.MaskScale : 1f);
+            Vector3 offset = fitted ? thief.transform.rotation * thief.MaskOffset : Vector3.up * headOffset;
             Vector3 center = head != null
-                ? head.position + Vector3.up * headOffset * scale
+                ? head.position + offset * scale
                 : thief.transform.position + Vector3.up * (height - 0.15f);
             // 머리 뼈 축은 모델마다 달라서 몸 방향으로 맞춘 뒤 머리에 붙임
             mask.transform.SetPositionAndRotation(center, Quaternion.LookRotation(thief.transform.forward, Vector3.up));

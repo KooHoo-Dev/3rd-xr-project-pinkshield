@@ -27,6 +27,10 @@ namespace CardShop.Cards
             public CustomerGender gender;
             public CustomerLook look = CustomerLook.Local;
             public CustomerAge age = CustomerAge.Adult;
+            [Tooltip("도둑 복면 가운데 = 머리 뼈 + 이 값 (m, 몸 방향 기준 · 키 배율 전). Tools > CardShop > Customers > Bake Thief Mask Fit이 머리 모양으로 재서 넣음 — 이상한 모델만 손으로 고침 (11-21 피드백 V2)")]
+            public Vector3 maskOffset;
+            [Tooltip("도둑 복면 크기 배율 (머리 폭 ÷ 손님 중간 머리 폭). 0 = 아직 안 잼 → 예전 방식(머리 뼈 위 0.09m, 배율 1)")]
+            public float maskScale;
         }
 
         public List<Entry> entries = new List<Entry>();

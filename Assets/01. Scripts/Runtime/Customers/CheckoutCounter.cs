@@ -42,6 +42,9 @@ namespace CardShop.Customers
         /// <summary>지금 장바구니의 물건 수 (인내 시간 계산용)</summary>
         public int ItemCount => basket != null ? basket.Count : 0;
 
+        /// <summary>지금 계산대에 올라온 판매 등록 카드 (없으면 null). 진열대 카드를 빼는 데 씀 (StandListedCards, 11-21 P1)</summary>
+        public CardData CardOnCounter => basket != null ? basket.Card : null;
+
         GameContext Context
         {
             get
