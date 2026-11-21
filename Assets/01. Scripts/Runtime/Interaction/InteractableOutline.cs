@@ -13,6 +13,8 @@ namespace CardShop.Interaction
     /// 렌더러마다 같은 메시를 그리는 자식 "껍데기"를 따로 둠 (서브메시가 여럿인 카드도 전체에 테가 생김).
     /// 카드 · 팩처럼 아주 얇은 물건은 법선으로 부풀리면 테가 안 보여서 메시 가운데에서 몇 % 키우는 방식(_Grow).
     /// XRInteractionManager에 등록되는 물건(나중에 생기는 팩 · 카드 · 쓰레기 포함)에 스스로 붙음. 순간이동 바닥은 제외.
+    /// 11-21 피드백 O1 · O2: 치울 물건(바닥 쓰레기 · 흐트러진 팩)은 연주황 굵은 테가 2초마다 숨쉬고, 누르는 버튼은 납작해서 테를 2배로.
+    /// 색 · 굵기는 껍데기마다 MaterialPropertyBlock으로 덮어씀(재질은 셰이더 방식 고르기만).
     /// </summary>
     public sealed class InteractableOutline : MonoBehaviour
     {
@@ -21,6 +23,12 @@ namespace CardShop.Interaction
 
         static readonly Color Idle = new Color(0.96f, 0.96f, 0.96f);
         static readonly Color Held = new Color(1f, 0.82f, 0.2f);
+        static readonly Color Cleanup = new Color(1f, 0.6f, 0.28f);  // 치울 것: 튜토리얼 분홍 · 쥔 노랑과 겹치지 않는 연주황
+        const float CleanupBreathSeconds = 2f;
+        const float IdleWidth = 0.003f, HeldWidth = 0.006f, IdleGrow = 0.05f, HeldGrow = 0.09f;
+        static readonly int ColorId = Shader.PropertyToID("_Color");
+        static readonly int WidthId = Shader.PropertyToID("_Width");
+        static readonly int GrowId = Shader.PropertyToID("_Grow");
         static Material idleHull, heldHull, idleThin, heldThin;
         static readonly int CenterId = Shader.PropertyToID("_Center");
 
@@ -33,7 +41,9 @@ namespace CardShop.Interaction
 
         readonly List<Shell> shells = new List<Shell>();
         XRBaseInteractable interactable;
-        bool held;
+        bool held, button, cleanupShown;
+        System.Func<bool> isCleanup; // 지금 치울 물건인가 (쓰레기 · 꽂이에서 빠진 팩), 아니면 null
+        MaterialPropertyBlock block;
 
         // ------------------------------------------------------------------ 스스로 붙기
 
@@ -90,6 +100,9 @@ namespace CardShop.Interaction
             if (interactable == null) { Destroy(this); return; }
             interactable.selectEntered.AddListener(OnSelect);
             interactable.selectExited.AddListener(OnSelect);
+            button = GetComponent<PokeButton>() != null;
+            if (TryGetComponent(out CardShop.Cleanup.TrashSpot trash)) isCleanup = () => trash != null && !trash.IsDone;
+            else if (TryGetComponent(out CardShop.Cleanup.RackPack pack)) isCleanup = () => pack != null && !pack.InRack;
             Build();
             held = interactable.isSelected;
             Paint();
@@ -146,11 +159,36 @@ namespace CardShop.Interaction
                 for (int i = 0; i < subs; i++) mats[i] = m;
                 s.Renderer.sharedMaterials = mats;
             }
+            cleanupShown = !held && isCleanup != null && isCleanup();
+            Tint(cleanupShown ? 1f : 0f);
+        }
+
+        // 껍데기마다 색 · 굵기 (breath 0~1 = 치울 것 숨쉬기 밝기, 치울 것이 아니면 무시)
+        void Tint(float breath)
+        {
+            block ??= new MaterialPropertyBlock();
+            bool thick = held || button || cleanupShown;
+            Color color = held ? Held : cleanupShown ? Color.Lerp(Cleanup * 0.55f, Cleanup, breath) : Idle;
+            color.a = 1f;
+            foreach (Shell s in shells)
+            {
+                if (s.Renderer == null) continue;
+                s.Renderer.GetPropertyBlock(block); // _Center는 그대로 둠
+                block.SetColor(ColorId, color);
+                block.SetFloat(WidthId, s.Thin ? 0f : thick ? HeldWidth : IdleWidth);
+                block.SetFloat(GrowId, s.Thin ? (thick ? HeldGrow : IdleGrow) : 0f);
+                s.Renderer.SetPropertyBlock(block);
+            }
         }
 
         // 원래 렌더러가 꺼지면(숨긴 팩 · 연출 중) 테도 같이
         void LateUpdate()
         {
+            // 치울 물건: 꽂이에 다시 꽂히거나 버려지면 평소 테로, 아니면 2초마다 숨쉬기
+            bool cleanup = !held && isCleanup != null && isCleanup();
+            if (cleanup != cleanupShown) { cleanupShown = cleanup; Tint(cleanup ? 1f : 0f); }
+            if (cleanupShown) Tint(0.5f + 0.5f * Mathf.Cos(Time.time * Mathf.PI * 2f / CleanupBreathSeconds));
+
             for (int i = 0; i < shells.Count; i++)
             {
                 Shell s = shells[i];
