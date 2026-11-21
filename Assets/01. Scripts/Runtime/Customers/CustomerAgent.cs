@@ -77,10 +77,6 @@ namespace CardShop.Customers
         public SpeechBubble Bubble { get; set; }
         /// <summary>여성 외형 (감탄 소리 · 도둑 웃음을 남녀로 고를 때)</summary>
         public bool IsFemale { get; set; }
-        /// <summary>젊은 외형 (CustomerRoster의 나이 칸 → 목소리 칸 고르기)</summary>
-        public bool IsYoung { get; set; }
-        /// <summary>등장할 때 정한 목소리 번호. 같은 손님은 끝까지 같은 클립 번호로 말함</summary>
-        public int VoiceSeed { get; set; }
         /// <summary>이 모델의 복면 자리 (CustomerRoster.Entry.maskOffset · maskScale, maskScale 0 = 안 잼)</summary>
         public Vector3 MaskOffset { get; set; }
         public float MaskScale { get; set; }

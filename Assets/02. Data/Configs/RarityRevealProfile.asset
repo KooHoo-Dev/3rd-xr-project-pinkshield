@@ -23,23 +23,23 @@ MonoBehaviour:
     hapticAmplitude: 0.2
     hapticSeconds: 0.05
     hapticCount: 1
-    sound: {fileID: 8300000, guid: 6f76b93dfbd44483a8ee77e8ca863213, type: 3}
+    sound: {fileID: 8300000, guid: 329e600fc19af014ea9c7b96888d30d5, type: 3}
     volume: 0.8
   - pause: 0.4
     hapticAmplitude: 0.4
     hapticSeconds: 0.1
     hapticCount: 1
-    sound: {fileID: 8300000, guid: b2386a78760e4714881d6879e184dcde, type: 3}
+    sound: {fileID: 8300000, guid: cc0bb09d9e625884290d852898f6f079, type: 3}
     volume: 0.8
   - pause: 0.6
     hapticAmplitude: 0.6
     hapticSeconds: 0.15
     hapticCount: 2
-    sound: {fileID: 8300000, guid: 4a79c76419344d30b88c7c63d0a2088d, type: 3}
+    sound: {fileID: 8300000, guid: 456e72d645947154a97f4c377559fa46, type: 3}
     volume: 0.8
   - pause: 1
     hapticAmplitude: 1
     hapticSeconds: 0.3
     hapticCount: 1
-    sound: {fileID: 8300000, guid: 2c0755afa7ca45f6ac663ce9e28772c5, type: 3}
+    sound: {fileID: 8300000, guid: f2242e4bdbc303c448cb006c5d205138, type: 3}
     volume: 0.8

@@ -6,60 +6,53 @@ using NUnit.Framework;
 
 namespace CardShop.Tests
 {
-    /// <summary>손님 목소리 칸 고르기 (11-19 사운드 연결: 성별 · 나이 · 상황별).</summary>
+    /// <summary>손님 목소리 칸 고르기 (11-21 상황별 칸 · 성별, 나이 구분 없음).</summary>
     public class CustomerVoicesTests
     {
         [Test]
-        public void Moments_MapToKinds()
+        public void EachMoment_UsesItsOwnSlot()
         {
-            Assert.AreEqual(VoiceKind.Wow, CustomerVoices.KindFor(CustomerMoment.PaidCard));
-            Assert.AreEqual(VoiceKind.Impatient, CustomerVoices.KindFor(CustomerMoment.Impatient));
-            Assert.AreEqual(VoiceKind.Angry, CustomerVoices.KindFor(CustomerMoment.Angry));
-            Assert.AreEqual(VoiceKind.Light, CustomerVoices.KindFor(CustomerMoment.Enter));
-            Assert.AreEqual(VoiceKind.Light, CustomerVoices.KindFor(CustomerMoment.Paid));
+            Assert.AreEqual(new[] { SoundId.CustomerComeMale }, CustomerVoices.Candidates(CustomerMoment.Enter, false));
+            Assert.AreEqual(new[] { SoundId.CustomerComeFemale }, CustomerVoices.Candidates(CustomerMoment.Enter, true));
+            Assert.AreEqual(new[] { SoundId.CustomerCheckoutMale }, CustomerVoices.Candidates(CustomerMoment.Checkout, false));
+            Assert.AreEqual(new[] { SoundId.CustomerCheckoutFemale }, CustomerVoices.Candidates(CustomerMoment.Checkout, true));
+            Assert.AreEqual(new[] { SoundId.CustomerBuyItmMale }, CustomerVoices.Candidates(CustomerMoment.Paid, false));
+            Assert.AreEqual(new[] { SoundId.CustomerBuyItmFemale }, CustomerVoices.Candidates(CustomerMoment.Paid, true));
+            Assert.AreEqual(new[] { SoundId.CustomerImpatientMale }, CustomerVoices.Candidates(CustomerMoment.Impatient, false));
+            Assert.AreEqual(new[] { SoundId.CustomerImpatientFemale }, CustomerVoices.Candidates(CustomerMoment.Impatient, true));
+            Assert.AreEqual(new[] { SoundId.CustomerAngry }, CustomerVoices.Candidates(CustomerMoment.Angry, false));
+            Assert.AreEqual(new[] { SoundId.CustomerAngryFemale }, CustomerVoices.Candidates(CustomerMoment.Angry, true));
         }
 
         [Test]
-        public void EveryCombination_HasAtLeastOneSlot_AndNoMaleSlotForWomen()
+        public void BoughtCard_FallsBackToBoughtItem()
         {
-            foreach (VoiceKind kind in Enum.GetValues(typeof(VoiceKind)))
-                foreach (bool female in new[] { false, true })
-                    foreach (bool young in new[] { false, true })
-                    {
-                        SoundId[] ids = CustomerVoices.Candidates(kind, female, young);
-                        Assert.IsNotEmpty(ids, $"{kind} female={female} young={young}");
-                        if (female)
-                            CollectionAssert.DoesNotContain(ids, SoundId.CustomerAngry, "여자 손님이 남자 화남 소리를 내면 안 됨");
-                    }
+            Assert.AreEqual(new[] { SoundId.CustomerBuyCardMale, SoundId.CustomerBuyItmMale },
+                CustomerVoices.Candidates(CustomerMoment.PaidCard, false));
+            Assert.AreEqual(new[] { SoundId.CustomerBuyCardFemale, SoundId.CustomerBuyItmFemale },
+                CustomerVoices.Candidates(CustomerMoment.PaidCard, true));
         }
 
         [Test]
-        public void YoungWoman_PrefersGirlSlot_ThenFallsBackToAdult()
+        public void BrowseAndWaiting_AreBubbleOnly()
         {
-            Assert.AreEqual(new[] { SoundId.CustomerWowGirl, SoundId.CustomerWowFemale },
-                CustomerVoices.Candidates(VoiceKind.Wow, true, true));
-            Assert.AreEqual(new[] { SoundId.CustomerVoiceGirl, SoundId.CustomerVoiceFemale },
-                CustomerVoices.Candidates(VoiceKind.Light, true, true));
+            foreach (bool female in new[] { false, true })
+            {
+                Assert.IsEmpty(CustomerVoices.Candidates(CustomerMoment.Browse, female));
+                Assert.IsEmpty(CustomerVoices.Candidates(CustomerMoment.Waiting, female));
+            }
         }
 
         [Test]
-        public void YoungMan_PrefersBoySlot_ThenFallsBackToAdult()
+        public void Women_NeverGetMaleSlots_AndMenNeverGetFemaleSlots()
         {
-            Assert.AreEqual(new[] { SoundId.CustomerWowBoy, SoundId.CustomerWowMale, SoundId.CustomerVoiceMale },
-                CustomerVoices.Candidates(VoiceKind.Wow, false, true));
-            Assert.AreEqual(new[] { SoundId.CustomerVoiceBoy, SoundId.CustomerVoiceMale },
-                CustomerVoices.Candidates(VoiceKind.Light, false, true));
-            Assert.AreEqual(new[] { SoundId.CustomerVoiceMale },
-                CustomerVoices.Candidates(VoiceKind.Light, false, false));
-        }
-
-        [Test]
-        public void Man_HasOwnImpatientSlot_AndAngryForAllAges()
-        {
-            Assert.AreEqual(new[] { SoundId.CustomerImpatientMale, SoundId.CustomerVoiceMale },
-                CustomerVoices.Candidates(VoiceKind.Impatient, false, false));
-            Assert.AreEqual(new[] { SoundId.CustomerAngry }, CustomerVoices.Candidates(VoiceKind.Angry, false, false));
-            Assert.AreEqual(new[] { SoundId.CustomerAngry }, CustomerVoices.Candidates(VoiceKind.Angry, false, true));
+            foreach (CustomerMoment moment in Enum.GetValues(typeof(CustomerMoment)))
+            {
+                foreach (SoundId id in CustomerVoices.Candidates(moment, true))
+                    StringAssert.EndsWith("Female", id.ToString(), $"{moment} 여자");
+                foreach (SoundId id in CustomerVoices.Candidates(moment, false))
+                    StringAssert.DoesNotEndWith("Female", id.ToString(), $"{moment} 남자");
+            }
         }
     }
 }

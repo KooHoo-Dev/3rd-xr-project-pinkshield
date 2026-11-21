@@ -30,9 +30,9 @@ namespace CardShop.Cards
         MopScrub = 17,       // 대걸레로 얼룩 문지르기 (FIX F5, 문지르는 동안 짧게 반복)
         StainClean = 18,     // 얼룩을 다 지움
         // 손님 · 도둑
-        // 손님 목소리는 CustomerVoices가 상황(가벼운 반응 · 와우 · 재촉 · 화남) · 성별 · 나이로 칸을 고름
-        CustomerVoiceMale = 20,   // 남자 가벼운 반응 (오)
-        CustomerVoiceFemale = 21, // 여자(어른) 가벼운 반응
+        // 손님 목소리는 CustomerVoices가 상황 · 성별로 칸을 고름 (11-21 상황별 칸, 나이 구분 없음)
+        CustomerComeMale = 20,    // 가게에 들어와 첫마디
+        CustomerComeFemale = 21,
         CustomerAngry = 22,       // 남자 화남 (기다리다 떠남)
         ThiefLaughMale = 23,      // 도둑 등장 힌트
         ThiefLaughFemale = 24,
@@ -56,23 +56,19 @@ namespace CardShop.Cards
         BgmShop = 51,
         BgmHome = 52,
         AmbienceStreet = 53,
-        // 손님 목소리 추가 (11-19, 성별 · 나이 · 상황별)
-        CustomerWowMale = 60,
-        CustomerWowFemale = 61,
+        // 손님 목소리 추가 (11-19)
+        CustomerBuyCardMale = 60,     // 찾던 카드를 삼 (비면 BuyItm 칸)
+        CustomerBuyCardFemale = 61,
         CustomerAngryFemale = 62,
         CustomerImpatientFemale = 63, // 한숨 · 헛기침 (줄 재촉)
-        CustomerVoiceGirl = 64,       // 젊은 여자 가벼운 반응 (비면 어른 칸)
-        CustomerWowGirl = 65,
         ThiefCaughtCheer = 66,        // 도둑을 잡았을 때 머리 위치에서 환호
         // 가게 배경 음악 변형 (ShopBgm이 고름)
         BgmShopChill = 70,            // 2일차부터 BgmShop과 번갈아
         BgmShopLucky = 71,
         ThiefHurtMale = 72,           // 대걸레에 맞은 도둑 "아야" (11-20 G6, 임시: 화남 클립 음높이 올림)
         ThiefHurtFemale = 73,
-        // 손님 목소리 추가 (11-20 G7: 남자 재촉 · 젊은 남자)
+        // 손님 목소리 추가 (11-20 G7: 남자 재촉)
         CustomerImpatientMale = 74,   // 남자 한숨 · "come on" (줄 재촉)
-        CustomerVoiceBoy = 75,        // 젊은 남자 가벼운 반응 (비면 어른 남자 칸)
-        CustomerWowBoy = 76,          // 젊은 남자 와우 (비면 어른 남자 칸)
         // 잡기 · 떨어짐 (11-21 피드백 S3 · S5, GrabSound · ImpactSound · 청소 자리가 냄)
         PackPick = 77,                // 카드팩을 쥠 (비닐 바스락)
         BoxPick = 78,                 // 상자를 쥠 (종이 상자 툭)
@@ -85,6 +81,11 @@ namespace CardShop.Cards
         FigureSquish = 84,            // 슬라임 피규어를 누름 (말랑 "뿌잉")
         AirConSwitch = 85,            // 에어컨 켜고 끔 (리모컨 "삑")
         AirConFan = 86,               // 에어컨이 켜져 있는 동안 반복 (낮은 바람 "쉬이—")
+        // 손님 상황별 목소리 (11-21, 64 · 65 · 75 · 76은 없앤 젊은 남녀 칸이라 비워 둠)
+        CustomerCheckoutMale = 87,    // 계산대에 물건을 올림
+        CustomerCheckoutFemale = 88,
+        CustomerBuyItmMale = 89,      // 가게 재고만 사고 계산 끝
+        CustomerBuyItmFemale = 90,
     }
 
     /// <summary>
@@ -124,9 +125,10 @@ namespace CardShop.Cards
         public static bool IsLoop(SoundId id) =>
             (id >= SoundId.BgmTitle && id <= SoundId.AmbienceStreet) || id == SoundId.BgmShopChill || id == SoundId.BgmShopLucky;
 
-        /// <summary>칸이 모두 있는지 맞춤 (새 SoundId가 생기면 빈 칸 추가). 에디터 도구가 부름.</summary>
+        /// <summary>칸이 모두 있는지 맞춤 (새 SoundId가 생기면 빈 칸 추가, 없앤 SoundId 칸은 지움). 에디터 도구가 부름.</summary>
         public int EnsureAllEntries()
         {
+            entries.RemoveAll(e => e == null || !Enum.IsDefined(typeof(SoundId), e.id));
             int added = 0;
             foreach (SoundId id in Enum.GetValues(typeof(SoundId)))
             {

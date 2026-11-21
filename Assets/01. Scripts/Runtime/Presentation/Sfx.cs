@@ -15,6 +15,7 @@ namespace CardShop.Presentation
         static SoundBank bank;
         static bool loaded;
         static readonly float[] lastPlayed = new float[128]; // SoundId 값으로 바로 찾음 (가장 큰 값보다 크게)
+        static readonly int[] lastClip = NewLastClip(); // 칸마다 바로 전에 낸 클립 번호 (무작위로 고를 때 같은 클립 연달아 피하기)
 
         public static SoundBank Bank
         {
@@ -45,11 +46,11 @@ namespace CardShop.Presentation
         public static void PlayScaled(SoundId id, Vector3 position, float volumeScale) => PlayAt(id, position, 1f, -1, Mathf.Clamp01(volumeScale));
 
         /// <summary>
-        /// 후보 칸 중 처음으로 소리가 든 칸에서, pick 번째 클립을 냅니다 (손님마다 정한 번호 → 같은 손님은 같은 목소리).
+        /// 후보 칸 중 처음으로 소리가 든 칸에서 클립 하나를 냅니다 (pick이 음수면 무작위 · 바로 전 클립은 피함).
         /// 모든 칸이 비면 조용히 넘어갑니다.
         /// </summary>
         /// <returns>낸 칸과 클립 이름 (기록용). 아무것도 안 냈으면 null</returns>
-        public static string PlayFirst(SoundId[] candidates, Vector3 position, int pick)
+        public static string PlayFirst(SoundId[] candidates, Vector3 position, int pick = -1)
         {
             foreach (SoundId id in candidates)
             {
@@ -67,7 +68,7 @@ namespace CardShop.Presentation
             PlayAt(id, cam != null ? cam.transform.position : Vector3.zero, 0f);
         }
 
-        /// <param name="pick">0 이상이면 그 번째 클립 (클립 수로 나눈 나머지), 음수면 무작위</param>
+        /// <param name="pick">0 이상이면 그 번째 클립 (클립 수로 나눈 나머지), 음수면 무작위 (클립이 둘 이상이면 바로 전 클립은 피함)</param>
         static AudioClip PlayAt(SoundId id, Vector3 position, float spatial, int pick = -1, float volumeScale = 1f)
         {
             SoundBank.Entry e = Bank != null ? Bank.Get(id) : null;
@@ -76,7 +77,9 @@ namespace CardShop.Presentation
             if (Time.unscaledTime - lastPlayed[slot] < MinGap) return null;
             lastPlayed[slot] = Time.unscaledTime;
 
-            AudioClip clip = e.clips[pick >= 0 ? pick % e.clips.Length : Random.Range(0, e.clips.Length)];
+            int index = pick >= 0 ? pick % e.clips.Length : PickNoRepeat(e.clips.Length, lastClip[slot]);
+            lastClip[slot] = index;
+            AudioClip clip = e.clips[index];
             if (clip == null) clip = FirstClip(e); // 지운 파일 자리(빈 칸)가 섞여 있어도 남은 클립으로 (11-21 2차 S0)
             if (clip == null) return null;
             // PlayClipAtPoint는 음높이를 못 바꿔서 짧게 쓰고 버리는 AudioSource를 만듦
@@ -114,6 +117,20 @@ namespace CardShop.Presentation
             src.rolloffMode = AudioRolloffMode.Linear;
             src.maxDistance = 25f;
             return src;
+        }
+
+        /// <summary>0 ~ count-1 무작위, 둘 이상이면 last와 다른 번호 (나머지 중에서 고르게)</summary>
+        static int PickNoRepeat(int count, int last)
+        {
+            if (count <= 1 || last < 0 || last >= count) return Random.Range(0, count);
+            return (last + 1 + Random.Range(0, count - 1)) % count;
+        }
+
+        static int[] NewLastClip()
+        {
+            var a = new int[128];
+            for (int i = 0; i < a.Length; i++) a[i] = -1;
+            return a;
         }
 
         static AudioClip FirstClip(SoundBank.Entry e)

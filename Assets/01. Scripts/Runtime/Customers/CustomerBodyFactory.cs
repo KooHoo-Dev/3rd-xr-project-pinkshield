@@ -77,8 +77,6 @@ namespace CardShop.Customers
             var agent = go.AddComponent<CustomerAgent>();
             agent.Init(isPaused, animator, roster.walkSpeed * scale, roster.turnSpeedDegrees);
             agent.IsFemale = entry.gender == CustomerGender.Female;
-            agent.IsYoung = entry.age == CustomerAge.Young;
-            agent.VoiceSeed = random.Range(0, 1000);
             agent.MaskOffset = entry.maskOffset;
             agent.MaskScale = entry.maskScale;
             agent.Bubble = SpeechBubble.Create(go.transform, HumanoidHeight.Head(animator), bubbleFont());

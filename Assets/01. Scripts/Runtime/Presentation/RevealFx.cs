@@ -67,7 +67,10 @@ namespace CardShop.Presentation
             Settings s = settings;
             CardRarity tier = card.rarity == CardRarity.Unique ? CardRarity.SuperRare : card.rarity; // 연출 등급 통일
             RarityRevealProfile.Entry fx = Profile(s).Get(tier);
-            if (fx.sound != null) AudioSource.PlayClipAtPoint(fx.sound, view.transform.position, fx.volume);
+            // 소리만은 원래 등급 칸 (유니크 전용 소리, 11-21). 칸이 비면 연출 등급 소리
+            RarityRevealProfile.Entry voice = Profile(s).Get(card.rarity);
+            if (voice.sound == null) voice = fx;
+            if (voice.sound != null) AudioSource.PlayClipAtPoint(voice.sound, view.transform.position, voice.volume);
             int count = fx.hapticCount + (legendaryPack ? 1 : 0);
             if (hand != null) host.StartCoroutine(Haptic(hand, fx.hapticAmplitude, fx.hapticSeconds, count));
 

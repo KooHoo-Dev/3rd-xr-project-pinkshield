@@ -267,11 +267,11 @@ namespace CardShop.Customers
             if (agent == null || agent.Bubble == null) return;
             lines ??= new CustomerLines(lineSet != null ? lineSet.lines : null, context != null ? context.Random : null);
             agent.Bubble.Say(lines.Pick(moment, cardName), lineSet != null ? lineSet.bubbleSeconds : 2.8f);
-            // 말풍선과 함께 짧은 목소리 (오 · 와우 · 재촉 · 화남, 성별 · 나이별) — 칸이 모두 비면 조용
-            string played = Sfx.PlayFirst(CustomerVoices.Candidates(moment, agent.IsFemale, agent.IsYoung), agent.Bubble.transform.position, agent.VoiceSeed);
+            // 말풍선과 함께 짧은 목소리 (상황 · 성별 칸, 무작위 · 바로 전 클립은 피함) — 칸이 모두 비면 조용
+            string played = Sfx.PlayFirst(CustomerVoices.Candidates(moment, agent.IsFemale), agent.Bubble.transform.position);
             // 11-21 피드백 S1: 남자가 여자 소리를 내면 logcat 이 줄로 모델을 찾아 로스터 성별을 고침
             if (Debug.isDebugBuild && played != null)
-                Debug.Log($"[Voice] {agent.name} {(agent.IsFemale ? "여자" : "남자")}{(agent.IsYoung ? " 젊음" : "")} {moment} → {played}");
+                Debug.Log($"[Voice] {agent.name} {(agent.IsFemale ? "여자" : "남자")} {moment} → {played}");
         }
 
         void Remove(CustomerAgent agent)
