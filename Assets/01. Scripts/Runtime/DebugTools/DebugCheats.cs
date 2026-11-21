@@ -39,6 +39,32 @@ namespace CardShop.DebugTools
             if (!Application.isEditor) gameObject.SetActive(false); // 기기에서는 숨긴 채 시작
         }
 
+        // 11-21 보완 B5: 씬 패널(버튼 10개, 빌더가 만든 것)은 그대로 두고 실행 중에 11번째 칸에 붙임 (Shop.unity가 원본이라 씬 수정 없이)
+        const string MarketButtonLabel = "시세 강도 올리기";
+
+        void Start()
+        {
+            foreach (UnityEngine.UI.Button b in GetComponentsInChildren<UnityEngine.UI.Button>(true))
+                if (b.name == "Button_" + MarketButtonLabel) return;
+            const float height = 56f / 1100f, step = 76f / 1100f; // ShopSceneBuilder와 같은 칸
+            const int index = 10;
+            float top = 0.62f - (index / 2) * step, left = index % 2 == 0 ? 0.04f : 0.52f;
+            UnityEngine.UI.Button button = CardShop.UI.WorldUiKit.AddButton(transform, MarketButtonLabel,
+                new Vector2(left, top - height), new Vector2(left + 0.44f, top), CardShop.UI.UiFonts.Main);
+            button.GetComponentInChildren<TMPro.TMP_Text>().fontSize = 24f;
+            button.onClick.AddListener(RaiseMarketTier);
+        }
+
+        /// <summary>1순위 강도를 한 단계 올림 (소폭 → 상승 → 급등 → 폭등 → 소폭). 집에서는 내일 시세(바인더 · 커뮤니티가 보는 날), 그 밖엔 오늘.</summary>
+        public void RaiseMarketTier()
+        {
+            int day = Ctx.Session.Day + (flow != null && flow.CurrentPhase == GamePhaseId.Home ? 1 : 0);
+            MarketDay m = Ctx.Market.DebugNextTier(day);
+            Ctx.Events.RaiseNotice(m.HasPopular
+                ? $"[치트] {day}일차 시세: {m.Primary} {m.TierName} ×{m.PrimaryMultiplier:0.0#}"
+                : "[치트] 인기 속성이 꺼져 있음");
+        }
+
         public void ForceGodPack() => Force(r => r.ForceNextSpecial(SpecialPackType.GodPack), "다음 팩: 갓팩");
         public void ForceLegendaryPack() => Force(r => r.ForceNextSpecial(SpecialPackType.LegendaryPack), "다음 팩: 레전더리 확정");
         public void ForceUniqueHit() => Force(r => r.ForceNextHitRarity(CardRarity.Unique), "다음 팩: 히트 슬롯 유니크");
@@ -109,6 +135,7 @@ namespace CardShop.DebugTools
         public void PauseNow() { }
         public void SpawnThiefNow() { }
         public void SpawnCustomerNow() { }
+        public void RaiseMarketTier() { }
 #endif
     }
 }

@@ -370,6 +370,24 @@ namespace CardShop.Tests
         }
 
         [Test]
+        public void DebugNextTier_RaisesOneDayOnly_WrapsAfterLast()
+        {
+            var schedule = new MarketSchedule(7, economy, new SystemRandomSource(99));
+            MarketDay before = schedule.For(1);
+            MarketDay other = schedule.For(2); // 같은 주기의 다음 날
+            MarketDay up = schedule.DebugNextTier(1);
+            int expected = (before.TierIndex + 1) % economy.popularTiers.Length;
+            Assert.AreEqual(expected, up.TierIndex);
+            Assert.AreEqual(economy.popularTiers[expected].multiplier, up.PrimaryMultiplier, 1e-5f);
+            Assert.AreEqual(1f + (up.PrimaryMultiplier - 1f) * economy.secondaryBonusShare, up.SecondaryMultiplier, 1e-5f);
+            Assert.AreEqual(before.Primary, up.Primary, "속성은 그대로");
+            Assert.AreEqual(up.TierIndex, schedule.For(1).TierIndex, "바뀐 값이 남음");
+            Assert.AreEqual(other.TierIndex, schedule.For(2).TierIndex, "다른 날은 그대로");
+            for (int i = 0; i < economy.popularTiers.Length - 1; i++) schedule.DebugNextTier(1);
+            Assert.AreEqual(before.TierIndex, schedule.For(1).TierIndex, "한 바퀴 돌면 처음 단계");
+        }
+
+        [Test]
         public void TierPickedByWeight_SecondaryGetsHalfBonus()
         {
             // 1순위 불(0), 2순위 0 → 1순위와 같아 다시 뽑아 물(1), 강도 0.95 × 합 100 = 95 → 4번째 폭등 ×3

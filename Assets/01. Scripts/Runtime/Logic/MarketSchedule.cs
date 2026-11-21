@@ -94,6 +94,23 @@ namespace CardShop.Logic
             return byDay[day - 1];
         }
 
+        /// <summary>
+        /// 개발용 (디버그 패널 "시세 강도 올리기", 11-21 보완 B5): 그 날의 1순위 강도를 한 단계 올립니다(폭등 다음은 처음 단계로).
+        /// 속성 · 하락은 그대로, 2순위 배율은 같은 식으로 다시 계산. 같은 주기의 다른 날은 바꾸지 않습니다.
+        /// </summary>
+        public MarketDay DebugNextTier(int day)
+        {
+            MarketDay d = For(day);
+            EconomyConfig.PopularTier[] tiers = config.popularTiers;
+            if (!d.HasPopular || tiers == null || tiers.Length == 0) return d;
+            int tier = (d.TierIndex + 1) % tiers.Length;
+            float mult = tiers[tier].multiplier;
+            var next = new MarketDay(d.Primary, mult, d.Secondary, 1f + (mult - 1f) * config.secondaryBonusShare, tier, tiers[tier].name,
+                d.Falling, d.FallingMultiplier);
+            byDay[day - 1] = next;
+            return next;
+        }
+
         void Extend(int days)
         {
             while (byDay.Count < days)

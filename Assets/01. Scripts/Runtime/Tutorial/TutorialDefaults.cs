@@ -42,6 +42,7 @@ namespace CardShop.Tutorial
         public const string DecorPoster = "poster";
         public const string DecorLamp = "lamp";
         public const string DecorAirCon = "aircon";
+        public const string ListedCards = "listed-price-tag"; // 가게 진열대 판매 등록 카드 · 가격표 (StandListedCards, 11-21 B4)
 
         /// <summary>첫 계산 정지 단계 key (끝나기 전이면 첫 손님 물건을 1개로 고정, 9장 Q2)</summary>
         public const string PayHoldKey = "pay-hold";

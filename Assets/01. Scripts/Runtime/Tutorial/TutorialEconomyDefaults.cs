@@ -8,7 +8,7 @@ namespace CardShop.Tutorial
     /// 그 일이 처음 일어나는 순간에 짧게 — 매입가 vs 가게 판매 · 인기 강도 · 택배 · 진열장 세트 · 꾸미기 · 슬라임마켓 · 무한 모드.
     /// TutorialDefaults.Steps()가 끝에 이어 붙입니다 (TutorialDefaults 300줄 점검선, AI-005). 신호는 TutorialEconomyWatch · GameMoment.
     /// 집 물건(택배 상자 · 진열장 · 포스터 · 조명 · 에어컨)은 TutorialTargets.MarkDynamic이 단계가 시작될 때 이름표를 붙여 직접 가리킵니다.
-    /// 가게 가격표는 실물이 없어 가리키지 않습니다 (DEC-043).
+    /// 가게 진열대 판매 등록 카드 · 가격표(StandListedCards, 11-21 P1)가 생긴 뒤 biz-popular는 인기 카드 받침을 가리킵니다 (11-21 보완 B4).
     /// </summary>
     public static class TutorialEconomyDefaults
     {
@@ -28,7 +28,7 @@ namespace CardShop.Tutorial
 
             // ---------------------------------------------------------------- ② 인기 속성 · 강도 (F4~F6)
             Day(Boss("biz-popular", GamePhaseId.Business, TutorialSignal.ListedCardsOnShelf,
-                "인기 속성 카드는 손님이 먼저 집어.\n1순위는 값도 오르고 더 잘 팔려.", null), 2),
+                "인기 속성 카드는 손님이 먼저 집어.\n1순위는 값도 오르고 더 잘 팔려.", TutorialDefaults.ListedCards), 2),
             Boss("biz-surge", GamePhaseId.Business, TutorialSignal.MarketSurgeToday,
                 "{top1Strength} 날엔 값이 확 뛰어. 강도는\n소폭 · 상승 · 급등 · 폭등 순이야.", null),
             new TutorialStep

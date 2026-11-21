@@ -60,6 +60,12 @@ namespace CardShop.Tutorial
             }
             if (thief != null && thief.ActiveThief != null) HighlightTarget.Mark(thief.ActiveThief.gameObject, TutorialDefaults.Thief);
 
+            // 가게 진열대 판매 등록 카드: 오늘 인기 카드 받침 (없으면 줄 전체). 매일 다시 세우므로 단계가 시작될 때 붙임
+            var listed = new System.Collections.Generic.List<GameObject>();
+            foreach (StandListedCards s in Object.FindObjectsByType<StandListedCards>(FindObjectsSortMode.None))
+                s.CollectTutorialTargets(listed);
+            foreach (GameObject g in listed) HighlightTarget.Mark(g, TutorialDefaults.ListedCards);
+
             // 집: 택배 상자 · 진열장 · 꾸미기 (방 업그레이드가 실행 중에 만듦)
             foreach (DeliveryBox b in Object.FindObjectsByType<DeliveryBox>(FindObjectsSortMode.None))
                 HighlightTarget.Mark(b.gameObject, TutorialDefaults.DeliveryBox);

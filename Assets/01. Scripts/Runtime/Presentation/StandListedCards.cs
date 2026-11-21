@@ -14,7 +14,7 @@ namespace CardShop.Presentation
     /// 카드마다 작은 받침 + 보기 전용 실제 카드(DisplayCards) + 가격표("$N", 오늘 인기 1순위 빨강 ▲ · 2순위 주황 ▲ · 하락 파랑 ▼).
     /// 손님이 그 카드를 사서 계산대에 올리면 진열대에서 빠지고 빈 받침이 남습니다(결정 P1 추천안). 다음 날 목록이 바뀌면 다시 세움.
     /// 자리는 씬의 ListedCardAnchor, 없으면 SalesStand 윗면 앞쪽. 씬을 다시 빌드하지 않아도 되게 계산대에 스스로 붙습니다.
-    /// 이 가격표가 경제 설계의 "진열대 가격표 화살표"와 튜토리얼 listed-price-tag 대상 자리입니다.
+    /// 이 가격표가 경제 설계의 "진열대 가격표 화살표"이고, 튜토리얼 biz-popular가 인기 카드 받침을 가리킵니다(CollectTutorialTargets).
     /// </summary>
     public sealed class StandListedCards : MonoBehaviour
     {
@@ -31,6 +31,15 @@ namespace CardShop.Presentation
             public CardView Card;
             public TextMeshPro Tag;
             public string CardId;
+            public bool Popular; // 오늘 인기 1 · 2순위 (튜토리얼 biz-popular가 가리킴)
+        }
+
+        /// <summary>튜토리얼이 가리킬 것: 진열대에 남은 오늘 인기 카드 받침들, 없으면 줄 전체 (11-21 보완 B4).</summary>
+        public void CollectTutorialTargets(List<GameObject> results)
+        {
+            foreach (Slot s in slots)
+                if (s.Popular && s.Root != null && s.Card != null && s.Card.gameObject.activeSelf) results.Add(s.Root.gameObject);
+            if (results.Count == 0 && row != null && slots.Count > 0) results.Add(row.gameObject);
         }
 
         CheckoutCounter counter;
@@ -125,7 +134,7 @@ namespace CardShop.Presentation
             Visual(root, new Vector3(0.075f, BaseHeight, 0.05f), new Vector3(0f, BaseHeight / 2f, 0f), Quaternion.identity, BaseColor);
             Visual(root, new Vector3(0.07f, 0.06f, 0.004f), new Vector3(0f, BaseHeight + 0.03f, -0.012f), Quaternion.Euler(-LeanDegrees, 0f, 0f), BaseColor);
 
-            var slot = new Slot { Root = root, CardId = data.id };
+            var slot = new Slot { Root = root, CardId = data.id, Popular = ctx.EconomyRules.PopularRank(data, market) > 0 };
             slot.Card = DisplayCards.Create(root, "ListedCard");
             if (slot.Card != null)
             {
