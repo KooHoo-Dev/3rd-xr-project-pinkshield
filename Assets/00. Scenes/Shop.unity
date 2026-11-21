@@ -18270,7 +18270,7 @@ MonoBehaviour:
     PopInSeconds: 0.3
     SkipFlyStagger: 0.04
   inputSettings:
-    HoldSeconds: 1.5
+    HoldSeconds: 1
     GaugeGrace: 0.25
     HapticMin: 0.05
     HapticMax: 0.5
@@ -18300,7 +18300,7 @@ MonoBehaviour:
     StashSeconds: 0.45
     StashStagger: 0.05
   boardSettings:
-    RowInterval: 0.25
+    RowInterval: 0.12
     HighlightCount: 5
     Spacing: 0.095
     CardScale: 1.3
