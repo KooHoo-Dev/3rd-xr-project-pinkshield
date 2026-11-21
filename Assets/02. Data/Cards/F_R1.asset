@@ -17,7 +17,7 @@ MonoBehaviour:
   kind: 0
   element: 1
   rarity: 1
-  displayName: "\uBAA8\uB2E5\uBD88 \uC2AC\uB77C\uC784"
+  displayName: "\uD654\uC0B0\uBFD4 \uC2AC\uB77C\uC784"
   description: 
   basePrice: 5
   character: {fileID: 2800000, guid: 0ed9ed6a8163aa7469b31dc6ed675594, type: 3}
