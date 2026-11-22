@@ -22,5 +22,5 @@ MonoBehaviour:
     \uC18D\uC5D0\uC11C \uBAA8\uB4E0 \uC2AC\uB77C\uC784\uB4E4\uC774 \uD0DC\uC5B4\uB0AC\uB2E4."
   basePrice: 500
   character: {fileID: 0}
-  background: {fileID: 2800000, guid: bb5beffd16bb9874c8963a98b283f8d4, type: 3}
+  background: {fileID: 2800000, guid: 091c5805b5e4aaa479363df19db67599, type: 3}
   foreground: {fileID: 0}

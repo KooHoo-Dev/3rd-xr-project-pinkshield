@@ -19,7 +19,7 @@ MonoBehaviour:
   rarity: 1
   displayName: "\uC0F4\uC0F4 \uC2AC\uB77C\uC784"
   description: "\uD0DC\uC5B4\uB0AC\uC744 \uB54C\uBD80\uD130 \uBD99\uC5B4\uC788\uB294
-    \uB3CC\uC5F0\uBCC0\uC774 \uC2AC\uB77C\uC784. "
+    \uB3CC\uC5F0\uBCC0\uC774 \uC2AC\uB77C\uC784."
   basePrice: 5
   character: {fileID: 2800000, guid: 65b121f004dd477298ea1a13dec52398, type: 3}
   background: {fileID: 2800000, guid: f14ac50a89cb62243a4780123dbb350f, type: 3}

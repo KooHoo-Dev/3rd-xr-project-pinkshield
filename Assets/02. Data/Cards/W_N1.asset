@@ -19,7 +19,7 @@ MonoBehaviour:
   rarity: 0
   displayName: "\uBB3C\uBE44\uB298 \uC2AC\uB77C\uC784"
   description: "\uBE5B\uC744 \uBC1B\uC73C\uBA74 \uBE44\uB298 \uBB34\uB2AC\uAC00 \uBB3C\uACB0\uCC98\uB7FC
-    \uBC18\uC9DD\uC778\uB2E4. \uAE4A\uC740 \uBB3C\uC18D\uC744 \uCC3E\uC544 \uD5E4\uBA58\uB2E4. "
+    \uBC18\uC9DD\uC778\uB2E4. \uAE4A\uC740 \uBB3C\uC18D\uC744 \uCC3E\uC544 \uD5E4\uBA58\uB2E4."
   basePrice: 1
   character: {fileID: 2800000, guid: 8baec5b5d50720e47b78252f908618cf, type: 3}
   background: {fileID: 2800000, guid: 3219c63bf5b8ce448a288f0d07d9a46c, type: 3}

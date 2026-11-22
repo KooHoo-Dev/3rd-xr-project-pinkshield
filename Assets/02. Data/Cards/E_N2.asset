@@ -19,7 +19,8 @@ MonoBehaviour:
   rarity: 0
   displayName: "\uB3CC\uAECD\uC9C8 \uC2AC\uB77C\uC784"
   description: "\uC8FC\uC6B4 \uC870\uC57D\uB3CC\uC744 \uBAB8\uC5D0 \uBD99\uC5EC \uAC11\uC637\uC744
-    \uB9CC\uB4E0\uB2E4. \uC544\uB07C\uB294 \uB3CC\uC740 \uC548 \uBE4C\uB824\uC900\uB2E4."
+    \uB9CC\uB4E0\uB2E4. \uC544\uB07C\uB294 \uB3CC\uC744 \uAC74\uB4DC\uB9AC\uBA74
+    \uD654\uB0B8\uB2E4."
   basePrice: 1
   character: {fileID: 2800000, guid: 0b1e7a4b583903944ac7b30c396d3479, type: 3}
   background: {fileID: 2800000, guid: 29e371ed30213274e91ebcbae5bed47a, type: 3}

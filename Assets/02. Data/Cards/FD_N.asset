@@ -18,7 +18,8 @@ MonoBehaviour:
   element: 0
   rarity: 0
   displayName: "\uC2AC\uB77C\uC784 \uB4E4\uD310"
-  description: 
+  description: "\uC2AC\uB77C\uC784\uB4E4\uC774 \uC990\uACA8\uB178\uB294 \uD3C9\uD654\uB85C\uC6B4
+    \uB4E4\uD310. \uC774\uACF3\uC5D0\uC11C \uC2F8\uC6C0\uC740 \uAE08\uBB3C\uC774\uB2E4."
   basePrice: 1
   character: {fileID: 0}
   background: {fileID: 2800000, guid: 06e260051fc9bbd46a652d5faf4d5df8, type: 3}
