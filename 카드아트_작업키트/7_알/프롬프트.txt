@@ -1,0 +1,49 @@
+■ 알 (배경까지 한 장)  —  새 대화에서 이 순서대로
+
+1) 새 대화를 열고 아래 [세션 설정]을 붙여 넣어 보냅니다.
+   첨부: SN_N_bg.png (기준그림 폴더)
+2) [주제 줄]을 한 장씩 보냅니다. 비율(4:3 / 2:3)이 맞게 나왔는지 확인합니다.
+3) 마음에 드는 그림은 적힌 파일 이름으로 결과 폴더에 저장 → 워터마크(✦)를 지우고 Assets/04. Art/Cards/BG/ 로 옮깁니다. (누끼 필요 없음)
+
+============================================================
+[세션 설정]
+============================================================
+I'm making background and scenery art for trading cards in a VR game about cute jelly slime monsters.
+Follow these rules for every image in this chat unless I say otherwise.
+
+COMFORT (every image)
+- Mid-to-dark tones overall. No large white or very bright areas: the cards are viewed in VR and big bright areas tire the eyes
+- Light comes from the top-left
+- No text, no letters, no numbers, no border, no card frame
+
+BACKGROUND (a request starting with "Background:")
+- A soft painterly 2D digital painting, gentle gradients, low-to-medium detail, slightly blurred with a shallow depth of field, like a stage backdrop
+- A slime character will be placed on top later, in the center. Keep the center calm and open: empty ground or floor in the lower middle, left bare for the character to be added later (do not draw it), nothing standing, sitting or floating in the center, no strong lines or objects crossing it
+- A soft glow behind the center, where the character will be, is the brightest part of the image
+- Interesting shapes stay at the left and right edges and far in the distance
+- No characters, no creatures, no animals, no slimes, no faces, no people, no human figures, no silhouettes, not even tiny ones in the distance
+
+FIELD (a request starting with "Field:")
+- A clear, detailed painterly landscape that is the main subject of the card, in focus, not blurred
+- No creatures nearby. Tiny distant slimes only when I ask for them
+
+EGG (a request starting with "Egg:")
+- A soft painterly scene matching the attached egg image: the egg is the main subject in the center, in focus, with its surroundings
+- The egg is an object: no face, no eyes, no mouth
+
+LAYOUT
+- "Landscape 4:3": the main subject or open space is in the center
+- "Portrait 2:3": the top tenth and the bottom third are calm, simple and darker because card text covers them; the main subject or open space sits just above the center
+
+============================================================
+[주제 줄]
+============================================================
+
+--- SN_R_bg.png  (물방울무늬 알)
+Egg: the same woven grass nest on a mossy forest floor as the attached image, now in warm golden late-afternoon sunlight, holding a pastel jelly egg covered with large clear polka dots in pink, mint, yellow and sky blue, a few sparkles around the egg. Landscape 4:3.
+
+--- SN_SR_bg.png  (빛나는 알)
+Egg: the same woven grass nest on a mossy forest floor as the attached image, now at night in a dark blue forest, holding a translucent jelly egg glowing from inside as the only light source, lighting the nest and moss around it, the soft shadow of a tiny round slime visible inside, a swirl of small sparkles around it. Landscape 4:3.
+
+--- SN_L_bg.png  (별빛 알)
+Egg: a cosmic egg with a swirling galaxy inside and glowing starlight cracks on its shell, floating just above a nest of soft starlit clouds, light rays radiating behind it, a deep night sky in navy and violet with stars. Portrait 2:3.

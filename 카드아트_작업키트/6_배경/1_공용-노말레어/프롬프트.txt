@@ -1,0 +1,61 @@
+■ 슬라임 공용 배경 (노말 · 레어, 창 4:3)  —  새 대화에서 이 순서대로
+
+1) 새 대화를 열고 아래 [세션 설정]을 붙여 넣어 보냅니다.
+   첨부: 없음 (슬라임 그림을 첨부하지 마세요 — 배경에 슬라임을 따라 그립니다)
+2) [주제 줄]을 한 장씩 보냅니다. 비율(4:3 / 2:3)이 맞게 나왔는지 확인합니다.
+3) 마음에 드는 그림은 적힌 파일 이름으로 결과 폴더에 저장 → 워터마크(✦)를 지우고 Assets/04. Art/Cards/BG/ 로 옮깁니다. (누끼 필요 없음)
+
+============================================================
+[세션 설정]
+============================================================
+I'm making background and scenery art for trading cards in a VR game about cute jelly slime monsters.
+Follow these rules for every image in this chat unless I say otherwise.
+
+COMFORT (every image)
+- Mid-to-dark tones overall. No large white or very bright areas: the cards are viewed in VR and big bright areas tire the eyes
+- Light comes from the top-left
+- No text, no letters, no numbers, no border, no card frame
+
+BACKGROUND (a request starting with "Background:")
+- A soft painterly 2D digital painting, gentle gradients, low-to-medium detail, slightly blurred with a shallow depth of field, like a stage backdrop
+- A slime character will be placed on top later, in the center. Keep the center calm and open: empty ground or floor in the lower middle, left bare for the character to be added later (do not draw it), nothing standing, sitting or floating in the center, no strong lines or objects crossing it
+- A soft glow behind the center, where the character will be, is the brightest part of the image
+- Interesting shapes stay at the left and right edges and far in the distance
+- No characters, no creatures, no animals, no slimes, no faces, no people, no human figures, no silhouettes, not even tiny ones in the distance
+
+FIELD (a request starting with "Field:")
+- A clear, detailed painterly landscape that is the main subject of the card, in focus, not blurred
+- No creatures nearby. Tiny distant slimes only when I ask for them
+
+EGG (a request starting with "Egg:")
+- A soft painterly scene matching the attached egg image: the egg is the main subject in the center, in focus, with its surroundings
+- The egg is an object: no face, no eyes, no mouth
+
+NORMAL and RARE backgrounds (requests ending with "Normal and Rare tier."): these override the painterly style above. A stylized 3D render that matches glossy 3D toy slimes: soft rounded toy-like shapes like a small miniature diorama, smooth clean surfaces, soft global illumination with gentle ambient occlusion, a shallow depth of field so the distance is softly blurred while the floor in the lower middle stays in focus, a slightly high eye-level camera so the floor in the lower middle is clearly visible. Keep all five of these backgrounds consistent: the same camera height, the horizon at about 45% of the image height, and an open floor area in the lower middle about one third of the image wide, where a small slime will stand. Scale: the props at the edges are about the size of a small slime or a little bigger, never tiny pebbles that make the slime look like a giant, never huge cliffs that dwarf it. Key light from the upper left, matching the characters, and a soft shadowed floor so a soft shadow can be added under the slime later. The background must stay quieter than the character: slightly lower saturation and softer contrast than a glossy toy slime, no glossy highlights brighter than the glow behind the center. No outlines, no brush strokes, no painted look. Calm mid-tone values, not too dark.
+
+SUPER RARE backgrounds (requests ending with "Super rare tier."): these override the soft backdrop rules above. Show the moment of the card's move with clear motion: speed lines, motion streaks and directional motion blur that follow the direction I name, so the whole background feels like it is moving. Medium detail, sharper than other backgrounds. Instead of a soft glow, a bright burst of light behind the center. Streaks may pass behind the center but stay soft there so a character placed on top stays readable. Keep mid-tone values, no harsh high-contrast stripes.
+
+UNIQUE and LEGENDARY backgrounds (requests ending with "Unique tier." or "Legendary tier."): a full-art trading card backdrop. A dramatic place with bright energy rays radiating outward from behind the center, many four-pointed star sparkles and tiny light specks, richer and more saturated color than other backgrounds, a sense of power. Legendary at an epic scale.
+
+LAYOUT
+- "Landscape 4:3": the main subject or open space is in the center
+- "Portrait 2:3": the top tenth and the bottom third are calm, simple and darker because card text covers them; the main subject or open space sits just above the center
+
+============================================================
+[주제 줄]
+============================================================
+
+--- BG_F_W.png  (불 N · R)
+Background: a volcanic plain at dusk as a small 3D diorama, a smooth flat floor of glossy black basalt in the lower middle with a few thin glowing orange cracks, rounded toy-like dark red rocks only at the left and right edges, a small rounded volcano far away on the right with a soft red glow, a few glowing embers floating in the air, warm maroon and charcoal tones with a soft warm orange glow behind the center. Normal and Rare tier. Landscape 4:3.
+
+--- BG_W_W.png  (물 N · R)
+Background: a calm shallow seabed as a small 3D diorama, a smooth pale sand floor in the lower middle with soft rippling caustic light patterns on it, rounded toy-like corals, sea anemones and seaweed only at the left and right edges, soft light rays from the upper left, a few glossy bubbles, teal and blue tones with a soft aqua glow behind the center. Normal and Rare tier. Landscape 4:3.
+
+--- BG_E_W.png  (땅 N · R)
+Background: a cozy cave as a small 3D diorama, a smooth flat stone floor in the lower middle, rounded toy-like rocks with soft moss and clusters of glossy glowing amber crystals only at the left and right edges, a soft beam of light from the upper left, warm brown and olive tones with a soft amber glow behind the center. Normal and Rare tier. Landscape 4:3.
+
+--- BG_A_W.png  (공기 N · R)
+Background: the flat top of a small floating island high above a soft sea of rounded cotton-like clouds as a small 3D diorama, a smooth floor of pale stone and short grass in the lower middle, wind-bent grass tufts and a few tiny floating pebbles only at the left and right edges, soft rounded clouds far below, a few thin curling wind ribbons in the sky, muted dusty blue, soft lavender and pale peach tones in mid values (not bright white, not stormy), a soft pale glow behind the center. Normal and Rare tier. Landscape 4:3.
+
+--- BG_N_W.png  (무속성 N · R)
+Background: a gentle meadow at golden hour as a small 3D diorama, a smooth soft short-grass floor in the lower middle like flocked felt, rounded toy-like bushes and small simple flowers only at the left and right edges, a few floating dandelion seeds, muted sage green and dusty rose tones with a soft warm glow behind the center. Normal and Rare tier. Landscape 4:3.

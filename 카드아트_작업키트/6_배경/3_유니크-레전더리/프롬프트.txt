@@ -1,0 +1,73 @@
+■ 유니크 · 레전더리 배경 (풀아트 2:3)  —  새 대화에서 이 순서대로
+
+1) 새 대화를 열고 아래 [세션 설정]을 붙여 넣어 보냅니다.
+   첨부: 없음 (슬라임 그림을 첨부하지 마세요 — 배경에 슬라임을 따라 그립니다)
+2) [주제 줄]을 한 장씩 보냅니다. 비율(4:3 / 2:3)이 맞게 나왔는지 확인합니다.
+3) 마음에 드는 그림은 적힌 파일 이름으로 결과 폴더에 저장 → 워터마크(✦)를 지우고 Assets/04. Art/Cards/BG/ 로 옮깁니다. (누끼 필요 없음)
+
+============================================================
+[세션 설정]
+============================================================
+I'm making background and scenery art for trading cards in a VR game about cute jelly slime monsters.
+Follow these rules for every image in this chat unless I say otherwise.
+
+COMFORT (every image)
+- Mid-to-dark tones overall. No large white or very bright areas: the cards are viewed in VR and big bright areas tire the eyes
+- Light comes from the top-left
+- No text, no letters, no numbers, no border, no card frame
+
+BACKGROUND (a request starting with "Background:")
+- A soft painterly 2D digital painting, gentle gradients, low-to-medium detail, slightly blurred with a shallow depth of field, like a stage backdrop
+- A slime character will be placed on top later, in the center. Keep the center calm and open: empty ground or floor in the lower middle, left bare for the character to be added later (do not draw it), nothing standing, sitting or floating in the center, no strong lines or objects crossing it
+- A soft glow behind the center, where the character will be, is the brightest part of the image
+- Interesting shapes stay at the left and right edges and far in the distance
+- No characters, no creatures, no animals, no slimes, no faces, no people, no human figures, no silhouettes, not even tiny ones in the distance
+
+FIELD (a request starting with "Field:")
+- A clear, detailed painterly landscape that is the main subject of the card, in focus, not blurred
+- No creatures nearby. Tiny distant slimes only when I ask for them
+
+EGG (a request starting with "Egg:")
+- A soft painterly scene matching the attached egg image: the egg is the main subject in the center, in focus, with its surroundings
+- The egg is an object: no face, no eyes, no mouth
+
+NORMAL and RARE backgrounds (requests ending with "Normal and Rare tier."): these override the painterly style above. A stylized 3D render that matches glossy 3D toy slimes: soft rounded toy-like shapes like a small miniature diorama, smooth clean surfaces, soft global illumination with gentle ambient occlusion, a shallow depth of field so the distance is softly blurred while the floor in the lower middle stays in focus, a slightly high eye-level camera so the floor in the lower middle is clearly visible. Keep all five of these backgrounds consistent: the same camera height, the horizon at about 45% of the image height, and an open floor area in the lower middle about one third of the image wide, where a small slime will stand. Scale: the props at the edges are about the size of a small slime or a little bigger, never tiny pebbles that make the slime look like a giant, never huge cliffs that dwarf it. Key light from the upper left, matching the characters, and a soft shadowed floor so a soft shadow can be added under the slime later. The background must stay quieter than the character: slightly lower saturation and softer contrast than a glossy toy slime, no glossy highlights brighter than the glow behind the center. No outlines, no brush strokes, no painted look. Calm mid-tone values, not too dark.
+
+SUPER RARE backgrounds (requests ending with "Super rare tier."): these override the soft backdrop rules above. Show the moment of the card's move with clear motion: speed lines, motion streaks and directional motion blur that follow the direction I name, so the whole background feels like it is moving. Medium detail, sharper than other backgrounds. Instead of a soft glow, a bright burst of light behind the center. Streaks may pass behind the center but stay soft there so a character placed on top stays readable. Keep mid-tone values, no harsh high-contrast stripes.
+
+UNIQUE and LEGENDARY backgrounds (requests ending with "Unique tier." or "Legendary tier."): a full-art trading card backdrop. A dramatic place with bright energy rays radiating outward from behind the center, many four-pointed star sparkles and tiny light specks, richer and more saturated color than other backgrounds, a sense of power. Legendary at an epic scale.
+
+LAYOUT
+- "Landscape 4:3": the main subject or open space is in the center
+- "Portrait 2:3": the top tenth and the bottom third are calm, simple and darker because card text covers them; the main subject or open space sits just above the center
+
+============================================================
+[주제 줄]
+============================================================
+
+--- F_U_bg.png  (용암 군주)
+Background: a grand hall carved from black obsidian, lava waterfalls glowing on both sides, a raised dark stone dais just above the center, warm dramatic light, dark red and black tones. Unique tier. Portrait 2:3.
+
+--- F_L_bg.png  (태양 거신)
+Background: an epic sky above an erupting volcano at sunset, glowing clouds, a radiant golden light just above the center that fades to deep red and purple at the edges, low camera angle. Legendary tier. Portrait 2:3.
+
+--- W_U_bg.png  (산호 마녀)
+Background: a mysterious coral grotto deep under the sea, branches of glowing pink coral arching like a hall on both sides, drifting bioluminescent specks, a beam of light from above, deep blue and violet tones. Unique tier. Portrait 2:3.
+
+--- W_L_bg.png  (심해 여왕)
+Background: the vast dark abyss of the deep sea, a single column of moonlight falling from far above to just above the center, glowing jellyfish drifting at the edges, deep navy tones, epic scale. Legendary tier. Portrait 2:3.
+
+--- E_U_bg.png  (보석 군주)
+Background: a treasure cavern full of gem crystals in many colors glowing on the walls, a raised stone platform just above the center, shimmering reflections, dark tones with jewel-colored light. Unique tier. Portrait 2:3.
+
+--- E_L_bg.png  (산맥 거신)
+Background: an epic wide valley surrounded by towering mountains, forests and waterfalls, a golden evening sky glowing just above the center, low camera angle, deep green and amber tones. Legendary tier. Portrait 2:3.
+
+--- A_U_bg.png  (천공 수호자)
+Background: white stone ruins of an ancient sky temple floating among clouds at dawn, wind ribbons curling between the pillars at both sides, a soft light just above the center, muted blue and pearl tones (not bright white). Unique tier. Portrait 2:3.
+
+--- A_L_bg.png  (하늘고래)
+Background: a vast night sky full of aurora ribbons above an endless sea of clouds, stars, the aurora brightest just above the center, deep navy, teal and violet tones, epic scale. Legendary tier. Portrait 2:3.
+
+--- N_U_bg.png  (슬라임 대모)
+Background: a warm hidden hollow in a meadow at sunset, soft grass and the big roots of an old tree forming a cozy nook, fireflies, a warm glow just above the center, muted green and amber tones. Unique tier. Portrait 2:3.

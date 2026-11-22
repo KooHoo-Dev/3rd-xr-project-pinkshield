@@ -1,0 +1,61 @@
+■ 수퍼레어 배경 (창 4:3)  —  새 대화에서 이 순서대로
+
+1) 새 대화를 열고 아래 [세션 설정]을 붙여 넣어 보냅니다.
+   첨부: 없음 (슬라임 그림을 첨부하지 마세요 — 배경에 슬라임을 따라 그립니다)
+2) [주제 줄]을 한 장씩 보냅니다. 비율(4:3 / 2:3)이 맞게 나왔는지 확인합니다.
+3) 마음에 드는 그림은 적힌 파일 이름으로 결과 폴더에 저장 → 워터마크(✦)를 지우고 Assets/04. Art/Cards/BG/ 로 옮깁니다. (누끼 필요 없음)
+
+============================================================
+[세션 설정]
+============================================================
+I'm making background and scenery art for trading cards in a VR game about cute jelly slime monsters.
+Follow these rules for every image in this chat unless I say otherwise.
+
+COMFORT (every image)
+- Mid-to-dark tones overall. No large white or very bright areas: the cards are viewed in VR and big bright areas tire the eyes
+- Light comes from the top-left
+- No text, no letters, no numbers, no border, no card frame
+
+BACKGROUND (a request starting with "Background:")
+- A soft painterly 2D digital painting, gentle gradients, low-to-medium detail, slightly blurred with a shallow depth of field, like a stage backdrop
+- A slime character will be placed on top later, in the center. Keep the center calm and open: empty ground or floor in the lower middle, left bare for the character to be added later (do not draw it), nothing standing, sitting or floating in the center, no strong lines or objects crossing it
+- A soft glow behind the center, where the character will be, is the brightest part of the image
+- Interesting shapes stay at the left and right edges and far in the distance
+- No characters, no creatures, no animals, no slimes, no faces, no people, no human figures, no silhouettes, not even tiny ones in the distance
+
+FIELD (a request starting with "Field:")
+- A clear, detailed painterly landscape that is the main subject of the card, in focus, not blurred
+- No creatures nearby. Tiny distant slimes only when I ask for them
+
+EGG (a request starting with "Egg:")
+- A soft painterly scene matching the attached egg image: the egg is the main subject in the center, in focus, with its surroundings
+- The egg is an object: no face, no eyes, no mouth
+
+NORMAL and RARE backgrounds (requests ending with "Normal and Rare tier."): these override the painterly style above. A stylized 3D render that matches glossy 3D toy slimes: soft rounded toy-like shapes like a small miniature diorama, smooth clean surfaces, soft global illumination with gentle ambient occlusion, a shallow depth of field so the distance is softly blurred while the floor in the lower middle stays in focus, a slightly high eye-level camera so the floor in the lower middle is clearly visible. Keep all five of these backgrounds consistent: the same camera height, the horizon at about 45% of the image height, and an open floor area in the lower middle about one third of the image wide, where a small slime will stand. Scale: the props at the edges are about the size of a small slime or a little bigger, never tiny pebbles that make the slime look like a giant, never huge cliffs that dwarf it. Key light from the upper left, matching the characters, and a soft shadowed floor so a soft shadow can be added under the slime later. The background must stay quieter than the character: slightly lower saturation and softer contrast than a glossy toy slime, no glossy highlights brighter than the glow behind the center. No outlines, no brush strokes, no painted look. Calm mid-tone values, not too dark.
+
+SUPER RARE backgrounds (requests ending with "Super rare tier."): these override the soft backdrop rules above. Show the moment of the card's move with clear motion: speed lines, motion streaks and directional motion blur that follow the direction I name, so the whole background feels like it is moving. Medium detail, sharper than other backgrounds. Instead of a soft glow, a bright burst of light behind the center. Streaks may pass behind the center but stay soft there so a character placed on top stays readable. Keep mid-tone values, no harsh high-contrast stripes.
+
+UNIQUE and LEGENDARY backgrounds (requests ending with "Unique tier." or "Legendary tier."): a full-art trading card backdrop. A dramatic place with bright energy rays radiating outward from behind the center, many four-pointed star sparkles and tiny light specks, richer and more saturated color than other backgrounds, a sense of power. Legendary at an epic scale.
+
+LAYOUT
+- "Landscape 4:3": the main subject or open space is in the center
+- "Portrait 2:3": the top tenth and the bottom third are calm, simple and darker because card text covers them; the main subject or open space sits just above the center
+
+============================================================
+[주제 줄]
+============================================================
+
+--- F_SR_bg.png  (화염 돌진)
+Background: a volcanic night sky seen at high speed, long glowing meteor trails, ember streaks and parallel speed lines all rushing diagonally from the upper left toward the lower right, the volcanic ridges below blurred in the same direction, a lava river far below, deep red, maroon and purple tones, a bright orange burst of light behind the center. Super rare tier. Landscape 4:3.
+
+--- W_SR_bg.png  (해일)
+Background: a stormy ocean seen from inside a giant curling wave, the wall of water sweeping in a huge curve from the right side up over the top, foam and spray streaks flying along the curve, rain streaks slanting the same way, deep teal and slate blue tones, a bright aqua burst of light at the opening behind the center. Super rare tier. Landscape 4:3.
+
+--- E_SR_bg.png  (강철 돌격)
+Background: a forge-like stone cavern at the moment of a heavy impact, cracks and shock rings spreading outward across the floor from the center, sparks and rock chips flying outward in all directions with motion streaks radiating from the center, dark iron gray and orange tones, a bright orange burst of light behind the center. Super rare tier. Landscape 4:3.
+
+--- A_SR_bg.png  (폭풍 질주)
+Background: rushing through a storm high in the sky, clouds and wind lines stretched into long streaks flying outward toward the viewer from a bright vanishing point just behind the center like a tunnel of speed, distant lightning at the edges, deep navy and electric violet tones, a bright pale burst of light behind the center. Super rare tier. Landscape 4:3.
+
+--- N_SR_bg.png  (분열)
+Background: a whimsical playground of soft round jelly hills at the moment of a bouncy pop, rings of soft light pulsing outward from behind the center, glossy jelly droplets bursting outward and bouncing in arcs with short motion trails, muted rose and peach tones with plum shadows, a warm burst of light behind the center, playful energy. Super rare tier. Landscape 4:3.
