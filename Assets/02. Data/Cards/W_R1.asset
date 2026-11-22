@@ -18,8 +18,9 @@ MonoBehaviour:
   element: 2
   rarity: 1
   displayName: "\uD574\uD30C\uB9AC \uC2AC\uB77C\uC784"
-  description: 
+  description: "\uBE5B\uB098\uB294 \uD574\uD30C\uB9AC \uCE58\uB9C8\uB97C \uC0B4\uB791\uC778\uB2E4.
+    \uB108\uBB34 \uAC00\uAE4C\uC774 \uAC00\uBA74 \uCC0C\uB9BF\uD558\uB2E4."
   basePrice: 5
   character: {fileID: 2800000, guid: 9e268acb1b07c314fbc0cbe942dfc968, type: 3}
-  background: {fileID: 0}
+  background: {fileID: 2800000, guid: 3219c63bf5b8ce448a288f0d07d9a46c, type: 3}
   foreground: {fileID: 0}

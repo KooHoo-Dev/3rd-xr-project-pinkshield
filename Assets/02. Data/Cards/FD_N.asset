@@ -21,5 +21,5 @@ MonoBehaviour:
   description: 
   basePrice: 1
   character: {fileID: 0}
-  background: {fileID: 0}
+  background: {fileID: 2800000, guid: 06e260051fc9bbd46a652d5faf4d5df8, type: 3}
   foreground: {fileID: 0}

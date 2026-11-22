@@ -17,9 +17,10 @@ MonoBehaviour:
   kind: 0
   element: 2
   rarity: 3
-  displayName: "\uC0B0\uD638 \uB9C8\uB140 \uC2AC\uB77C\uC784"
-  description: 
+  displayName: "\uC0B0\uD638\uC12C \uC2AC\uB77C\uC784"
+  description: "\uC0B0\uD638\uAC00 \uC810\uC810 \uC790\uB77C \uC12C\uC774\uB41C \uC2AC\uB77C\uC784.
+    \uC794\uC794\uD55C \uBB3C\uACB0\uC744 \uC88B\uC544\uD55C\uB2E4."
   basePrice: 100
   character: {fileID: 2800000, guid: 17d6e93016eb8c44c85ae36c72530fc0, type: 3}
-  background: {fileID: 0}
+  background: {fileID: 2800000, guid: 5e2a405ae899f054caad220f281d040b, type: 3}
   foreground: {fileID: 0}

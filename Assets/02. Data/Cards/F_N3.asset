@@ -18,8 +18,10 @@ MonoBehaviour:
   element: 1
   rarity: 0
   displayName: "\uBD88\uD600 \uC2AC\uB77C\uC784"
-  description: 
+  description: "\uC791\uC740 \uBD88\uAF43 \uD600\uB85C \uBB50\uB4E0 \uD565\uC544
+    \uBCF8\uB2E4. \uC9C0\uB098\uAC04 \uC790\uB9AC\uB9C8\uB2E4 \uADF8\uC744\uC74C\uC774
+    \uB0A8\uB294\uB2E4."
   basePrice: 1
   character: {fileID: 2800000, guid: 99945893e69247443afe0f19e4b37aff, type: 3}
-  background: {fileID: 0}
+  background: {fileID: 2800000, guid: 4e2049c3df238d647a375606cb3a3335, type: 3}
   foreground: {fileID: 0}
