@@ -957,6 +957,53 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8356ea2c21cc3874c9a6107f614b0a1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CardShop.Runtime::CardShop.Cleanup.RackPack
+--- !u!1 &35513504
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 35513505}
+  - component: {fileID: 35513506}
+  m_Layer: 0
+  m_Name: Anchor_Home_Upgrade_Binder_3_0
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &35513505
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 35513504}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
+  m_LocalPosition: {x: 0.177, y: 0.8, z: -58.426}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1455076802}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &35513506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 35513504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c378d99088d0c3e4a90831be73c7fecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CardShop.Runtime::CardShop.Core.PlacementAnchor
+  key: Home/Upgrade/Binder_3_0
+  previewCenter: {x: -0, y: 0.1330867, z: -0}
+  previewSize: {x: 0.053231213, y: 0.2661734, z: 0.22736119}
 --- !u!21 &36213946
 Material:
   serializedVersion: 8
@@ -3006,7 +3053,7 @@ Transform:
   m_GameObject: {fileID: 122497761}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
-  m_LocalPosition: {x: 0.258, y: 0.839, z: -58.544}
+  m_LocalPosition: {x: -0.099, y: 0.739, z: -58.66}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6878,7 +6925,7 @@ Transform:
   m_GameObject: {fileID: 268671536}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.6241274, z: -0, w: 0.78132266}
-  m_LocalPosition: {x: -0.301, y: 0.776, z: -58.732}
+  m_LocalPosition: {x: -0.549, y: 0.727, z: -58.666}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -25445,13 +25492,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1212098784}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.435, y: 0.429, z: -62.162}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 0.391, y: 0.709, z: -58.581}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1455076802}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &1212098786
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31042,6 +31089,7 @@ Transform:
   - {fileID: 1212098785}
   - {fileID: 713830937}
   - {fileID: 1011361663}
+  - {fileID: 35513505}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1489536075
@@ -38017,7 +38065,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC2AC\uB77C\uC784 \uCE74\uB4DC\uC0F5"
+  m_text: "\uC2AC\uB77C\uC784 \uCE74\uB4DC\uC0F5 VR"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 29e28123920a96c44a8416a41c2da4d9, type: 2}
   m_sharedMaterial: {fileID: -6801016509701406347, guid: 29e28123920a96c44a8416a41c2da4d9, type: 2}
