@@ -142,3 +142,6 @@ desktop.ini
 # Unity crash recovery scenes
 _Recovery/
 _Recovery.meta
+
+# 카드 아트 Gemini 원본 (정리본은 Assets/04. Art/Cards에 있음, 11-22)
+카드아트_작업키트/**/결과/

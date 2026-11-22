@@ -45,17 +45,17 @@ LAYOUT
 [주제 줄]
 ============================================================
 
---- F_SR_bg.png  (화염 돌진)
+--- F_SR_bg.png  (메테오)
 Background: a volcanic night sky seen at high speed, long glowing meteor trails, ember streaks and parallel speed lines all rushing diagonally from the upper left toward the lower right, the volcanic ridges below blurred in the same direction, a lava river far below, deep red, maroon and purple tones, a bright orange burst of light behind the center. Super rare tier. Landscape 4:3.
 
---- W_SR_bg.png  (해일)
+--- W_SR_bg.png  (파도볏)
 Background: a stormy ocean seen from inside a giant curling wave, the wall of water sweeping in a huge curve from the right side up over the top, foam and spray streaks flying along the curve, rain streaks slanting the same way, deep teal and slate blue tones, a bright aqua burst of light at the opening behind the center. Super rare tier. Landscape 4:3.
 
---- E_SR_bg.png  (강철 돌격)
+--- E_SR_bg.png  (강철 뿔)
 Background: a forge-like stone cavern at the moment of a heavy impact, cracks and shock rings spreading outward across the floor from the center, sparks and rock chips flying outward in all directions with motion streaks radiating from the center, dark iron gray and orange tones, a bright orange burst of light behind the center. Super rare tier. Landscape 4:3.
 
---- A_SR_bg.png  (폭풍 질주)
+--- A_SR_bg.png  (칼날개)
 Background: rushing through a storm high in the sky, clouds and wind lines stretched into long streaks flying outward toward the viewer from a bright vanishing point just behind the center like a tunnel of speed, distant lightning at the edges, deep navy and electric violet tones, a bright pale burst of light behind the center. Super rare tier. Landscape 4:3.
 
---- N_SR_bg.png  (분열)
-Background: a whimsical playground of soft round jelly hills at the moment of a bouncy pop, rings of soft light pulsing outward from behind the center, glossy jelly droplets bursting outward and bouncing in arcs with short motion trails, muted rose and peach tones with plum shadows, a warm burst of light behind the center, playful energy. Super rare tier. Landscape 4:3.
+--- N_SR_bg.png  (트리오)
+Background: a cheerful candy-like jelly meadow at the moment of a bouncy pop, rolling hills of glossy pastel gummy jelly in strawberry pink, peach and soft lemon with a few round marshmallow-like puffs and tiny jelly flowers at the edges, a soft pastel sky with a few round fluffy clouds, rings of soft light pulsing outward from behind the center, glossy round jelly droplets bouncing outward in happy arcs with short motion trails, cute and sweet like a toy candy land (not fleshy, not organic or body-like, no wet slimy surfaces, no dark plum shadows), soft rose, peach and cream tones in mid values, a warm burst of light behind the center. Super rare tier. Landscape 4:3.

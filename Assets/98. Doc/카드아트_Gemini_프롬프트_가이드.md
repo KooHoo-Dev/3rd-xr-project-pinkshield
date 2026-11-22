@@ -84,7 +84,7 @@ Each request ends with its tier (Normal, Rare, Super rare, Unique or Legendary).
 - Plain solid flat background in the color I specify, no gradient, no floor, no scenery
 - A small soft contact shadow directly below the creature
 - Element effects (fire, water, wind, rocks, sparkles) have crisp clean edges; no smoke, mist or glow haze spreading onto the background (Legendary glow is the only exception)
-- No text, no letters, no numbers, no border, no card frame
+- No text, no letters, no numbers, no border, no card frame, no stars, rarity symbols, icons, badges, logos, signatures, watermarks or stickers anywhere in the image (especially not in the corners)
 
 ITEM and PROP images (when a request starts with "Item:" or "Prop:"):
 - An object, not a creature: no face, no eyes, no mouth

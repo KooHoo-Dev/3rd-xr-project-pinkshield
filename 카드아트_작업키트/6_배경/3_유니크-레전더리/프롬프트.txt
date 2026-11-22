@@ -46,28 +46,28 @@ LAYOUT
 ============================================================
 
 --- F_U_bg.png  (용암 군주)
-Background: a grand hall carved from black obsidian, lava waterfalls glowing on both sides, a raised dark stone dais just above the center, warm dramatic light, dark red and black tones. Unique tier. Portrait 2:3.
+Background: a grand throne hall carved from black obsidian deep inside a volcano, tall pillars engraved with glowing orange rune carvings like the runes on the lord's stone shoulder plates, lava waterfalls pouring down both side walls into glowing channels, a raised dark stone dais just above the center, embers drifting upward, deep black, dark red and molten orange tones, a warm dramatic glow just above the center. Unique tier. Portrait 2:3.
 
 --- F_L_bg.png  (태양 거신)
-Background: an epic sky above an erupting volcano at sunset, glowing clouds, a radiant golden light just above the center that fades to deep red and purple at the edges, low camera angle. Legendary tier. Portrait 2:3.
+Background: the deep sky at the edge of space high above a dark volcanic world, the curve of the dark planet below with faint glowing lava rivers, a deep indigo, crimson and violet sky with streams of glowing solar wind and a few stars, a large radiant glow just above the center where the living sun will be, kept deep and dark around it so a bright golden sun stands out, epic scale. Legendary tier. Portrait 2:3.
 
---- W_U_bg.png  (산호 마녀)
-Background: a mysterious coral grotto deep under the sea, branches of glowing pink coral arching like a hall on both sides, drifting bioluminescent specks, a beam of light from above, deep blue and violet tones. Unique tier. Portrait 2:3.
+--- W_U_bg.png  (산호섬)
+Background: a tropical lagoon at sunset seen from just above the water, a warm peach, gold and soft coral sky with a few glowing clouds, deep teal and dark ocean-blue water (deeper and darker than a bright aqua slime so the character stands out), gentle rings of waves and white foam spreading outward across the water from the center as if something huge just rose from it, blue and coral pink reefs glowing faintly under the water near the edges, a few small distant islands with palm silhouettes on the horizon, warm golden light rays radiating outward from just above the center across the sky and the sea, glittering sunlight on the waves, a few soft four-pointed sparkles. No rainbow, no water arcs or spirals in the background, keep the area just above the center calm and open for the character. Unique tier. Portrait 2:3.
 
 --- W_L_bg.png  (심해 여왕)
-Background: the vast dark abyss of the deep sea, a single column of moonlight falling from far above to just above the center, glowing jellyfish drifting at the edges, deep navy tones, epic scale. Legendary tier. Portrait 2:3.
+Background: the vast dark abyss of the deep sea, a single column of pale moonlight falling from far above to just above the center, a ring of tall pale ice-blue crystal spires rising from the deep floor at the far left and right like the pillars of a sunken throne room, slow swirling currents and drifting light specks, a few glowing jellyfish at the edges, deep navy and dark teal tones so a bright ice-blue queen stands out, epic scale. Legendary tier. Portrait 2:3.
 
---- E_U_bg.png  (보석 군주)
-Background: a treasure cavern full of gem crystals in many colors glowing on the walls, a raised stone platform just above the center, shimmering reflections, dark tones with jewel-colored light. Unique tier. Portrait 2:3.
+--- E_U_bg.png  (보석 황녀)
+Background: a grand underground treasure palace, tall pillars of dark stone veined with gold rising on both sides, heaps of gold coins and large jewels glinting in the far shadows at the edges, hanging gold chains and amber lanterns, a raised stone platform just above the center, deep bronze, dark brown and gold tones with only emerald and ruby glints, a warm golden glow just above the center. Unique tier. Portrait 2:3.
 
---- E_L_bg.png  (산맥 거신)
-Background: an epic wide valley surrounded by towering mountains, forests and waterfalls, a golden evening sky glowing just above the center, low camera angle, deep green and amber tones. Legendary tier. Portrait 2:3.
+--- E_L_bg.png  (대지의 심장)
+Background: a vast hidden geode cavern deep at the center of the earth, giant emerald and amber crystal pillars rising from the walls and floor and pointing toward the center, thick ancient stone roots of the mountains and glowing golden ore veins running across the walls and converging toward the space just above the center, a faint glow of magma far below in deep cracks, floating motes of golden dust, a large warm golden glow just above the center where the heart will be, deep emerald, dark stone and gold tones. Legendary tier. Portrait 2:3.
 
 --- A_U_bg.png  (천공 수호자)
-Background: white stone ruins of an ancient sky temple floating among clouds at dawn, wind ribbons curling between the pillars at both sides, a soft light just above the center, muted blue and pearl tones (not bright white). Unique tier. Portrait 2:3.
+Background: the ruins of an ancient sky temple floating among clouds at twilight, broken white marble columns and arches at both sides with faint cyan wind runes glowing on them, a deep blue and violet evening sky with the first stars, soft clouds drifting below, thin wind ribbons curling between the pillars, a soft pale gold glow just above the center, kept deep enough that a white-armored guardian stands out. Unique tier. Portrait 2:3.
 
 --- A_L_bg.png  (하늘고래)
-Background: a vast night sky full of aurora ribbons above an endless sea of clouds, stars, the aurora brightest just above the center, deep navy, teal and violet tones, epic scale. Legendary tier. Portrait 2:3.
+Background: a calm moonlit sea of clouds high in the sky at night, soft silver-blue cloud waves stretching to the horizon, a large pale moon low behind the center, a deep blue sky with only a few soft stars and faint aurora ribbons far away at the edges, gentle silver mist, silver-blue and soft lavender tones lighter than a dark starry slime so the character stands out, epic scale. Legendary tier. Portrait 2:3.
 
 --- N_U_bg.png  (슬라임 대모)
 Background: a warm hidden hollow in a meadow at sunset, soft grass and the big roots of an old tree forming a cozy nook, fireflies, a warm glow just above the center, muted green and amber tones. Unique tier. Portrait 2:3.
