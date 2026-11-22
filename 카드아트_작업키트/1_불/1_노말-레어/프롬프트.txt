@@ -54,7 +54,7 @@ Unique, Legendary: rich illustration
 - One character centered, full body, square 1:1. The character fills about 65% of the frame width with a small even margin (Super rare, Unique and Legendary: the character and its effects may fill most of the frame, keeping a small margin)
 - Plain solid flat background in the color I name, no gradient, no floor, no scenery, no contact shadow
 - Effects have crisp clean edges, no smoke, mist or glow haze on the background (Legendary glow is the only exception)
-- No text, no letters, no numbers, no border, no frame
+- No text, no letters, no numbers, no border, no frame, no stars, rarity symbols, icons, badges, logos, signatures, watermarks or stickers anywhere in the image (especially not in the corners)
 
 EGG images ("Egg:"): an object with no face, same style and image rules.
 BACKGROUND images ("Background:"): soft painterly 2D painting, gentle gradients, low detail, slightly blurred, light from the top-left, mid-tone values, no creatures, no text.
@@ -67,7 +67,7 @@ Avoid: anything that looks like an existing game, anime or mascot character (if 
 ============================================================
 
 --- F-N1 불씨 슬라임  →  저장: F_N1_char.png   [리터칭 (디자인 유지 · 크게만)]
-Edit the attached image (the current F_N1_char.png): keep the character exactly the same — the same warm orange jelly dome body, the same small flame on top, the same face, colors, lighting and 3D toy style. Change only the framing: zoom in so the character fills about 65% of the frame width, still centered with a small even margin, at higher detail and sharper resolution. Keep the plain solid white background.
+Edit the attached image (the current F_N1_char.png): keep the character exactly the same — the same warm orange jelly dome body, the same small flame on top, the same face, colors, lighting and 3D toy style. Change only the framing: zoom in so the character fills about 65% of the frame width, still centered with a small even margin, at higher detail and sharper resolution. Keep the plain solid white background. Do not add any stars, icons, symbols or watermarks.
 
 --- F-N2 숯가시 슬라임  →  저장: F_N2_char.png   [완료 (11-22 GPT 합성 그림 사용 · 수정 안 함)]
 Character: small flattened wide dark red jelly slime, a short row of black charcoal spikes growing along its back, the spike tips glowing hot, accent color yellow-white on the spike tips, smug half-lidded eyes. Normal tier. Background: plain solid white.

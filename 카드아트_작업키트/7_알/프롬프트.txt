@@ -14,7 +14,7 @@ Follow these rules for every image in this chat unless I say otherwise.
 COMFORT (every image)
 - Mid-to-dark tones overall. No large white or very bright areas: the cards are viewed in VR and big bright areas tire the eyes
 - Light comes from the top-left
-- No text, no letters, no numbers, no border, no card frame
+- No text, no letters, no numbers, no border, no card frame, no stars, rarity symbols, icons, badges, logos, signatures, watermarks or stickers anywhere in the image (especially not in the corners)
 
 BACKGROUND (a request starting with "Background:")
 - A soft painterly 2D digital painting, gentle gradients, low-to-medium detail, slightly blurred with a shallow depth of field, like a stage backdrop

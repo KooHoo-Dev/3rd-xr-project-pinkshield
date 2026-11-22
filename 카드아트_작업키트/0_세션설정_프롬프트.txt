@@ -43,7 +43,7 @@ Unique, Legendary: rich illustration
 - One character centered, full body, square 1:1. The character fills about 65% of the frame width with a small even margin (Super rare, Unique and Legendary: the character and its effects may fill most of the frame, keeping a small margin)
 - Plain solid flat background in the color I name, no gradient, no floor, no scenery, no contact shadow
 - Effects have crisp clean edges, no smoke, mist or glow haze on the background (Legendary glow is the only exception)
-- No text, no letters, no numbers, no border, no frame
+- No text, no letters, no numbers, no border, no frame, no stars, rarity symbols, icons, badges, logos, signatures, watermarks or stickers anywhere in the image (especially not in the corners)
 
 EGG images ("Egg:"): an object with no face, same style and image rules.
 BACKGROUND images ("Background:"): soft painterly 2D painting, gentle gradients, low detail, slightly blurred, light from the top-left, mid-tone values, no creatures, no text.
